@@ -29,3 +29,15 @@ test("converts a fenced code block", () => {
   expect(md).toContain("```");
   expect(md).toContain("const x = 1;");
 });
+
+test("converts an unordered list", () => {
+  expect(toMarkdown(node("<ul><li>one</li><li>two</li></ul>"))).toBe(
+    "-   one\n-   two"
+  );
+});
+
+test("converts an ordered list", () => {
+  expect(toMarkdown(node("<ol><li>one</li><li>two</li></ol>"))).toBe(
+    "1.  one\n2.  two"
+  );
+});

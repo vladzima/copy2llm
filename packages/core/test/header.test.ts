@@ -16,3 +16,9 @@ test("omits the title line when title is empty", () => {
 test("returns the body unchanged when nothing to prepend", () => {
   expect(prependHeader("Body.", "", "")).toBe("Body.");
 });
+
+test("returns only the header when the body is empty", () => {
+  expect(prependHeader("", "T", "https://x.com/p")).toBe(
+    "# T\n\n> Source: https://x.com/p"
+  );
+});
