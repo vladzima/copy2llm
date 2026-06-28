@@ -3,111 +3,2839 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>copy2llm — a "Copy to LLM" button any website can embed</title>
+    <title>Copy2LLM: add a Copy to LLM button to any page</title>
     <meta
       name="description"
-      content="Add a Copy-to-LLM button to any website: convert the page to clean Markdown and open it in ChatGPT or Claude. One script tag, an npm package, or a Framer component."
+      content="Drop in one script and readers can turn your page into clean Markdown, or open it in ChatGPT or Claude. Client-side, no backend, no accounts. MIT licensed."
     >
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Copy2LLM">
+    <meta property="og:url" content="https://copy.computer">
+    <meta
+      property="og:title"
+      content="Copy2LLM: add a Copy to LLM button to any page"
+    >
+    <meta
+      property="og:description"
+      content="One script. Readers turn your page into clean Markdown, or open it in ChatGPT or Claude. Client-side, no backend, no accounts."
+    >
+    <meta property="og:image" content="https://copy.computer/og.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1999">
+    <meta property="og:image:height" content="1045">
+    <meta
+      property="og:image:alt"
+      content="Copy2LLM — Take any page to an LLM. A Copy to LLM button with a menu: Copy as Markdown, View as Markdown, Open in ChatGPT, Open in Claude."
+    >
+    <meta name="twitter:card" content="summary_large_image">
+    <meta
+      name="twitter:title"
+      content="Copy2LLM: add a Copy to LLM button to any page"
+    >
+    <meta
+      name="twitter:description"
+      content="One script. Readers turn your page into clean Markdown, or open it in ChatGPT or Claude. Client-side, no backend, no accounts."
+    >
+    <meta name="twitter:image" content="https://copy.computer/og.jpg">
+
     <style>
-    :root {
-      color-scheme: light dark;
+    /* Fonts: self-hosted variable fonts (latin + latin-ext), served from /fonts. */
+    @font-face {
+      font-family: "DM Sans";
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url("/fonts/dmsans-latin.woff2") format("woff2");
+      unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+        U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+        U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
     }
-    * {
+    @font-face {
+      font-family: "DM Sans";
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url("/fonts/dmsans-latin-ext.woff2") format("woff2");
+      unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+        U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+        U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+        U+A720-A7FF;
+    }
+    @font-face {
+      font-family: "Geist";
+      font-style: normal;
+      font-weight: 400 600;
+      font-display: swap;
+      src: url("/fonts/geist-latin.woff2") format("woff2");
+      unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+        U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+        U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: "Geist";
+      font-style: normal;
+      font-weight: 400 600;
+      font-display: swap;
+      src: url("/fonts/geist-latin-ext.woff2") format("woff2");
+      unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+        U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+        U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+        U+A720-A7FF;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url("/fonts/jetbrainsmono-latin.woff2") format("woff2");
+      unicode-range:
+        U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+        U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+        U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: "JetBrains Mono";
+      font-style: normal;
+      font-weight: 400 700;
+      font-display: swap;
+      src: url("/fonts/jetbrainsmono-latin-ext.woff2") format("woff2");
+      unicode-range:
+        U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+        U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+        U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+        U+A720-A7FF;
+    }
+
+    /* --------------------------------------------------------------- Tokens */
+    :root {
+      --void: #0a0a0a;
+      --char: #1d1d1d;
+      --iron: #3d3d3d;
+      --ink: #282828;
+      --fog: #686868;
+      --mist: #c2c2c2;
+      --ash: #b2b2b2;
+      --bone: #e5e5e5;
+      --paper: #ffffff;
+      --indigo: #6b62f2;
+
+      /* Hairlines + glass, expressed as bone at low opacity. */
+      --line: rgba(229, 229, 229, 0.08);
+      --line-soft: rgba(229, 229, 229, 0.06);
+      --line-strong: rgba(229, 229, 229, 0.12);
+
+      --font-display:
+        "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        sans-serif;
+      --font-ui:
+        "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        sans-serif;
+      --font-mono:
+        "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+      --maxw: 1200px;
+      --gap: 80px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ----------------------------------------------------------------- Base */
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
     }
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-feature-settings:
+        "ss01" on,
+        "cv11" on;
       -webkit-font-smoothing: antialiased;
-      line-height: 1.55;
-      color: #111;
-      background: #fff;
-    }
-    main {
-      max-width: 640px;
-      padding: 14vh 24px 24px;
-      margin: 0 auto;
-    }
-    h1 {
-      margin: 0 0 0.4em;
-      font-size: 2.4rem;
-      letter-spacing: -0.02em;
-    }
-    p {
-      margin: 0 0 1em;
-      font-size: 1.05rem;
-    }
-    .muted {
-      color: #666;
-    }
-    code,
-    pre {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 0.9rem;
-    }
-    pre {
-      padding: 14px 16px;
-      overflow: auto;
-      background: #f5f5f5;
-      border: 1px solid #e5e5e5;
-      border-radius: 8px;
+      line-height: 1.5;
+      color: var(--bone);
+      background: var(--void);
+      text-rendering: optimizeLegibility;
     }
     a {
       color: inherit;
+      text-decoration: none;
     }
-    footer {
-      margin-top: 3em;
+    ::selection {
+      color: #fff;
+      background: rgba(229, 229, 229, 0.18);
+    }
+    .wrap {
+      width: 100%;
+      max-width: var(--maxw);
+      padding: 0 24px;
+      margin: 0 auto;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      white-space: nowrap;
+      border: 0;
+      clip: rect(0, 0, 0, 0);
+    }
+    svg.ic {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      vertical-align: -0.125em;
+      fill: currentColor;
+    }
+
+    /* ---------------------------------------------------------- Reveal motion */
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(22px);
+      transition:
+        opacity 0.7s var(--ease),
+        transform 0.7s var(--ease);
+      will-change: opacity, transform;
+    }
+    [data-reveal].in {
+      opacity: 1;
+      transform: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      [data-reveal] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
+    /* ------------------------------------------------------------------ Hero */
+    .hero {
+      position: relative;
+      display: flex;
+      align-items: center;
+      min-height: 100dvh;
+      padding: 96px 0 120px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    /* Dawn-wash bloom (navy to slate to earth) upper-right, behind the glass mockup, fading to void so left text stays crisp on near-black. */
+    .hero::before {
+      position: absolute;
+      inset: -20% -10% auto -10%;
+      z-index: -2;
+      height: 130%;
+      content: "";
+      background:
+        radial-gradient(
+          62% 70% at 74% 20%,
+          rgba(72, 103, 175, 0.55) 0%,
+          rgba(156, 175, 184, 0.28) 38%,
+          rgba(196, 149, 119, 0.16) 60%,
+          rgba(10, 10, 10, 0) 78%
+        ),
+        radial-gradient(
+          48% 48% at 52% 8%,
+          rgba(107, 98, 242, 0.42) 0%,
+          rgba(107, 98, 242, 0) 70%
+        );
+      filter: saturate(108%);
+    }
+    /* Settle the band back to void toward the fold. */
+    .hero::after {
+      position: absolute;
+      inset: auto 0 0 0;
+      z-index: -1;
+      height: 38%;
+      pointer-events: none;
+      content: "";
+      background: linear-gradient(180deg, rgba(10, 10, 10, 0), var(--void));
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      gap: 56px;
+      align-items: center;
+      width: 100%;
+    }
+    .hero-copy {
+      max-width: 540px;
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.7rem, 6.4vw, 4.5rem);
+      font-weight: 400;
+      line-height: 1.08;
+      color: var(--paper);
+      letter-spacing: -0.035em;
+    }
+    .hero .lede {
+      max-width: 460px;
+      margin: 26px 0 0;
+      font-size: 1.125rem;
+      line-height: 1.5;
+      color: var(--mist);
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    /* --------------------------------------------------------------- Buttons */
+    .btn {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      height: 44px;
+      padding: 0 20px;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-radius: 9999px;
+      transition:
+        transform 0.18s var(--ease),
+        background 0.18s var(--ease),
+        border-color 0.18s var(--ease),
+        color 0.18s var(--ease);
+    }
+    .btn:active {
+      transform: translateY(1px);
+    }
+    .btn-primary {
+      color: #0a0a0a;
+      background: var(--paper);
+    }
+    .btn-primary:hover {
+      background: #ececec;
+      transform: translateY(-1px);
+    }
+    .btn-primary .ic {
+      color: #0a0a0a;
+    }
+    .btn-ghost {
+      color: var(--bone);
+      background: transparent;
+      border-color: var(--line-strong);
+    }
+    .btn-ghost:hover {
+      background: rgba(229, 229, 229, 0.06);
+      border-color: rgba(229, 229, 229, 0.22);
+      transform: translateY(-1px);
+    }
+    .btn-ghost .ic {
+      color: var(--ash);
+    }
+
+    /* ---------------------------------------------------------- Glass mockup */
+    /* Two stacked layers: the window (.mockup) and the menu broken out of it to
+                                                                                                               the upper-right. `[data-px]` layers drift at different rates on scroll. */
+    .hero-art {
+      position: relative;
+    }
+    [data-px] {
+      will-change: transform;
+    }
+    .mockup {
+      position: relative;
+      z-index: 1;
+      padding: 14px;
+      overflow: hidden;
+      /* Frosted frame: low opacity so the dawn gradient reads through the frame,
+                                                                                                                                                     while the blur keeps it glassy. The doc inside stays opaque (below). */
+      background: rgba(29, 29, 29, 0.42);
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
+      box-shadow:
+        0 24px 48px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      backdrop-filter: blur(24px) saturate(160%);
+    }
+    .mockup-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 6px 8px 14px;
+    }
+    .mockup-dot {
+      width: 9px;
+      height: 9px;
+      background: rgba(229, 229, 229, 0.16);
+      border-radius: 9999px;
+    }
+    .mockup-url {
+      margin-left: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--fog);
+      letter-spacing: 0.01em;
+      transition: opacity 0.3s ease;
+    }
+    .mockup-doc {
+      min-height: 214px;
+      padding: 22px 22px 24px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.62;
+      background: rgba(10, 10, 10, 0.75);
+      border: 1px solid var(--line-soft);
+      border-radius: 16px;
+    }
+    /* JS takes over the doc and types raw markdown into one pre-wrap flow. */
+    .mockup-doc.is-typing {
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .mockup-doc .h1 {
+      font-weight: 500;
+      color: var(--bone);
+    }
+    .mockup-doc .h2 {
+      margin-top: 12px;
+      color: var(--ash);
+    }
+    .mockup-doc .tok {
+      color: var(--fog);
+      opacity: 0.92;
+    }
+    .mockup-doc .txt {
+      color: var(--mist);
+    }
+    .mockup-doc .li {
+      color: var(--mist);
+    }
+    .mockup-doc .li .tok {
+      margin-right: 6px;
+    }
+    .mockup-doc .caret {
+      display: inline-block;
+      width: 7px;
+      height: 1.05em;
+      margin-left: 1px;
+      vertical-align: -0.18em;
+      background: var(--bone);
+      border-radius: 1px;
+      opacity: 0.85;
+      animation: blink 1.15s steps(1) infinite;
+    }
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .mockup-doc .caret {
+        animation: none;
+      }
+    }
+    /* Action menu floating over the doc, echoing the real widget menu. */
+    .mockup-menu {
+      position: absolute;
+      top: 30%;
+      right: -26px;
+      z-index: 2;
+      width: 224px;
+      padding: 6px;
+      background: rgba(29, 29, 29, 0.86);
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      backdrop-filter: blur(18px) saturate(140%);
+    }
+    .mockup-menu .row {
+      display: flex;
+      gap: 11px;
+      align-items: center;
+      padding: 9px 12px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--bone);
+      border-radius: 10px;
+    }
+    .mockup-menu .row .ic {
+      font-size: 16px;
+      color: var(--ash);
+    }
+    .mockup-menu .row.active {
+      background: rgba(229, 229, 229, 0.07);
+    }
+    .mockup-menu .row .ext {
+      margin-left: auto;
+      font-size: 13px;
+      color: var(--fog);
+    }
+
+    /* --------------------------------------------------------------- Section */
+    section {
+      position: relative;
+      padding: var(--gap) 0;
+    }
+    .eyebrow {
+      margin: 0 0 18px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--fog);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+    }
+    .h-sec {
+      max-width: 16ch;
+      margin: 0;
+      font-size: clamp(2rem, 4.4vw, 3rem);
+      font-weight: 400;
+      line-height: 1.08;
+      color: var(--bone);
+      letter-spacing: -0.03em;
+    }
+    .sub-sec {
+      max-width: 52ch;
+      margin: 18px 0 0;
+      font-size: 1.0625rem;
+      color: var(--mist);
+    }
+
+    /* ----------------------------------------------------------- Actions bento */
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: minmax(168px, auto);
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .tile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow: hidden;
+      background: var(--char);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      transition:
+        border-color 0.25s var(--ease),
+        transform 0.25s var(--ease);
+    }
+    .tile:hover {
+      border-color: var(--line-strong);
+      transform: translateY(-2px);
+    }
+    .tile .ic-well {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      font-size: 19px;
+      color: var(--bone);
+      background: var(--ink);
+      border-radius: 10px;
+    }
+    .tile h3 {
+      margin: 18px 0 0;
+      font-family: var(--font-ui);
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--bone);
+      letter-spacing: -0.01em;
+    }
+    .tile p {
+      max-width: 34ch;
+      margin: 8px 0 0;
+      font-size: 0.95rem;
+      color: var(--mist);
+    }
+    .tile-copy {
+      grid-column: span 2;
+    }
+    .tile-claude {
+      grid-column: span 2;
+    }
+    .tile-foot {
+      margin-top: auto;
+    }
+    /* Mini markdown strip inside the wide Copy tile (visual variation). */
+    .md-strip {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 22px;
+      margin-top: auto;
+    }
+    .md-strip span {
+      display: block;
+      height: 7px;
+      background: rgba(229, 229, 229, 0.09);
+      border-radius: 4px;
+    }
+    .md-strip span.a {
+      width: 42%;
+      background: rgba(229, 229, 229, 0.18);
+    }
+    .md-strip span.b {
+      width: 88%;
+    }
+    .md-strip span.c {
+      width: 72%;
+    }
+    .md-strip span.d {
+      width: 80%;
+    }
+    .tile-claude::after {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      background: radial-gradient(
+        80% 120% at 88% 110%,
+        rgba(107, 98, 242, 0.16) 0%,
+        rgba(107, 98, 242, 0) 60%
+      );
+    }
+    .tile-claude > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ------------------------------------------------------------- Install code */
+    .install-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: 48px;
+      align-items: start;
+    }
+    .tabs {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      margin-bottom: 16px;
+      background: var(--char);
+      border: 1px solid var(--line);
+      border-radius: 9999px;
+    }
+    .tab {
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      height: 34px;
+      padding: 0 15px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ash);
+      appearance: none;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      border-radius: 9999px;
+      transition:
+        color 0.2s var(--ease),
+        background 0.2s var(--ease);
+    }
+    .tab .ic {
+      font-size: 15px;
+      opacity: 0.9;
+    }
+    .tab[aria-selected="true"] {
+      color: var(--paper);
+      background: var(--iron);
+    }
+    .tab:hover:not([aria-selected="true"]) {
+      color: var(--bone);
+    }
+    .code-card {
+      position: relative;
+      overflow: hidden;
+      background: rgba(29, 29, 29, 0.66);
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      backdrop-filter: blur(20px) saturate(140%);
+    }
+    .code-card pre {
+      padding: 22px 24px;
+      margin: 0;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      -webkit-font-smoothing: auto;
+      line-height: 1.7;
+      color: var(--mist);
+    }
+    .code-card pre[hidden] {
+      display: none;
+    }
+    .code-card .cmt {
+      color: var(--fog);
+    }
+    .code-card .kw {
+      color: var(--bone);
+    }
+    .code-card .str {
+      color: var(--ash);
+    }
+    .code-card .tag {
+      color: var(--mist);
+    }
+    .copy-code {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      height: 32px;
+      padding: 0 12px;
+      font-family: var(--font-display);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--ash);
+      cursor: pointer;
+      background: rgba(10, 10, 10, 0.5);
+      border: 1px solid var(--line-strong);
+      border-radius: 9999px;
+      transition:
+        color 0.18s var(--ease),
+        border-color 0.18s var(--ease);
+    }
+    .copy-code:hover {
+      color: var(--bone);
+      border-color: rgba(229, 229, 229, 0.22);
+    }
+    .copy-code .ic {
+      font-size: 14px;
+    }
+    .install-note {
+      margin: 18px 0 0;
+      font-size: 0.9rem;
+      color: var(--fog);
+    }
+    .install-note code {
+      font-family: var(--font-mono);
       font-size: 0.85rem;
+      color: var(--mist);
     }
-    @media (prefers-color-scheme: dark) {
-      body {
-        color: #f5f5f5;
-        background: #111;
+
+    /* --------------------------------------------------------- Numbered features */
+    .why-list {
+      margin-top: 44px;
+      border-top: 1px solid var(--line-soft);
+    }
+    .why-row {
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 20px;
+      align-items: baseline;
+      padding: 22px 4px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .why-row .num {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--fog);
+      letter-spacing: 0.04em;
+    }
+    .why-row .lab {
+      max-width: 56ch;
+      font-family: var(--font-ui);
+      font-size: 1.0625rem;
+      color: var(--mist);
+    }
+    .why-row .lab b {
+      font-weight: 500;
+      color: var(--bone);
+    }
+    .why-row .meta {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--fog);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ------------------------------------------------------------------ Footer */
+    footer {
+      padding: 64px 0 140px;
+      border-top: 1px solid var(--line-soft);
+    }
+    .foot-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .foot-mark {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--paper);
+      letter-spacing: -0.01em;
+    }
+    .foot-links {
+      display: flex;
+      gap: 24px;
+      font-size: 0.95rem;
+      color: var(--mist);
+    }
+    .foot-links a {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      transition: color 0.18s var(--ease);
+    }
+    .foot-links a:hover {
+      color: var(--bone);
+    }
+    .foot-note {
+      flex-basis: 100%;
+      font-size: 0.85rem;
+      color: var(--fog);
+    }
+    .foot-note a {
+      color: var(--mist);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color 0.18s var(--ease);
+    }
+    .foot-note a:hover {
+      color: var(--bone);
+    }
+
+    /* ------------------------------------------------------- Floating pill nav */
+    .dock {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      z-index: 50;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      width: max-content;
+      max-width: calc(100vw - 32px);
+      height: 52px;
+      padding: 0 8px 0 18px;
+      background: rgba(29, 29, 29, 0.78);
+      border: 1px solid var(--line-strong);
+      border-radius: 9999px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      backdrop-filter: blur(20px) saturate(150%);
+      transform: translateX(-50%);
+    }
+    .dock-mark {
+      margin-right: 8px;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--paper);
+      letter-spacing: -0.01em;
+    }
+    .dock-links {
+      position: relative;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    /* One highlight pill that glides between links on hover / the active section. */
+    .dock-hl {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 0;
+      height: 32px;
+      pointer-events: none;
+      background: rgba(229, 229, 229, 0.09);
+      border-radius: 9999px;
+      opacity: 0;
+      transform: translateY(-50%);
+      transition:
+        transform 0.26s var(--ease),
+        width 0.26s var(--ease),
+        opacity 0.2s var(--ease);
+    }
+    .dock-links a {
+      position: relative;
+      z-index: 1;
+      padding: 8px 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--mist);
+      border-radius: 9999px;
+      transition: color 0.18s var(--ease);
+    }
+    .dock-links a:hover {
+      color: var(--bone);
+    }
+    /* Scroll-spy: the link for the section currently in view. */
+    .dock-links a.active {
+      color: var(--paper);
+    }
+    .dock-x {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      color: var(--ash);
+      border-radius: 9999px;
+      transition:
+        color 0.18s var(--ease),
+        background 0.18s var(--ease);
+    }
+    .dock-x:hover {
+      color: var(--bone);
+      background: rgba(229, 229, 229, 0.07);
+    }
+    .dock-x .ic {
+      font-size: 15px;
+    }
+    /* The dock CTA grows in (width + fade) only once the hero CTA scrolls away,
+                                                                                                                                                                           so the dock container eases open instead of snapping. */
+    .dock .btn {
+      max-width: 0;
+      height: 36px;
+      padding: 0;
+      margin-left: 0;
+      overflow: hidden;
+      font-size: 14px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition:
+        max-width 0.34s var(--ease),
+        padding 0.34s var(--ease),
+        margin 0.34s var(--ease),
+        opacity 0.26s var(--ease);
+    }
+    .dock.show-cta .btn {
+      max-width: 220px;
+      padding: 0 16px;
+      margin-left: 4px;
+      pointer-events: auto;
+      opacity: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dock-hl,
+      .dock .btn {
+        transition: none;
       }
-      .muted {
-        color: #999;
+    }
+
+    /* -------------------------------------------------------------- Responsive */
+    @media (max-width: 920px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 44px;
       }
-      pre {
-        background: #1a1a1a;
-        border-color: #2a2a2a;
+      .hero {
+        min-height: auto;
+        padding: 88px 0 96px;
+      }
+      .hero-copy {
+        max-width: 600px;
+      }
+      .install-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+    }
+    @media (max-width: 720px) {
+      :root {
+        --gap: 64px;
+      }
+      .bento {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+      }
+      .tile-copy,
+      .tile-claude {
+        grid-column: span 1;
+      }
+      .mockup-menu {
+        position: static;
+        width: auto;
+        margin-top: 14px;
+      }
+      .dock-links {
+        display: none;
+      }
+      .dock {
+        height: 48px;
+        padding: 0 8px 0 16px;
+      }
+      .why-row {
+        grid-template-columns: 36px 1fr;
+      }
+      .why-row .meta {
+        display: none;
+      }
+    }
+
+    /* --------------------------------------------------------- Why it matters */
+    .why-matters .lead {
+      max-width: 20ch;
+      margin: 0;
+      font-size: clamp(2rem, 4.8vw, 3.2rem);
+      font-weight: 400;
+      line-height: 1.07;
+      color: var(--bone);
+      letter-spacing: -0.03em;
+    }
+    .why-matters .lead em {
+      font-style: italic;
+      color: var(--paper);
+    }
+    .why-matters .body {
+      max-width: 54ch;
+      margin: 24px 0 0;
+      font-size: 1.125rem;
+      color: var(--mist);
+    }
+    .points {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      margin: 56px 0 0;
+      text-align: left;
+      border-top: 1px solid var(--line-soft);
+    }
+    .point {
+      padding: 28px 28px 8px;
+      border-left: 1px solid var(--line-soft);
+    }
+    .point:first-child {
+      padding-left: 4px;
+      border-left: 0;
+    }
+    .point h3 {
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: 1.0625rem;
+      font-weight: 500;
+      color: var(--bone);
+    }
+    .point p {
+      margin: 9px 0 0;
+      font-size: 0.95rem;
+      color: var(--mist);
+    }
+
+    /* ------------------------------------------------- Install (the action band) */
+    /* Unlike the flat informational sections, this is where the reader acts — so
+                                                                                                                                                       it reads as a lit glass deck: a full-bleed band (hairlines + faint char
+                                                                                                                                                       tint + an indigo spotlight) with the configurator floating on it as glass. */
+    #install {
+      position: relative;
+      padding: 96px 0;
+      border-top: 1px solid var(--line-soft);
+      border-bottom: 1px solid var(--line-soft);
+      isolation: isolate;
+    }
+    #install::before {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      content: "";
+      background:
+        radial-gradient(
+          80% 70% at 50% -8%,
+          rgba(107, 98, 242, 0.12) 0%,
+          rgba(107, 98, 242, 0) 56%
+        ),
+        linear-gradient(
+          180deg,
+          rgba(29, 29, 29, 0) 0%,
+          rgba(29, 29, 29, 0.4) 45%,
+          rgba(29, 29, 29, 0) 100%
+        );
+    }
+    .chip {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      height: 28px;
+      padding: 0 14px;
+      margin-bottom: 18px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--mist);
+      background: rgba(29, 29, 29, 0.7);
+      border: 1px solid var(--line-strong);
+      border-radius: 9999px;
+    }
+    .chip-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--bone);
+      border-radius: 9999px;
+    }
+
+    /* ----------------------------------------------------------- Configurator */
+    .cfg {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      gap: 32px;
+      align-items: start;
+      margin-top: 48px;
+    }
+    .cfg-panel {
+      padding: 4px 24px 22px;
+      background: rgba(29, 29, 29, 0.66);
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      backdrop-filter: blur(20px) saturate(140%);
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .field:last-child {
+      border-bottom: 0;
+    }
+    .field > .label {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--fog);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+    .seg {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      width: fit-content;
+      padding: 4px;
+      background: var(--void);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .seg button {
+      height: 30px;
+      padding: 0 13px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ash);
+      appearance: none;
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      border-radius: 10px;
+      transition:
+        color 0.18s var(--ease),
+        background 0.18s var(--ease);
+    }
+    .seg button[aria-pressed="true"] {
+      color: var(--paper);
+      background: var(--iron);
+    }
+    .seg button[aria-pressed="false"]:hover {
+      color: var(--bone);
+    }
+    .checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chk {
+      position: relative;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      height: 34px;
+      padding: 0 14px;
+      font-size: 14px;
+      color: var(--mist);
+      cursor: pointer;
+      user-select: none;
+      background: var(--void);
+      border: 1px solid var(--line);
+      border-radius: 9999px;
+      transition:
+        color 0.18s var(--ease),
+        border-color 0.18s var(--ease);
+    }
+    .chk svg.ic {
+      font-size: 15px;
+      color: var(--ash);
+    }
+    .chk input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+    .chk[data-on="true"] {
+      color: var(--bone);
+      border-color: rgba(229, 229, 229, 0.3);
+    }
+    .chk[data-on="true"] svg.ic {
+      color: var(--bone);
+    }
+    .cfg-text {
+      width: 100%;
+      max-width: 300px;
+      height: 40px;
+      padding: 0 14px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--bone);
+      background: var(--void);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .cfg-text:focus {
+      outline: none;
+      border-color: rgba(229, 229, 229, 0.3);
+    }
+    .swatches {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .swatch {
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      cursor: pointer;
+      border: 1px solid var(--line-strong);
+      border-radius: 9999px;
+      transition: transform 0.15s var(--ease);
+    }
+    .swatch:hover {
+      transform: translateY(-1px);
+    }
+    .swatch[aria-pressed="true"] {
+      outline: 2px solid var(--bone);
+      outline-offset: 2px;
+    }
+    .swatch.is-default {
+      width: auto;
+      height: 30px;
+      padding: 0 14px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ash);
+      background: var(--void);
+    }
+    .swatch.is-default[aria-pressed="true"] {
+      color: var(--bone);
+      outline: none;
+      border-color: rgba(229, 229, 229, 0.3);
+    }
+    .swatch-pick {
+      position: relative;
+      display: inline-flex;
+    }
+    .swatch-custom {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      padding: 0;
+      cursor: pointer;
+      background: conic-gradient(
+        from 90deg,
+        #e0705a,
+        #e0c25a,
+        #6fd08a,
+        #5fa3e0,
+        #9e8ce0,
+        #e06fa8,
+        #e0705a
+      );
+      border: 1px solid var(--line-strong);
+      border-radius: 9999px;
+      transition: transform 0.15s var(--ease);
+    }
+    .swatch-custom:hover {
+      transform: translateY(-1px);
+    }
+    .swatch-custom .pick-ic {
+      display: grid;
+      place-items: center;
+      width: 16px;
+      height: 16px;
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1;
+      color: #0a0a0a;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 9999px;
+    }
+    .swatch-custom[data-custom="true"] .pick-ic {
+      display: none;
+    }
+    .swatch-custom[aria-pressed="true"] {
+      outline: 2px solid var(--bone);
+      outline-offset: 2px;
+    }
+    .pick-pop {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 220px;
+      padding: 14px;
+      background: rgba(20, 20, 20, 0.92);
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      backdrop-filter: blur(18px) saturate(160%);
+    }
+    .pick-pop[hidden] {
+      display: none;
+    }
+    .pick-top {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .pick-preview {
+      flex: 0 0 auto;
+      width: 34px;
+      height: 34px;
+      background: #6b62f2;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+    }
+    .pick-hex {
+      display: flex;
+      flex: 1 1 auto;
+      gap: 4px;
+      align-items: center;
+      height: 34px;
+      padding: 0 10px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--fog);
+      background: var(--void);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .pick-hex:focus-within {
+      border-color: rgba(229, 229, 229, 0.3);
+    }
+    .pick-hex input {
+      width: 100%;
+      padding: 0;
+      font: inherit;
+      color: var(--bone);
+      text-transform: lowercase;
+      outline: none;
+      background: transparent;
+      border: 0;
+    }
+    .pick-hue {
+      width: 100%;
+      height: 14px;
+      margin: 0;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      background: linear-gradient(
+        90deg,
+        hsl(0 70% 55%),
+        hsl(60 70% 55%),
+        hsl(120 70% 55%),
+        hsl(180 70% 55%),
+        hsl(240 70% 55%),
+        hsl(300 70% 55%),
+        hsl(360 70% 55%)
+      );
+      border-radius: 9999px;
+    }
+    .pick-hue::-webkit-slider-thumb {
+      width: 16px;
+      height: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      background: #fff;
+      border: 2px solid rgba(10, 10, 10, 0.55);
+      border-radius: 9999px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+    .pick-hue::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      background: #fff;
+      border: 2px solid rgba(10, 10, 10, 0.55);
+      border-radius: 9999px;
+    }
+    .cfg-hint {
+      margin: 18px 0 0;
+      font-size: 0.85rem;
+      color: var(--fog);
+    }
+    .cfg-hint code {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--mist);
+    }
+    .cfg-out .tabs {
+      margin-bottom: 12px;
+    }
+    .cfg-out .code-card pre {
+      min-height: 128px;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .cfg-actions {
+      margin-top: 12px;
+    }
+    /* Framer tab: a centered "coming soon" note, with copy/ask hidden. */
+    .cfg-out[data-soon="true"] .copy-code,
+    .cfg-out[data-soon="true"] .cfg-actions {
+      display: none;
+    }
+    .cfg-out[data-soon="true"] .code-card pre {
+      display: grid;
+      place-items: center;
+      min-height: 168px;
+      color: var(--fog);
+      text-align: center;
+    }
+    .btn-llm {
+      display: inline-flex;
+      gap: 9px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 44px;
+      padding: 0 18px;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--bone);
+      cursor: pointer;
+      background: rgba(229, 229, 229, 0.04);
+      border: 1px solid var(--line-strong);
+      border-radius: 9999px;
+      transition:
+        color 0.18s var(--ease),
+        background 0.18s var(--ease),
+        border-color 0.18s var(--ease),
+        transform 0.18s var(--ease);
+    }
+    .btn-llm:hover {
+      background: rgba(229, 229, 229, 0.08);
+      border-color: rgba(229, 229, 229, 0.22);
+      transform: translateY(-1px);
+    }
+    .btn-llm:active {
+      transform: translateY(0);
+    }
+    .btn-llm .ic {
+      font-size: 16px;
+      color: var(--ash);
+    }
+
+    @media (max-width: 860px) {
+      .cfg {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+    }
+    @media (max-width: 680px) {
+      .points {
+        grid-template-columns: 1fr;
+      }
+      .point {
+        padding: 22px 4px 6px;
+        border-top: 1px solid var(--line-soft);
+        border-left: 0;
+      }
+      .point:first-child {
+        border-top: 0;
       }
     }
     </style>
   </head>
-  <body>
+  <body id="top">
+    <!-- Icon sprite (Phosphor regular for UI; OpenAI/Claude marks rendered
+         monochrome to respect the monochromatic system). -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <symbol id="ic-copy" viewBox="0 0 256 256">
+        <path
+          d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"
+        />
+      </symbol>
+      <symbol id="ic-view" viewBox="0 0 256 256">
+        <path
+          d="M86.75,44.3,33.48,128l53.27,83.7a8,8,0,0,1-2.46,11.05A7.91,7.91,0,0,1,80,224a8,8,0,0,1-6.76-3.71l-56-88a8,8,0,0,1,0-8.59l56-88a8,8,0,1,1,13.5,8.59Zm152,79.41-56-88a8,8,0,1,0-13.5,8.59L222.52,128l-53.27,83.7a8,8,0,0,0,2.46,11.05A7.91,7.91,0,0,0,176,224a8,8,0,0,0,6.76-3.71l56-88A8,8,0,0,0,238.75,123.71Z"
+        />
+      </symbol>
+      <symbol id="ic-arrow" viewBox="0 0 256 256">
+        <path
+          d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"
+        />
+      </symbol>
+      <symbol id="ic-spark" viewBox="0 0 256 256">
+        <path
+          d="M197.58,129.06l-51.61-19-19-51.65a15.92,15.92,0,0,0-29.88,0l-19,51.61-51.65,19a15.92,15.92,0,0,0,0,29.88l51.61,19,19,51.65a15.92,15.92,0,0,0,29.88,0l19-51.61,51.65-19a15.92,15.92,0,0,0,0-29.88Z"
+        />
+      </symbol>
+      <symbol id="ic-x" viewBox="0 0 24 24">
+        <path
+          d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"
+        />
+      </symbol>
+      <symbol id="ic-openai" viewBox="0 0 24 24">
+        <path
+          d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"
+        />
+      </symbol>
+      <symbol id="ic-claude" viewBox="0 0 24 24">
+        <path
+          d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"
+        />
+      </symbol>
+      <symbol id="ic-script" viewBox="0 0 256 256">
+        <path
+          d="M69.12,94.15,28.5,128l40.62,33.85a8,8,0,1,1-10.24,12.29l-48-40a8,8,0,0,1,0-12.29l48-40a8,8,0,0,1,10.24,12.3Zm176,27.7-48-40a8,8,0,1,0-10.24,12.3L227.5,128l-40.62,33.85a8,8,0,1,0,10.24,12.29l48-40a8,8,0,0,0,0-12.29ZM162.73,32.48a8,8,0,0,0-10.25,4.79l-64,176a8,8,0,0,0,4.79,10.26A8.14,8.14,0,0,0,96,224a8,8,0,0,0,7.52-5.27l64-176A8,8,0,0,0,162.73,32.48Z"
+        />
+      </symbol>
+      <symbol id="ic-react" viewBox="-11.5 -10.232 23 20.464">
+        <circle r="2.05" fill="currentColor"></circle>
+        <g fill="none" stroke="currentColor" stroke-width="1.4">
+          <ellipse rx="11" ry="4.2"></ellipse>
+          <ellipse rx="11" ry="4.2" transform="rotate(60)"></ellipse>
+          <ellipse rx="11" ry="4.2" transform="rotate(120)"></ellipse>
+        </g>
+      </symbol>
+      <symbol id="ic-framer" viewBox="0 0 24 24">
+        <path d="M4 0h16v8h-8zM4 8h8l8 8H4zm0 8h8v8z"></path>
+      </symbol>
+    </svg>
+
     <main>
-      <h1>copy2llm</h1>
-      <p>
-        A <strong>"Copy to LLM" button any website can embed</strong>. On click
-        it converts the current page to clean Markdown and lets a reader copy
-        it, view it raw, or open it straight in ChatGPT or Claude.
-      </p>
-      <p class="muted">
-        Free in beta · fully client-side · no accounts, no backend. The button
-        in the corner of this page is the real thing — try it.
-      </p>
+      <!-- ============================================================ HERO -->
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div class="hero-copy" data-reveal>
+            <h1>Take any page<br>to an LLM.</h1>
+            <p class="lede">
+              Drop in one script and readers can turn your page into clean
+              Markdown, or open it in ChatGPT or Claude.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn-primary" href="#install" data-hero-cta>
+                Add to your site
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-arrow" />
+                </svg>
+              </a>
+              <a
+                class="btn btn-ghost"
+                href="https://github.com/vladzima/copy2llm"
+                target="_blank"
+                rel="noopener"
+              >
+                GitHub
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-arrow" />
+                </svg>
+              </a>
+            </div>
+          </div>
 
-      <p>Add it to any site with one tag:</p>
-      <pre><code>&lt;script src="https://copy.computer/copy2llm.js" defer
-        data-position="bottom-right" data-theme="auto"&gt;&lt;/script&gt;</code></pre>
+          <div class="hero-art" data-reveal aria-hidden="true">
+            <div class="mockup" data-px="3">
+              <div class="mockup-bar">
+                <span class="mockup-dot"></span>
+                <span class="mockup-dot"></span>
+                <span class="mockup-dot"></span>
+                <span class="mockup-url" id="hero-url"
+                  >yourstore.com/field-notebook</span
+                >
+              </div>
+              <div class="mockup-doc" id="hero-doc">
+                <div class="h1">
+                  <span class="tok"># </span>The Field Notebook
+                </div>
+                <div class="txt">
+                  A pocket notebook for people who draw outdoors.
+                </div>
+                <div class="h2"><span class="tok">## </span>Details</div>
+                <div class="li">
+                  <span class="tok">-</span>120 gsm cotton paper
+                </div>
+                <div class="li"><span class="tok">-</span>Lay-flat binding</div>
+                <div class="li">
+                  <span class="tok">-</span>Weatherproof cover<span
+                    class="caret"
+                  ></span>
+                </div>
+              </div>
+            </div>
+            <div class="mockup-menu" data-px="-6">
+              <div class="row active">
+                <svg class="ic" aria-hidden="true"><use href="#ic-copy" /></svg>
+                Copy as Markdown
+              </div>
+              <div class="row">
+                <svg class="ic" aria-hidden="true"><use href="#ic-view" /></svg>
+                View as Markdown
+              </div>
+              <div class="row">
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-openai" />
+                </svg>
+                Open in ChatGPT
+                <span class="ext"
+                  ><svg class="ic" aria-hidden="true">
+                    <use href="#ic-arrow" />
+                  </svg></span
+                >
+              </div>
+              <div class="row">
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-claude" />
+                </svg>
+                Open in Claude
+                <span class="ext"
+                  ><svg class="ic" aria-hidden="true">
+                    <use href="#ic-arrow" />
+                  </svg></span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <p>Or, for developers:</p>
-      <pre><code>npm i copy2llm-react   # &lt;CopyToLLM /&gt;
-npm i copy2llm-core    # extract(document) -&gt; { markdown, title, url }</code></pre>
+      <!-- ==================================================== WHY IT MATTERS -->
+      <section id="why" class="why-matters">
+        <div class="wrap">
+          <div data-reveal>
+            <p class="lead">Your readers already ask AI about your page.</p>
+            <p class="body">
+              Today they paste a broken copy, or a link the model can't read.
+              Copy2LLM hands over your real content, clean, in one click.
+            </p>
+          </div>
+          <div class="points" data-reveal>
+            <div class="point">
+              <h3>No messy copy-paste</h3>
+              <p>One click copies the whole page, already clean.</p>
+            </div>
+            <div class="point">
+              <h3>Content, not chrome</h3>
+              <p>Nav, banners and ads are stripped first.</p>
+            </div>
+            <div class="point">
+              <h3>Straight into chat</h3>
+              <p>Opens ChatGPT or Claude with the page loaded.</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <footer class="muted">
-        <a href="https://github.com/vladzima/copy2llm">GitHub</a>
-        ·
-        <a href="https://www.npmjs.com/package/copy2llm-core">npm</a>
-      </footer>
+      <!-- ========================================================= ACTIONS -->
+      <section id="actions">
+        <div class="wrap">
+          <div data-reveal>
+            <h2 class="h-sec">One button. Four ways out.</h2>
+            <p class="sub-sec">
+              A reader clicks once and gets a small menu. Every option runs in
+              their browser, with no sign-in and no detour.
+            </p>
+          </div>
+
+          <div class="bento">
+            <article class="tile tile-copy" data-reveal>
+              <div class="ic-well">
+                <svg class="ic" aria-hidden="true"><use href="#ic-copy" /></svg>
+              </div>
+              <h3>Copy as Markdown</h3>
+              <p>
+                The readable part of the page, stripped of nav and clutter,
+                lands on the clipboard as clean Markdown.
+              </p>
+              <div class="md-strip" aria-hidden="true">
+                <span class="a"></span>
+                <span class="b"></span>
+                <span class="c"></span>
+                <span class="d"></span>
+              </div>
+            </article>
+
+            <article class="tile" data-reveal>
+              <div class="ic-well">
+                <svg class="ic" aria-hidden="true"><use href="#ic-view" /></svg>
+              </div>
+              <h3>View as Markdown</h3>
+              <p class="tile-foot">Read the Markdown in an overlay first.</p>
+            </article>
+
+            <article class="tile" data-reveal>
+              <div class="ic-well">
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-openai" />
+                </svg>
+              </div>
+              <h3>Open in ChatGPT</h3>
+              <p class="tile-foot">
+                Hands the page over, ready to talk through.
+              </p>
+            </article>
+
+            <article class="tile tile-claude" data-reveal>
+              <div class="ic-well">
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-claude" />
+                </svg>
+              </div>
+              <h3>Open in Claude</h3>
+              <p>
+                Same one click, straight into a new Claude chat with the page
+                already in context.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================= CONFIGURE -->
+      <section id="install">
+        <div class="wrap">
+          <div data-reveal>
+            <span class="chip">
+              <span class="chip-dot" aria-hidden="true"></span>Live preview
+            </span>
+            <h2 class="h-sec">Build your button, copy the code.</h2>
+            <p class="sub-sec">
+              Tweak it below and the snippet updates as you go — the live button
+              in the corner of this page changes with it.
+            </p>
+          </div>
+
+          <div class="cfg" data-reveal>
+            <div class="cfg-panel">
+              <div class="field">
+                <span class="label">Position</span>
+                <div
+                  class="seg"
+                  data-seg="position"
+                  role="group"
+                  aria-label="Position"
+                >
+                  <button
+                    type="button"
+                    data-val="bottom-right"
+                    aria-pressed="false"
+                  >
+                    Bottom right
+                  </button>
+                  <button
+                    type="button"
+                    data-val="bottom-left"
+                    aria-pressed="false"
+                  >
+                    Bottom left
+                  </button>
+                  <button
+                    type="button"
+                    data-val="top-right"
+                    aria-pressed="true"
+                  >
+                    Top right
+                  </button>
+                  <button
+                    type="button"
+                    data-val="top-left"
+                    aria-pressed="false"
+                  >
+                    Top left
+                  </button>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="label">Theme</span>
+                <div
+                  class="seg"
+                  data-seg="theme"
+                  role="group"
+                  aria-label="Theme"
+                >
+                  <button type="button" data-val="auto" aria-pressed="true">
+                    Auto
+                  </button>
+                  <button type="button" data-val="light" aria-pressed="false">
+                    Light
+                  </button>
+                  <button type="button" data-val="dark" aria-pressed="false">
+                    Dark
+                  </button>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="label">Actions</span>
+                <div class="checks" data-checks>
+                  <label class="chk" data-on="true" data-action="copy">
+                    <input type="checkbox" checked>
+                    <svg class="ic" aria-hidden="true">
+                      <use href="#ic-copy" />
+                    </svg>Copy
+                  </label>
+                  <label class="chk" data-on="true" data-action="view">
+                    <input type="checkbox" checked>
+                    <svg class="ic" aria-hidden="true">
+                      <use href="#ic-view" />
+                    </svg>View
+                  </label>
+                  <label class="chk" data-on="true" data-action="chatgpt">
+                    <input type="checkbox" checked>
+                    <svg class="ic" aria-hidden="true">
+                      <use href="#ic-openai" />
+                    </svg>ChatGPT
+                  </label>
+                  <label class="chk" data-on="true" data-action="claude">
+                    <input type="checkbox" checked>
+                    <svg class="ic" aria-hidden="true">
+                      <use href="#ic-claude" />
+                    </svg>Claude
+                  </label>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="label">Button label</span>
+                <input
+                  class="cfg-text"
+                  data-label-input
+                  type="text"
+                  value="Copy as Markdown"
+                  maxlength="40"
+                  aria-label="Button label"
+                >
+              </div>
+
+              <div class="field">
+                <span class="label">Shape</span>
+                <div
+                  class="seg"
+                  data-seg="radius"
+                  role="group"
+                  aria-label="Shape"
+                >
+                  <button type="button" data-val="rounded" aria-pressed="false">
+                    Rounded
+                  </button>
+                  <button type="button" data-val="pill" aria-pressed="true">
+                    Pill
+                  </button>
+                  <button type="button" data-val="sharp" aria-pressed="false">
+                    Sharp
+                  </button>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="label">Font</span>
+                <div class="seg" data-seg="font" role="group" aria-label="Font">
+                  <button type="button" data-val="sans" aria-pressed="true">
+                    Sans
+                  </button>
+                  <button type="button" data-val="serif" aria-pressed="false">
+                    Serif
+                  </button>
+                  <button type="button" data-val="mono" aria-pressed="false">
+                    Mono
+                  </button>
+                </div>
+              </div>
+
+              <div class="field">
+                <span class="label">Background</span>
+                <div class="swatches" data-swatches>
+                  <button
+                    type="button"
+                    class="swatch is-default"
+                    data-bg=""
+                    aria-pressed="true"
+                  >
+                    Default
+                  </button>
+                  <button
+                    type="button"
+                    class="swatch"
+                    data-bg="#ffffff"
+                    style="background: #ffffff"
+                    aria-pressed="false"
+                    aria-label="White"
+                  ></button>
+                  <button
+                    type="button"
+                    class="swatch"
+                    data-bg="#6b62f2"
+                    style="background: #6b62f2"
+                    aria-pressed="false"
+                    aria-label="Indigo"
+                  ></button>
+                  <button
+                    type="button"
+                    class="swatch"
+                    data-bg="#111111"
+                    style="background: #111111"
+                    aria-pressed="false"
+                    aria-label="Charcoal"
+                  ></button>
+                  <div class="swatch-pick" data-pick>
+                    <button
+                      type="button"
+                      class="swatch-custom"
+                      data-pick-trigger
+                      aria-label="Custom color"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                      aria-pressed="false"
+                    >
+                      <span class="pick-ic" aria-hidden="true">+</span>
+                    </button>
+                    <div
+                      class="pick-pop"
+                      data-pick-pop
+                      hidden
+                      aria-label="Custom color"
+                    >
+                      <div class="pick-top">
+                        <span
+                          class="pick-preview"
+                          data-pick-preview
+                          aria-hidden="true"
+                        ></span>
+                        <span class="pick-hex">
+                          <span aria-hidden="true">#</span>
+                          <input
+                            type="text"
+                            data-pick-hex
+                            value="6b62f2"
+                            maxlength="6"
+                            spellcheck="false"
+                            autocomplete="off"
+                            aria-label="Hex color"
+                          >
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        class="pick-hue"
+                        data-pick-hue
+                        min="0"
+                        max="360"
+                        value="244"
+                        aria-label="Hue"
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cfg-out">
+              <div class="tabs" role="tablist" aria-label="Code format">
+                <button
+                  class="tab"
+                  type="button"
+                  role="tab"
+                  data-out="script"
+                  aria-selected="true"
+                >
+                  <svg class="ic" aria-hidden="true">
+                    <use href="#ic-script" />
+                  </svg>
+                  Script
+                </button>
+                <button
+                  class="tab"
+                  type="button"
+                  role="tab"
+                  data-out="react"
+                  aria-selected="false"
+                >
+                  <svg class="ic" aria-hidden="true">
+                    <use href="#ic-react" />
+                  </svg>
+                  React
+                </button>
+                <button
+                  class="tab"
+                  type="button"
+                  role="tab"
+                  data-out="framer"
+                  aria-selected="false"
+                >
+                  <svg class="ic" aria-hidden="true">
+                    <use href="#ic-framer" />
+                  </svg>
+                  Framer
+                </button>
+              </div>
+              <div class="code-card">
+                <button class="copy-code" type="button" data-copy-out>
+                  <svg class="ic" aria-hidden="true">
+                    <use href="#ic-copy" />
+                  </svg>
+                  <span>Copy</span>
+                </button>
+                <pre data-code></pre>
+              </div>
+              <div class="cfg-actions">
+                <button class="btn-llm" type="button" data-ask-llm>
+                  <svg class="ic" aria-hidden="true">
+                    <use href="#ic-spark" />
+                  </svg>
+                  <span>Ask your LLM to integrate</span>
+                </button>
+              </div>
+              <p class="cfg-hint">
+                Just need the Markdown? <code>npm i copy2llm-core</code> gives
+                you
+                <code>extract(document)</code>
+                with no UI.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== FEATURES -->
+      <section id="features">
+        <div class="wrap">
+          <div data-reveal>
+            <h2 class="h-sec">Made to disappear into your page.</h2>
+            <p class="sub-sec">
+              No backend to run, no styles to fight, nothing for a reader to
+              sign up for.
+            </p>
+          </div>
+
+          <div class="why-list" data-reveal>
+            <div class="why-row">
+              <span class="num">01</span>
+              <span class="lab"
+                ><b>Runs in the browser.</b>
+                No server, no API key, no account. The page never leaves the
+                reader's machine.</span
+              >
+              <span class="meta">client-side</span>
+            </div>
+            <div class="why-row">
+              <span class="num">02</span>
+              <span class="lab"
+                ><b>Isolated in a Shadow DOM.</b>
+                It can't touch your styles and your styles can't touch it.</span
+              >
+              <span class="meta">zero CSS bleed</span>
+            </div>
+            <div class="why-row">
+              <span class="num">03</span>
+              <span class="lab"
+                ><b>Loads after your content.</b>
+                A small deferred script, around 20&nbsp;KB gzipped.</span
+              >
+              <span class="meta">~20 KB</span>
+            </div>
+            <div class="why-row">
+              <span class="num">04</span>
+              <span class="lab"
+                ><b>Matches light or dark.</b>
+                Reads the page and themes itself, or take control with a few
+                data attributes.</span
+              >
+              <span class="meta">auto theme</span>
+            </div>
+            <div class="why-row">
+              <span class="num">05</span>
+              <span class="lab"
+                ><b>Open source, MIT.</b>
+                Read it, fork it, ship it.</span
+              >
+              <span class="meta">MIT</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <!-- Dogfood: the site loads its own snippet. -->
-    <script
-      src="/copy2llm.js"
-      defer
-      data-position="bottom-right"
-      data-theme="auto"
-    ></script>
+    <!-- ========================================================== FOOTER -->
+    <footer>
+      <div class="wrap foot-grid">
+        <span class="foot-mark">Copy2LLM</span>
+        <nav class="foot-links">
+          <a
+            href="https://github.com/vladzima/copy2llm"
+            target="_blank"
+            rel="noopener"
+          >
+            GitHub
+            <svg class="ic" aria-hidden="true"><use href="#ic-arrow" /></svg>
+          </a>
+          <a
+            href="https://www.npmjs.com/package/copy2llm-core"
+            target="_blank"
+            rel="noopener"
+          >
+            npm
+            <svg class="ic" aria-hidden="true"><use href="#ic-arrow" /></svg>
+          </a>
+          <a href="https://x.com/vladzima" target="_blank" rel="noopener">
+            X
+            <svg class="ic" aria-hidden="true"><use href="#ic-arrow" /></svg>
+          </a>
+        </nav>
+        <p class="foot-note">
+          Free and open source. Built by
+          <a href="https://arbatov.dev" target="_blank" rel="noopener"
+            >Vlad Arbatov</a
+          >.
+        </p>
+      </div>
+    </footer>
+
+    <!-- ===================================================== FLOATING DOCK -->
+    <nav class="dock" aria-label="Primary">
+      <a class="dock-mark" href="#top" aria-label="Copy2LLM home">Copy2LLM</a>
+      <div class="dock-links">
+        <span class="dock-hl" aria-hidden="true"></span>
+        <a href="#why">Why</a>
+        <a href="#actions">How</a>
+      </div>
+      <a
+        class="dock-x"
+        href="https://x.com/vladzima"
+        target="_blank"
+        rel="noopener"
+        aria-label="Copy2LLM on X"
+      >
+        <svg class="ic" aria-hidden="true"><use href="#ic-x" /></svg>
+      </a>
+      <a class="btn btn-primary" href="#install" data-dock-cta>
+        Add to your site
+        <svg class="ic" aria-hidden="true"><use href="#ic-arrow" /></svg>
+      </a>
+    </nav>
+
+    <script>
+    "use strict";
+    // Scroll-reveal via IntersectionObserver, not a scroll listener.
+    (() => {
+      const els = document.querySelectorAll("[data-reveal]");
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      if (reduce || !("IntersectionObserver" in window)) {
+        for (const el of els) {
+          el.classList.add("in");
+        }
+        return;
+      }
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+              io.unobserve(e.target);
+            }
+          }
+        },
+        { rootMargin: "0px 0px -10% 0px", threshold: 0.1 }
+      );
+      for (const el of els) {
+        io.observe(el);
+      }
+    })();
+
+    // Configurator: drives the live preview button and writes the install code.
+    (() => {
+      const ORDER = ["copy", "view", "chatgpt", "claude"];
+      const DEFAULT_LABEL = "Copy as Markdown";
+      const state = {
+        position: "top-right",
+        theme: "auto",
+        items: ["copy", "view", "chatgpt", "claude"],
+        label: DEFAULT_LABEL,
+        radius: "pill",
+        font: "sans",
+        bg: "",
+        format: "script",
+      };
+      let handle = null;
+
+      const root = document.getElementById("install");
+      const codeEl = root?.querySelector("[data-code]");
+      if (!(root && codeEl)) {
+        return;
+      }
+      const out = root.querySelector(".cfg-out");
+      const FRAMER_SOON =
+        "Framer support is coming soon.\n\nFor now, drop the Script embed into a Framer\ncode component, or use the React package.";
+
+      const allItems = () => state.items.length === ORDER.length;
+
+      const buildOptions = () => {
+        const o = {
+          position: state.position,
+          theme: state.theme,
+          items: state.items.slice(),
+          label: state.label || DEFAULT_LABEL,
+        };
+        if (state.radius !== "rounded") {
+          o.radius = state.radius;
+        }
+        if (state.font !== "sans") {
+          o.font = state.font;
+        }
+        if (state.bg) {
+          o.bg = state.bg;
+        }
+        return o;
+      };
+
+      const genScript = () => {
+        const a = [
+          ' src="https://copy.computer/copy2llm.js"',
+          " defer",
+          ` data-position="${state.position}"`,
+          ` data-theme="${state.theme}"`,
+        ];
+        if (!allItems()) {
+          a.push(` data-items="${state.items.join(",")}"`);
+        }
+        if (state.label && state.label !== DEFAULT_LABEL) {
+          a.push(` data-label="${state.label}"`);
+        }
+        if (state.radius !== "rounded") {
+          a.push(` data-radius="${state.radius}"`);
+        }
+        if (state.font !== "sans") {
+          a.push(` data-font="${state.font}"`);
+        }
+        if (state.bg) {
+          a.push(` data-bg="${state.bg}"`);
+        }
+        // Build the closing tag from a variable so the literal close sequence
+        // never appears verbatim here (it would end this inline block at parse time).
+        const T = "script";
+        return `<${T}${a.join("")}></${T}>`;
+      };
+
+      const genReact = () => {
+        const p = [`position="${state.position}"`, `theme="${state.theme}"`];
+        if (!allItems()) {
+          p.push(`items={[${state.items.map((x) => `"${x}"`).join(", ")}]}`);
+        }
+        if (state.label && state.label !== DEFAULT_LABEL) {
+          p.push(`label="${state.label}"`);
+        }
+        if (state.radius !== "rounded") {
+          p.push(`radius="${state.radius}"`);
+        }
+        if (state.font !== "sans") {
+          p.push(`font="${state.font}"`);
+        }
+        if (state.bg) {
+          p.push(`bg="${state.bg}"`);
+        }
+        return `import { CopyToLLM } from "copy2llm-react";\n\n<CopyToLLM\n  ${p.join("\n  ")}\n/>`;
+      };
+
+      const renderCode = () => {
+        if (state.format === "framer") {
+          out.setAttribute("data-soon", "true");
+          codeEl.textContent = FRAMER_SOON;
+          return;
+        }
+        out.removeAttribute("data-soon");
+        codeEl.textContent =
+          state.format === "react" ? genReact() : genScript();
+      };
+
+      const remount = () => {
+        const api = window.copy2llm;
+        if (!api?.mount) {
+          return;
+        }
+        if (handle) {
+          handle.destroy();
+          handle = null;
+        }
+        if (state.items.length === 0) {
+          return;
+        }
+        handle = api.mount(buildOptions(), document.body);
+      };
+
+      const update = () => {
+        renderCode();
+        remount();
+      };
+
+      // Segmented controls: position / theme / radius.
+      for (const seg of root.querySelectorAll("[data-seg]")) {
+        const key = seg.getAttribute("data-seg");
+        for (const btn of seg.querySelectorAll("button")) {
+          btn.addEventListener("click", () => {
+            state[key] = btn.getAttribute("data-val");
+            for (const b of seg.querySelectorAll("button")) {
+              b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+            }
+            update();
+          });
+        }
+      }
+
+      // Action toggles (keep at least one enabled; preserve canonical order).
+      const checks = root.querySelector("[data-checks]");
+      const onCount = () =>
+        ORDER.filter(
+          (act) =>
+            checks
+              .querySelector(`[data-action="${act}"]`)
+              .getAttribute("data-on") === "true"
+        ).length;
+      const syncItems = () => {
+        state.items = ORDER.filter(
+          (act) =>
+            checks
+              .querySelector(`[data-action="${act}"]`)
+              .getAttribute("data-on") === "true"
+        );
+      };
+      for (const chk of checks.querySelectorAll(".chk")) {
+        const input = chk.querySelector("input");
+        chk.addEventListener("click", (e) => {
+          e.preventDefault();
+          const next = chk.getAttribute("data-on") !== "true";
+          if (!next && onCount() <= 1) {
+            return;
+          }
+          chk.setAttribute("data-on", next ? "true" : "false");
+          input.checked = next;
+          syncItems();
+          update();
+        });
+      }
+
+      // Label.
+      const labelInput = root.querySelector("[data-label-input]");
+      labelInput.addEventListener("input", () => {
+        state.label = labelInput.value;
+        update();
+      });
+
+      // Background: preset swatches + a fully styled custom color popover
+      // (native <input type="color"> can't be styled, so we roll our own).
+      const swatches = root.querySelector("[data-swatches]");
+      const pickWrap = swatches.querySelector("[data-pick]");
+      const customSwatch = swatches.querySelector("[data-pick-trigger]");
+      const pickPop = swatches.querySelector("[data-pick-pop]");
+      const pickPreview = swatches.querySelector("[data-pick-preview]");
+      const pickHex = swatches.querySelector("[data-pick-hex]");
+      const pickHue = swatches.querySelector("[data-pick-hue]");
+      const pressSwatch = (active) => {
+        for (const s of swatches.querySelectorAll(".swatch, .swatch-custom")) {
+          s.setAttribute("aria-pressed", s === active ? "true" : "false");
+        }
+      };
+      // HSL (fixed S/L for pleasant hues) -> hex, so the slider yields a color.
+      const hslToHex = (h) => {
+        const s = 0.7;
+        const l = 0.55;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+        const m = l - c / 2;
+        let r = 0;
+        let g = 0;
+        let b = 0;
+        if (h < 60) {
+          r = c;
+          g = x;
+        } else if (h < 120) {
+          r = x;
+          g = c;
+        } else if (h < 180) {
+          g = c;
+          b = x;
+        } else if (h < 240) {
+          g = x;
+          b = c;
+        } else if (h < 300) {
+          r = x;
+          b = c;
+        } else {
+          r = c;
+          b = x;
+        }
+        const to = (v) =>
+          Math.round((v + m) * 255)
+            .toString(16)
+            .padStart(2, "0");
+        return `#${to(r)}${to(g)}${to(b)}`;
+      };
+      const isHexStr = (v) => {
+        if (v.length !== 3 && v.length !== 6) {
+          return false;
+        }
+        for (const ch of v) {
+          if (!"0123456789abcdef".includes(ch)) {
+            return false;
+          }
+        }
+        return true;
+      };
+      const normalizeHex = (raw) => {
+        let v = raw.trim().toLowerCase();
+        if (v.startsWith("#")) {
+          v = v.slice(1);
+        }
+        if (!isHexStr(v)) {
+          return null;
+        }
+        if (v.length === 3) {
+          return `#${v[0]}${v[0]}${v[1]}${v[1]}${v[2]}${v[2]}`;
+        }
+        return `#${v}`;
+      };
+      const applyCustom = (hex) => {
+        state.bg = hex;
+        customSwatch.setAttribute("data-custom", "true");
+        customSwatch.style.background = hex;
+        pickPreview.style.background = hex;
+        pressSwatch(customSwatch);
+        update();
+      };
+      const openPick = (open) => {
+        pickPop.hidden = !open;
+        customSwatch.setAttribute("aria-expanded", open ? "true" : "false");
+      };
+      customSwatch.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openPick(pickPop.hidden);
+      });
+      pickHue.addEventListener("input", () => {
+        const hex = hslToHex(Number(pickHue.value));
+        pickHex.value = hex.slice(1);
+        applyCustom(hex);
+      });
+      pickHex.addEventListener("input", () => {
+        const hex = normalizeHex(pickHex.value);
+        if (hex) {
+          applyCustom(hex);
+        }
+      });
+      for (const s of swatches.querySelectorAll(".swatch")) {
+        s.addEventListener("click", () => {
+          state.bg = s.getAttribute("data-bg") || "";
+          // Hand the custom chip back to its "pick a color" look.
+          customSwatch.removeAttribute("data-custom");
+          customSwatch.style.removeProperty("background");
+          openPick(false);
+          pressSwatch(s);
+          update();
+        });
+      }
+      document.addEventListener("click", (e) => {
+        if (!(pickPop.hidden || pickWrap.contains(e.target))) {
+          openPick(false);
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !pickPop.hidden) {
+          openPick(false);
+        }
+      });
+
+      // Output format tabs + copy.
+      const outTabs = root.querySelectorAll("[data-out]");
+      for (const tab of outTabs) {
+        tab.addEventListener("click", () => {
+          state.format = tab.getAttribute("data-out");
+          for (const t of outTabs) {
+            t.setAttribute("aria-selected", t === tab ? "true" : "false");
+          }
+          renderCode();
+        });
+      }
+      const copyBtn = root.querySelector("[data-copy-out]");
+      const copyLabel = copyBtn.querySelector("span");
+      copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(codeEl.textContent).then(() => {
+          copyLabel.textContent = "Copied";
+          setTimeout(() => {
+            copyLabel.textContent = "Copy";
+          }, 1600);
+        });
+      });
+
+      // "Ask your LLM to integrate": copy a ready-to-paste prompt that wraps the
+      // current snippet with integration instructions for any stack.
+      const genLLMPrompt = () =>
+        [
+          'Add the "Copy2LLM" button to my website. It lets readers copy my page',
+          "as clean Markdown or open it in ChatGPT or Claude. It is a single",
+          "client-side script — no backend, no API key, no account.",
+          "",
+          "Add this snippet to my site (just before the closing body tag) and adapt",
+          "it to my stack — plain HTML, Next.js, Astro, etc. — the idiomatic way:",
+          "",
+          genScript(),
+          "",
+          'On React you can instead install "copy2llm-react" and render <CopyToLLM />',
+          "with the same options. Tell me which fits my project and where to put it.",
+        ].join("\n");
+      const askBtn = root.querySelector("[data-ask-llm]");
+      const askLabel = askBtn.querySelector("span");
+      askBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(genLLMPrompt()).then(() => {
+          askLabel.textContent = "Prompt copied — paste it to your LLM";
+          setTimeout(() => {
+            askLabel.textContent = "Ask your LLM to integrate";
+          }, 2200);
+        });
+      });
+
+      // First paint, then mount the preview once the snippet API is ready.
+      renderCode();
+      const startPreview = () => {
+        if (window.copy2llm?.mount) {
+          remount();
+          return;
+        }
+        const s = document.getElementById("c2l");
+        if (s) {
+          s.addEventListener("load", remount, { once: true });
+        }
+      };
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startPreview, {
+          once: true,
+        });
+      } else {
+        startPreview();
+      }
+    })();
+
+    // Dock: highlight the link for the section in view, and reveal the dock CTA
+    // only once the hero's "Add to your site" button has scrolled away.
+    (() => {
+      const dock = document.querySelector(".dock");
+      if (!(dock && "IntersectionObserver" in window)) {
+        return;
+      }
+
+      const dockLinks = dock.querySelector(".dock-links");
+      const hl = dock.querySelector(".dock-hl");
+      let activeLink = null;
+      let hovering = false;
+      const moveHL = (target) => {
+        if (!(target && hl)) {
+          if (hl) {
+            hl.style.opacity = "0";
+          }
+          return;
+        }
+        hl.style.width = `${target.offsetWidth}px`;
+        hl.style.transform = `translateY(-50%) translateX(${target.offsetLeft}px)`;
+        hl.style.opacity = "1";
+      };
+
+      const links = new Map();
+      for (const a of dock.querySelectorAll(".dock-links a")) {
+        const id = a.getAttribute("href")?.slice(1);
+        const section = id && document.getElementById(id);
+        if (section) {
+          links.set(section, a);
+        }
+        a.addEventListener("mouseenter", () => {
+          hovering = true;
+          moveHL(a);
+        });
+      }
+      dockLinks?.addEventListener("mouseleave", () => {
+        hovering = false;
+        moveHL(activeLink);
+      });
+
+      if (links.size) {
+        const spy = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              const a = links.get(e.target);
+              if (!a) {
+                continue;
+              }
+              a.classList.toggle("active", e.isIntersecting);
+              if (e.isIntersecting) {
+                activeLink = a;
+              } else if (activeLink === a) {
+                activeLink = null;
+              }
+            }
+            if (!hovering) {
+              moveHL(activeLink);
+            }
+          },
+          { rootMargin: "-45% 0px -50% 0px" }
+        );
+        for (const section of links.keys()) {
+          spy.observe(section);
+        }
+      }
+
+      const heroCta = document.querySelector("[data-hero-cta]");
+      if (heroCta) {
+        const ctaSpy = new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            dock.classList.toggle("show-cta", !e.isIntersecting);
+          }
+        });
+        ctaSpy.observe(heroCta);
+      }
+    })();
+
+    // Hero parallax: layers tagged [data-px] drift at slightly different rates on
+    // scroll, so the broken-out menu separates from the window. Desktop + motion
+    // only (skipped under reduced-motion or when the menu stacks on mobile).
+    (() => {
+      const layers = document.querySelectorAll("[data-px]");
+      if (!layers.length) {
+        return;
+      }
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const small = window.matchMedia("(max-width: 720px)");
+      let ticking = false;
+      const apply = () => {
+        ticking = false;
+        const on = !(reduce.matches || small.matches);
+        const y = window.scrollY;
+        for (const el of layers) {
+          if (on) {
+            const f = Number(el.getAttribute("data-px")) || 0;
+            el.style.transform = `translate3d(0, ${((y * f) / 100).toFixed(2)}px, 0)`;
+          } else {
+            el.style.transform = "";
+          }
+        }
+      };
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (!ticking) {
+            ticking = true;
+            requestAnimationFrame(apply);
+          }
+        },
+        { passive: true }
+      );
+      window.addEventListener("resize", apply);
+      apply();
+    })();
+
+    // Hero typewriter: cycle three real page kinds (store / blog / docs)
+    // through the window, typing raw markdown in and out and swapping the URL
+    // to match. It reframes the mockup as "any page, extracted to markdown"
+    // instead of one confusing product. Under reduced motion it renders the
+    // first page statically.
+    (() => {
+      const doc = document.getElementById("hero-doc");
+      const url = document.getElementById("hero-url");
+      if (!(doc && url)) {
+        return;
+      }
+      // Segments carry a color class; text is author-controlled (no HTML
+      // specials), so render concatenates without escaping. All three pages
+      // are 7 lines so the locked min-height never has to grow.
+      const PAGES = [
+        {
+          url: "yourstore.com/field-notebook",
+          segs: [
+            ["tok", "# "],
+            ["h1", "The Field Notebook\n"],
+            ["txt", "A pocket notebook for people who draw outdoors.\n\n"],
+            ["tok", "## "],
+            ["h2", "Details\n"],
+            ["tok", "- "],
+            ["li", "120 gsm cotton paper\n"],
+            ["tok", "- "],
+            ["li", "Lay-flat binding\n"],
+            ["tok", "- "],
+            ["li", "Weatherproof cover"],
+          ],
+        },
+        {
+          url: "blog.acme.io/no-more-spreadsheets",
+          segs: [
+            ["tok", "# "],
+            ["h1", "Why we ditched spreadsheets\n"],
+            ["txt", "Three quarters in, the cracks were obvious.\n\n"],
+            ["tok", "## "],
+            ["h2", "What changed\n"],
+            ["tok", "- "],
+            ["li", "One source of truth\n"],
+            ["tok", "- "],
+            ["li", "Live updates, no exports\n"],
+            ["tok", "- "],
+            ["li", "Fewer Monday meetings"],
+          ],
+        },
+        {
+          url: "docs.acme.dev/authentication",
+          segs: [
+            ["tok", "# "],
+            ["h1", "Authentication\n"],
+            ["txt", "Every request needs a bearer token.\n\n"],
+            ["tok", "## "],
+            ["h2", "Quick start\n"],
+            ["tok", "- "],
+            ["li", "Create an API key\n"],
+            ["tok", "- "],
+            ["li", "Send it in the header\n"],
+            ["tok", "- "],
+            ["li", "Watch for a 200"],
+          ],
+        },
+      ];
+      const flatten = (segs) => {
+        const out = [];
+        for (const [cls, text] of segs) {
+          for (const ch of text) {
+            out.push([cls, ch]);
+          }
+        }
+        return out;
+      };
+      // Group consecutive same-class chars into one span, cap with the caret.
+      const render = (chars, n) => {
+        let html = "";
+        let cls = null;
+        let buf = "";
+        const flush = () => {
+          if (buf) {
+            html += `<span class="${cls}">${buf}</span>`;
+            buf = "";
+          }
+        };
+        for (let i = 0; i < n; i++) {
+          const [c, ch] = chars[i];
+          if (c !== cls) {
+            flush();
+            cls = c;
+          }
+          buf += ch;
+        }
+        flush();
+        return `${html}<span class="caret"></span>`;
+      };
+
+      doc.classList.add("is-typing");
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const chars = flatten(PAGES[0].segs);
+        url.textContent = PAGES[0].url;
+        doc.innerHTML = render(chars, chars.length);
+        return;
+      }
+
+      // Pace: a beat after each line break, a sliver on spaces, steady otherwise.
+      const PACE = { "\n": 44, " ": 9 };
+      const speed = (ch) => PACE[ch] ?? 13;
+      // Cross-fade the address bar when the page (its "title") changes; the
+      // first run already shows page 0, so the guard skips a load-time blink.
+      const swapUrl = (next) => {
+        if (url.textContent === next) {
+          return;
+        }
+        url.style.opacity = "0";
+        // Swap once the 0.3s fade has bottomed out, so the text change is hidden.
+        setTimeout(() => {
+          url.textContent = next;
+          url.style.opacity = "1";
+        }, 300);
+      };
+      let page = 0;
+      const run = () => {
+        const p = PAGES[page];
+        const chars = flatten(p.segs);
+        swapUrl(p.url);
+        let n = 0;
+        const type = () => {
+          n++;
+          doc.innerHTML = render(chars, n);
+          if (n < chars.length) {
+            setTimeout(type, speed(chars[n - 1][1]));
+          } else {
+            setTimeout(erase, 1100);
+          }
+        };
+        const erase = () => {
+          n = Math.max(0, n - 3);
+          doc.innerHTML = render(chars, n);
+          if (n > 0) {
+            setTimeout(erase, 16);
+          } else {
+            page = (page + 1) % PAGES.length;
+            setTimeout(run, 280);
+          }
+        };
+        type();
+      };
+      run();
+    })();
+    </script>
+
+    <!-- Dogfood: load the snippet only for its window.copy2llm API; the
+         configurator mounts and live-updates the preview button itself. -->
+    <script src="/copy2llm.js" defer data-automount="false" id="c2l"></script>
   </body>
 </html>

@@ -2,6 +2,8 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "copy2llm-site",
   "compatibility_date": "2026-06-01",
+  // Keep the *.workers.dev URL as a preview alongside the copy.computer domain.
+  "workers_dev": true,
   // Assets-only Worker (no `main`): serves ./public as a static site + the CDN snippet.
   "assets": {
     "directory": "./public"
