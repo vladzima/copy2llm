@@ -1,6 +1,6 @@
 {
   "name": "copy2llm-widget",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "The Copy to LLM button — a themeable split-button widget in a Shadow DOM.",
   "license": "MIT",

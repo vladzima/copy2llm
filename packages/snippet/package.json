@@ -1,6 +1,6 @@
 {
   "name": "copy2llm-snippet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "private": true,
   "description": "Self-mounting <script> bundle of the Copy to LLM widget for the CDN.",

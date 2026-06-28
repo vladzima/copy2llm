@@ -1,6 +1,6 @@
 {
   "name": "copy2llm-framer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "Copy to LLM as a Framer code component, configured from the property panel.",
   "license": "MIT",
