@@ -7,7 +7,6 @@ import {
   watchTheme,
 } from "../src/theme";
 
-// biome-ignore lint/suspicious/noExplicitAny: test seam
 type Any = any;
 
 function setup() {
@@ -57,8 +56,12 @@ test("resolveTheme auto: falls back to prefers-color-scheme", () => {
   const { win, host } = setup();
   (win as Any).matchMedia = (q: string) => ({
     matches: q.includes("dark"),
-    addEventListener() {},
-    removeEventListener() {},
+    addEventListener() {
+      /* noop */
+    },
+    removeEventListener() {
+      /* noop */
+    },
   });
   expect(resolveTheme("auto", host, win)).toBe("dark");
 });

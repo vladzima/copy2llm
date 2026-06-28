@@ -177,7 +177,9 @@ export function watchTheme(
     }
   }
 
-  const observer = new win.MutationObserver(recompute);
+  const MO = (win as unknown as { MutationObserver: typeof MutationObserver })
+    .MutationObserver;
+  const observer = new MO(recompute);
   observer.observe(win.document.documentElement, {
     attributes: true,
     attributeFilter: ["class", "data-theme", "style"],

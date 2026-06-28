@@ -2,7 +2,6 @@ import { expect, test } from "bun:test";
 import { JSDOM } from "jsdom";
 import { copyText } from "../src/clipboard";
 
-// biome-ignore lint/suspicious/noExplicitAny: test seam for monkeypatching jsdom
 type Any = any;
 
 function makeWindow(): Window & typeof globalThis {
