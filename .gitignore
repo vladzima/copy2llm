@@ -6,6 +6,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# Cloudflare Wrangler local state / temp (generated)
+.wrangler/
+
 # Caches
 .turbo/
 .cache/

@@ -2,8 +2,8 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core"],
   "files": {
-    // Test fixtures are raw sample documents, not source to lint/format.
-    "includes": ["!**/test/fixtures"]
+    // Test fixtures are raw sample documents; .wrangler is generated CF state.
+    "includes": ["!**/test/fixtures", "!**/.wrangler"]
   },
   "linter": {
     "rules": {
