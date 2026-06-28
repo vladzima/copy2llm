@@ -7,9 +7,11 @@ const BASE: Record<LlmTarget, string> = {
 
 const ASK = "Please read this page and help me work with its content.";
 
-// localhost / loopback / RFC-1918 LAN ranges / IPv6 loopback / mDNS .local
+// localhost (incl. the reserved *.localhost TLD) / loopback / 0.0.0.0 / RFC-1918
+// LAN ranges / IPv6 loopback / mDNS .local
 const PRIVATE_HOST =
-  /^(?:localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|\[::1\]|.*\.local)$/i;
+  /^(?:(?:.*\.)?localhost|0|0\.0\.0\.0|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|\[::1\]|.*\.local)$/i;
+const TRAILING_DOT = /\.$/;
 
 /**
  * Heuristic: can a remote LLM fetch this URL? False for localhost, LAN, `.local`,
@@ -26,7 +28,8 @@ export function isPublicUrl(value: string): boolean {
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     return false;
   }
-  const host = url.hostname.toLowerCase();
+  // Strip a trailing dot (`localhost.` / `example.com.` are FQDN forms).
+  const host = url.hostname.toLowerCase().replace(TRAILING_DOT, "");
   if (PRIVATE_HOST.test(host)) {
     return false;
   }

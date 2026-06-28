@@ -45,3 +45,16 @@ test("llmUrl: a non-public page omits the URL and points at the clipboard", () =
   expect(q).not.toContain("localhost");
   expect(q.toLowerCase()).toContain("paste");
 });
+
+test("isPublicUrl: false for *.localhost, trailing-dot localhost, and 0.0.0.0 / 0", () => {
+  expect(isPublicUrl("http://app.localhost:3000/admin?token=secret")).toBe(
+    false
+  );
+  expect(isPublicUrl("http://localhost./")).toBe(false);
+  expect(isPublicUrl("http://0.0.0.0:8080/")).toBe(false);
+  expect(isPublicUrl("http://0/")).toBe(false);
+});
+
+test("isPublicUrl: a real public host with a trailing dot is still public", () => {
+  expect(isPublicUrl("https://example.com./docs")).toBe(true);
+});
