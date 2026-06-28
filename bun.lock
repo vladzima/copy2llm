@@ -26,6 +26,20 @@
         "typescript": "^5.0.0",
       },
     },
+    "packages/widget": {
+      "name": "@copy2llm/widget",
+      "version": "0.0.0",
+      "dependencies": {
+        "@copy2llm/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/jsdom": "^21.1.0",
+        "bun-types": "^1.3.0",
+        "jsdom": "^25.0.0",
+        "tsup": "^8.0.0",
+        "typescript": "^5.0.0",
+      },
+    },
   },
   "packages": {
     "@asamuzakjp/css-color": ["@asamuzakjp/css-color@3.2.0", "", { "dependencies": { "@csstools/css-calc": "^2.1.3", "@csstools/css-color-parser": "^3.0.9", "@csstools/css-parser-algorithms": "^3.0.4", "@csstools/css-tokenizer": "^3.0.3", "lru-cache": "^10.4.3" } }, "sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw=="],
@@ -53,6 +67,8 @@
     "@clack/prompts": ["@clack/prompts@1.6.0", "", { "dependencies": { "@clack/core": "1.4.2", "fast-string-width": "^3.0.2", "fast-wrap-ansi": "^0.2.0", "sisteransi": "^1.0.5" } }, "sha512-EYlRokl8szrP9Z25qT5aepMdBjzBvHF9ZEhzIiUBc9guz/T31EqRgvD0QSgZcpE93xiwrr+OkB4nz0BZyF6fSA=="],
 
     "@copy2llm/core": ["@copy2llm/core@workspace:packages/core"],
+
+    "@copy2llm/widget": ["@copy2llm/widget@workspace:packages/widget"],
 
     "@csstools/color-helpers": ["@csstools/color-helpers@5.1.0", "", {}, "sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA=="],
 
