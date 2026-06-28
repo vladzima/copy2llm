@@ -1,0 +1,23 @@
+{
+  "name": "@copy2llm/snippet",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "description": "Self-mounting <script> bundle of the Copy to LLM widget for the CDN.",
+  "license": "MIT",
+  "scripts": {
+    "test": "bun test",
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@copy2llm/widget": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.0",
+    "bun-types": "^1.3.0",
+    "jsdom": "^25.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}

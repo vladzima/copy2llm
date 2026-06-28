@@ -26,6 +26,20 @@
         "typescript": "^5.0.0",
       },
     },
+    "packages/snippet": {
+      "name": "@copy2llm/snippet",
+      "version": "0.0.0",
+      "dependencies": {
+        "@copy2llm/widget": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/jsdom": "^21.1.0",
+        "bun-types": "^1.3.0",
+        "jsdom": "^25.0.0",
+        "tsup": "^8.0.0",
+        "typescript": "^5.0.0",
+      },
+    },
     "packages/widget": {
       "name": "@copy2llm/widget",
       "version": "0.0.0",
@@ -67,6 +81,8 @@
     "@clack/prompts": ["@clack/prompts@1.6.0", "", { "dependencies": { "@clack/core": "1.4.2", "fast-string-width": "^3.0.2", "fast-wrap-ansi": "^0.2.0", "sisteransi": "^1.0.5" } }, "sha512-EYlRokl8szrP9Z25qT5aepMdBjzBvHF9ZEhzIiUBc9guz/T31EqRgvD0QSgZcpE93xiwrr+OkB4nz0BZyF6fSA=="],
 
     "@copy2llm/core": ["@copy2llm/core@workspace:packages/core"],
+
+    "@copy2llm/snippet": ["@copy2llm/snippet@workspace:packages/snippet"],
 
     "@copy2llm/widget": ["@copy2llm/widget@workspace:packages/widget"],
 
