@@ -27,4 +27,7 @@ build/
 
 docs/
 
+# Local design reference, not shipped source
+apps/site/DESIGN.md
+
 .claude/
