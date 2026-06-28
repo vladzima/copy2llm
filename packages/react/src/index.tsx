@@ -1,5 +1,5 @@
 import { mount, type WidgetOptions } from "@copy2llm/widget";
-import { useEffect, useRef } from "react";
+import { type ReactElement, useEffect, useRef } from "react";
 
 export type CopyToLLMProps = WidgetOptions;
 
@@ -8,7 +8,7 @@ export type CopyToLLMProps = WidgetOptions;
  * tears it down on unmount. For `position="inline"` it mounts into an in-flow
  * anchor span; otherwise it mounts onto `document.body` and renders nothing.
  */
-export function CopyToLLM(props: CopyToLLMProps): JSX.Element | null {
+export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
   const ref = useRef<HTMLSpanElement | null>(null);
   // Re-mount whenever an option changes; serializing keeps the dep stable.
   const serialized = JSON.stringify(props);
