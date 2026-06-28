@@ -72,3 +72,14 @@ interface WidgetHandle { destroy(): void; }
 - Snippet gzip size measured and reported.
 - Adversarial hardening pass run; high-severity findings fixed with regression tests.
 - HANDOFF.md updated.
+
+## Hardening pass (done)
+
+4 adversarial lenses (lifecycle · theme · security · packaging) → independent verify of each finding → 14 confirmed (1 high, 6 medium, 7 low; several were the same root cause). All fixed with regression tests (96 tests total). The distinct ones:
+
+- **[high] LLM deep-link popup-blocked on WebKit/Firefox** — `window.open` ran after `await copyText`, losing user activation. Now opens synchronously within the gesture, then copies. (`widget.ts`)
+- **[med] `isPublicUrl` bypass** — `*.localhost`, `0.0.0.0`/`0`, trailing-dot hosts leaked local URLs into the prompt. Broadened the private-host gate. (`links.ts`)
+- **[med] theme churn / misses** — `watchTheme` now dedupes (no stylesheet rebuild unless the theme changes) and observes `<body>` too (body-class dark modes). (`theme.ts`)
+- **[med] `@types/react@19` consumers** — shipped `.d.ts` used the ambient global `JSX.Element` (removed in React 19); now `ReactElement`. (`react`, `framer`)
+- **[med] shared-handle teardown** — a duplicate `mount()` returned the live handle; now returns an inert one so a second owner can't destroy the first. (`widget.ts`)
+- **[low] a11y/robustness** — close menu on primary-click/Tab; restore focus on overlay close; keyboard-scrollable overlay `<pre>`; opaque-only luminance sampling; precomputed border/hover so `color-mix` isn't required pre-2023.
