@@ -1,7 +1,7 @@
 # copy2llm — Session Handoff
 
 **Last updated:** 2026-06-28
-**Status:** `@copy2llm/core` complete (built, tested, hardened, linted). Next package: `widget`.
+**Status:** `core` + `widget` + `snippet` + `react` + `framer` complete (built, tested, linted). Only `apps/site` (landing + docs + live demo) remains — **to be built together with the user**.
 
 This document is the single entry point for continuing work in a fresh session. Read it top to bottom, then open the two design/plan docs it references.
 
@@ -29,13 +29,15 @@ Full product reasoning and the validated design: **`docs/plans/2026-06-28-copy2l
 | Package | State |
 |---|---|
 | `@copy2llm/core` | ✅ **Done** — extraction engine. 32 tests, hardened, lint-clean, dual ESM/CJS build. |
-| `widget` | ⬜ Not started — **next up**. The button UI (Shadow DOM, 4 actions, theming). |
-| `snippet` | ⬜ Not started — self-mounting `<script>` bundle for the CDN. |
-| `react` | ⬜ Not started — `<CopyToLLM />`. |
-| `framer` | ⬜ Not started — Framer plugin. |
-| `apps/site` | ⬜ Not started — landing + docs + live demo; dogfoods the button. |
+| `@copy2llm/widget` | ✅ **Done** — button UI in a Shadow DOM: `mount(options, target?) → {destroy()}`. Split button, 4 actions, `theme:auto` cascade, overlay, idempotent. 44 tests. Depends on `core` (`workspace:*`). |
+| `@copy2llm/snippet` | ✅ **Done** — self-mounting IIFE that inlines everything. **20 KB gzip** (budget <30 KB). 3 tests. |
+| `@copy2llm/react` | ✅ **Done** — `<CopyToLLM {...opts}/>`; `useEffect` mounts/destroys; `inline` mounts into a span, else `document.body`. 3 tests. |
+| `@copy2llm/framer` | ✅ **Done** — Framer **code component** (`addPropertyControls`), wraps `react`. (A full Framer *plugin* was judged YAGNI.) `framer` runtime is type-shimmed. 2 tests. |
+| `apps/site` | ⬜ Not started — landing + docs + live demo + eyeball gallery. **Build with the user.** |
 
-**Immediate next step:** write a `widget` implementation plan (same TDD style as the core plan), then build it.
+**Immediate next step:** build `apps/site` (the landing page) together with the user. The eyeball gallery (page-vs-Markdown) lives here too.
+
+Build note for the four shipped packages: `docs/plans/2026-06-28-widget-and-wrappers.md`.
 
 ---
 
@@ -151,14 +153,14 @@ Lower-priority hardening findings not yet actioned are listed in the core plan's
 
 ## 9. What's next — build sequence
 
-Per the design doc, in order (each is a thin wrapper around `core`):
-1. **`widget`** ← next. UI in a Shadow DOM: split button, the 4 actions, theming tokens, the customization table, the `auto`-theme cascade. Build the *eyeball gallery* (page-vs-Markdown side by side) here — extraction quality is subjective and needs visual review.
-2. **`snippet`** — bundle `widget` as a self-mounting `<script>`; enforce a hard size budget (<30 KB gzip — it's injected into others' pages).
-3. **`apps/site`** — landing + docs + live demo; dogfoods its own button.
-4. **`react`** — `<CopyToLLM />`.
-5. **`framer`** — the Framer plugin.
+Per the design doc (each a thin wrapper around `core`):
+1. ✅ **`widget`** — Shadow-DOM split button, 4 actions, theming tokens, `auto`-theme cascade.
+2. ✅ **`snippet`** — self-mounting `<script>`, 20 KB gzip (budget <30 KB).
+3. ⬜ **`apps/site`** ← **next, with the user.** Landing + docs + live demo. Build the *eyeball gallery* (page-vs-Markdown side by side) here — extraction quality is subjective and needs visual review.
+4. ✅ **`react`** — `<CopyToLLM />`.
+5. ✅ **`framer`** — Framer code component.
 
-**To resume:** write `docs/plans/YYYY-MM-DD-widget.md` (TDD, bite-sized, same shape as the core plan), then execute it. Decide early: does the widget consume `@copy2llm/core` as a workspace dependency (recommended — also fixes the bare-specifier resolution note in §4)?
+**To resume:** build `apps/site`. The widget already consumes `@copy2llm/core` as a `workspace:*` dependency (the recommended path — it also fixed the bare-specifier resolution note in §4); `react`/`framer` likewise chain through `widget`. The site can `import { mount } from "@copy2llm/widget"` (or drop the snippet `<script>`) to dogfood the button, and `import { extract } from "@copy2llm/core"` to render the gallery's Markdown side.
 
 ---
 
