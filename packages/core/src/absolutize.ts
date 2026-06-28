@@ -1,6 +1,8 @@
 /** Rewrite relative <a href> and <img src> under `root` to absolute URLs. Mutates in place. */
 export function absolutizeUrls(root: Element, baseUrl: string): void {
-  if (!baseUrl) return;
+  if (!baseUrl) {
+    return;
+  }
 
   const resolve = (value: string): string | null => {
     try {
@@ -10,15 +12,19 @@ export function absolutizeUrls(root: Element, baseUrl: string): void {
     }
   };
 
-  const rewrite = (selector: string, attr: 'href' | 'src') => {
+  const rewrite = (selector: string, attr: "href" | "src") => {
     for (const el of Array.from(root.querySelectorAll(selector))) {
       const value = el.getAttribute(attr);
-      if (!value) continue;
+      if (!value) {
+        continue;
+      }
       const abs = resolve(value);
-      if (abs) el.setAttribute(attr, abs);
+      if (abs) {
+        el.setAttribute(attr, abs);
+      }
     }
   };
 
-  rewrite('a[href]', 'href');
-  rewrite('img[src]', 'src');
+  rewrite("a[href]", "href");
+  rewrite("img[src]", "src");
 }
