@@ -6,14 +6,22 @@
 
 **Architecture:** A small composable pipeline. `selectContent` picks the content root (author selector → Readability → `<main>`/`<article>`/`<body>` fallback). `absolutizeUrls` rewrites relative links/images. `toMarkdown` runs Turndown + GFM and cleans whitespace. `header` prepends a title + source line. `extract` wires them together. No UI, no network — DOM in, Markdown out.
 
-**Tech Stack:** TypeScript, `@mozilla/readability`, `turndown` + `turndown-plugin-gfm`, Vitest (Node env) with `jsdom` to build test DOMs, `tsup` for the dual ESM/CJS build, pnpm workspaces.
+**Tech Stack:** TypeScript, `@mozilla/readability`, `turndown` + `turndown-plugin-gfm`, **Bun** (`bun install` + the built-in `bun test` runner) with `jsdom` to build test DOMs, and `tsup` for the dual ESM/CJS build. (pnpm is broken in this environment — see Assumptions.)
 
 ---
 
 ## Assumptions & deviations (read first)
 
-- **Monorepo, first package.** This plan also scaffolds the pnpm workspace root, since `core` is the first package to land. Other packages (`widget`, `snippet`, `react`, `framer`, `apps/site`) come in later plans.
-- **Deviation from design doc §8 (tests in a real browser).** This plan runs tests with **Vitest in a Node environment, building DOMs via `jsdom`**, not a headless browser. Rationale: `@mozilla/readability` + `jsdom` is the standard server-side pairing and is reliable for *structural* extraction, and it keeps the TDD inner loop fast and deterministic. True in-browser fidelity is validated later by the Playwright E2E tests at the widget/app layer (design §8). A dedicated browser-mode fidelity pass for `core` is a **deferred follow-up** (see end).
+- **Monorepo, first package.** This plan also scaffolds the Bun workspace root, since `core` is the first package to land. Other packages (`widget`, `snippet`, `react`, `framer`, `apps/site`) come in later plans.
+- **Toolchain override (pnpm → Bun).** The design assumed pnpm, but pnpm is broken in this environment (corepack signing-key mismatch under nvm). Use **Bun 1.3.x** — workspaces, install, and the built-in test runner. Conventions used throughout:
+  - run one test file → `bun test packages/core/test/<name>.test.ts`
+  - run all core tests → `bun test packages/core`
+  - typecheck → `bun run --filter @copy2llm/core typecheck`
+  - build → `bun run --filter @copy2llm/core build`
+  - dependencies are declared in `packages/core/package.json`, then installed with `bun install` at the repo root
+  - test files import from `bun:test` (not `vitest`); there is no `vitest.config.ts`
+  - Bun reads the `workspaces` field in the root `package.json`; there is no `pnpm-workspace.yaml`
+- **Deviation from design doc §8 (tests in a real browser).** This plan runs tests with **Bun's test runner, building DOMs via `jsdom`**, not a headless browser. Rationale: `@mozilla/readability` + `jsdom` is the standard pairing and reliable for *structural* extraction, and it keeps the TDD loop fast and deterministic. True in-browser fidelity is validated later by Playwright E2E tests at the widget/app layer (design §8). A dedicated browser-fidelity pass for `core` is a **deferred follow-up** (see end).
 - **Linter.** Task 1 wires up Ultracite (Biome) per project convention so all subsequent code is clean from the first commit.
 - **No worktree** — implement directly in the main workspace, per request.
 - **Commit style:** Conventional Commits, no AI attribution.
@@ -23,16 +31,14 @@
 ## Task 1: Scaffold the workspace and the `core` package
 
 **Files:**
-- Create: `package.json` (repo root)
-- Create: `pnpm-workspace.yaml`
+- Create: `package.json` (repo root, includes the `workspaces` field)
 - Create: `packages/core/package.json`
 - Create: `packages/core/tsconfig.json`
-- Create: `packages/core/vitest.config.ts`
 - Create: `packages/core/tsup.config.ts`
 - Create: `packages/core/src/types/turndown-plugin-gfm.d.ts`
 - Create: `packages/core/test/smoke.test.ts`
 
-**Step 1: Create the workspace root files.**
+**Step 1: Create the workspace root file.**
 
 `package.json` (root):
 ```json
@@ -40,25 +46,19 @@
   "name": "copy2llm",
   "private": true,
   "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
   "scripts": {
-    "test": "pnpm -r test",
-    "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck",
+    "test": "bun test",
+    "build": "bun run --filter '*' build",
+    "typecheck": "bun run --filter '*' typecheck",
     "lint": "biome check ."
   }
 }
 ```
 
-`pnpm-workspace.yaml`:
-```yaml
-packages:
-  - "packages/*"
-  - "apps/*"
-```
+**Step 2: Create the `core` package files.**
 
-**Step 2: Create the `core` package manifest and configs.**
-
-`packages/core/package.json`:
+`packages/core/package.json` (dependencies declared here; installed in Step 3):
 ```json
 {
   "name": "@copy2llm/core",
@@ -78,15 +78,27 @@ packages:
   },
   "files": ["dist"],
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "bun test",
     "build": "tsup",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.5.0",
+    "turndown": "^7.2.0",
+    "turndown-plugin-gfm": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.0",
+    "@types/turndown": "^5.0.0",
+    "bun-types": "^1.3.0",
+    "jsdom": "^25.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
   }
 }
 ```
 
-`packages/core/tsconfig.json`:
+`packages/core/tsconfig.json` (no `types` restriction, so `@types/turndown` auto-loads for the `src` typecheck):
 ```json
 {
   "compilerOptions": {
@@ -98,23 +110,10 @@ packages:
     "declaration": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "types": ["node"],
     "outDir": "dist"
   },
   "include": ["src"]
 }
-```
-
-`packages/core/vitest.config.ts`:
-```ts
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  test: {
-    environment: 'node',
-    include: ['test/**/*.test.ts'],
-  },
-});
 ```
 
 `packages/core/tsup.config.ts`:
@@ -141,26 +140,25 @@ declare module 'turndown-plugin-gfm' {
 }
 ```
 
-**Step 3: Install dependencies** (let pnpm resolve current versions — do not hand-pin):
+**Step 3: Install dependencies** from the repo root:
 
 ```bash
-pnpm -C packages/core add @mozilla/readability turndown turndown-plugin-gfm
-pnpm -C packages/core add -D vitest jsdom typescript tsup @types/node @types/jsdom @types/turndown
+bun install
 ```
-Expected: pnpm writes a lockfile and populates `dependencies`/`devDependencies`.
+Expected: Bun resolves the declared deps, writes `bun.lock`, and links `@copy2llm/core` into the workspace.
 
 **Step 4: Wire up the linter** (project convention):
 
 ```bash
-npx -y ultracite init
+bunx ultracite init
 ```
-Accept defaults; this creates `biome.jsonc` at the root. If it prompts about a package manager, choose pnpm.
+Accept defaults; this creates `biome.jsonc` at the root. If it prompts for a package manager, choose bun.
 
 **Step 5: Add a smoke test to prove the toolchain runs.**
 
 `packages/core/test/smoke.test.ts`:
 ```ts
-import { test, expect } from 'vitest';
+import { test, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
 
 test('jsdom builds a document', () => {
@@ -171,14 +169,14 @@ test('jsdom builds a document', () => {
 
 **Step 6: Run the smoke test.**
 
-Run: `pnpm -C packages/core test`
-Expected: PASS — 1 test passed.
+Run: `bun test packages/core/test/smoke.test.ts`
+Expected: PASS — 1 pass, 0 fail.
 
 **Step 7: Commit.**
 
 ```bash
 git add -A
-git commit -m "chore: scaffold pnpm workspace and @copy2llm/core package"
+git commit -m "chore: scaffold bun workspace and @copy2llm/core package"
 ```
 
 ---
@@ -193,7 +191,7 @@ git commit -m "chore: scaffold pnpm workspace and @copy2llm/core package"
 
 `packages/core/test/absolutize.test.ts`:
 ```ts
-import { test, expect } from 'vitest';
+import { test, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
 import { absolutizeUrls } from '../src/absolutize';
 
@@ -228,7 +226,7 @@ test('no-ops when baseUrl is empty', () => {
 
 **Step 2: Run it to verify it fails.**
 
-Run: `pnpm -C packages/core test test/absolutize.test.ts`
+Run: `bun test packages/core/test/absolutize.test.ts`
 Expected: FAIL — `Cannot find module '../src/absolutize'`.
 
 **Step 3: Write the minimal implementation.**
@@ -263,8 +261,8 @@ export function absolutizeUrls(root: Element, baseUrl: string): void {
 
 **Step 4: Run it to verify it passes.**
 
-Run: `pnpm -C packages/core test test/absolutize.test.ts`
-Expected: PASS — 4 tests passed.
+Run: `bun test packages/core/test/absolutize.test.ts`
+Expected: PASS — 4 pass.
 
 **Step 5: Commit.**
 
@@ -285,7 +283,7 @@ git commit -m "feat(core): absolutize relative links and images"
 
 `packages/core/test/to-markdown.test.ts`:
 ```ts
-import { test, expect } from 'vitest';
+import { test, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
 import { toMarkdown } from '../src/to-markdown';
 
@@ -314,7 +312,7 @@ test('converts a fenced code block', () => {
 
 **Step 2: Run it to verify it fails.**
 
-Run: `pnpm -C packages/core test test/to-markdown.test.ts`
+Run: `bun test packages/core/test/to-markdown.test.ts`
 Expected: FAIL — `Cannot find module '../src/to-markdown'`.
 
 **Step 3: Write the minimal implementation.**
@@ -349,8 +347,8 @@ export function toMarkdown(root: Node): string {
 
 **Step 4: Run it to verify it passes.**
 
-Run: `pnpm -C packages/core test test/to-markdown.test.ts`
-Expected: PASS — 3 tests passed.
+Run: `bun test packages/core/test/to-markdown.test.ts`
+Expected: PASS — 3 pass.
 
 **Step 5: Commit.**
 
@@ -371,7 +369,7 @@ git commit -m "feat(core): html-to-markdown via turndown + gfm"
 
 `packages/core/test/header.test.ts`:
 ```ts
-import { test, expect } from 'vitest';
+import { test, expect } from 'bun:test';
 import { prependHeader } from '../src/header';
 
 test('prepends title and source', () => {
@@ -391,7 +389,7 @@ test('returns the body unchanged when nothing to prepend', () => {
 
 **Step 2: Run it to verify it fails.**
 
-Run: `pnpm -C packages/core test test/header.test.ts`
+Run: `bun test packages/core/test/header.test.ts`
 Expected: FAIL — `Cannot find module '../src/header'`.
 
 **Step 3: Write the minimal implementation.**
@@ -410,8 +408,8 @@ export function prependHeader(markdown: string, title: string, url: string): str
 
 **Step 4: Run it to verify it passes.**
 
-Run: `pnpm -C packages/core test test/header.test.ts`
-Expected: PASS — 3 tests passed.
+Run: `bun test packages/core/test/header.test.ts`
+Expected: PASS — 3 pass.
 
 **Step 5: Commit.**
 
@@ -428,11 +426,13 @@ git commit -m "feat(core): prepend title + source header"
 - Create: `packages/core/test/select-content.test.ts`
 - Create: `packages/core/src/select-content.ts`
 
+> Note: if `tsc --noEmit` later complains that `@mozilla/readability` has no types, add a one-line `declare module '@mozilla/readability'` shim next to the gfm shim, or install its types. Recent versions ship their own declarations.
+
 **Step 1: Write the failing test.**
 
 `packages/core/test/select-content.test.ts`:
 ```ts
-import { test, expect } from 'vitest';
+import { test, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
 import { selectContent } from '../src/select-content';
 
@@ -451,8 +451,7 @@ test('an explicit selector wins over everything else', () => {
 });
 
 test('extracts the main content when no selector is given', () => {
-  // Behaviour assertion: the content is present regardless of whether
-  // Readability or the <main> fallback produced it.
+  // Behaviour assertion: content survives whether Readability or the <main> fallback produced it.
   const d = doc('<html><head><title>T</title></head><body><main><p>MAIN CONTENT</p></main></body></html>');
   const { root } = selectContent(d);
   expect(root.textContent).toContain('MAIN CONTENT');
@@ -467,7 +466,7 @@ test('falls back to <body> when there is no main/article and readability finds n
 
 **Step 2: Run it to verify it fails.**
 
-Run: `pnpm -C packages/core test test/select-content.test.ts`
+Run: `bun test packages/core/test/select-content.test.ts`
 Expected: FAIL — `Cannot find module '../src/select-content'`.
 
 **Step 3: Write the minimal implementation.**
@@ -517,9 +516,8 @@ function tryReadability(document: Document): { title: string; content: string } 
 
 **Step 4: Run it to verify it passes.**
 
-Run: `pnpm -C packages/core test test/select-content.test.ts`
-Expected: PASS — 3 tests passed.
-If the second test is flaky because Readability claims the tiny `<main>` (it shouldn't at this size), the assertion is still satisfied because it only checks the content survived. Leave as-is.
+Run: `bun test packages/core/test/select-content.test.ts`
+Expected: PASS — 3 pass.
 
 **Step 5: Commit.**
 
@@ -541,7 +539,7 @@ git commit -m "feat(core): select content root with readability + fallback"
 
 `packages/core/test/extract.test.ts`:
 ```ts
-import { test, expect } from 'vitest';
+import { test, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
 import { extract } from '../src/index';
 
@@ -574,7 +572,7 @@ test('header:false omits the frontmatter', () => {
 
 **Step 2: Run it to verify it fails.**
 
-Run: `pnpm -C packages/core test test/extract.test.ts`
+Run: `bun test packages/core/test/extract.test.ts`
 Expected: FAIL — `Cannot find module '../src/index'`.
 
 **Step 3: Write the minimal implementation.**
@@ -621,12 +619,12 @@ export type { ExtractOptions, ExtractResult } from './extract';
 
 **Step 4: Run it to verify it passes.**
 
-Run: `pnpm -C packages/core test test/extract.test.ts`
-Expected: PASS — 2 tests passed.
+Run: `bun test packages/core/test/extract.test.ts`
+Expected: PASS — 2 pass.
 
 **Step 5: Run the whole suite + typecheck.**
 
-Run: `pnpm -C packages/core test && pnpm -C packages/core typecheck`
+Run: `bun test packages/core && bun run --filter @copy2llm/core typecheck`
 Expected: all tests PASS; `tsc --noEmit` prints nothing (exit 0).
 
 **Step 6: Commit.**
@@ -647,7 +645,7 @@ git commit -m "feat(core): extract() pipeline and public api"
 
 **Step 1: Add fixtures.**
 
-`packages/core/test/fixtures/docs-article.html` — a realistic doc page with chrome Readability should strip. Include enough article prose that Readability reliably selects it:
+`packages/core/test/fixtures/docs-article.html` — a realistic doc page with chrome Readability should strip:
 ```html
 <!DOCTYPE html>
 <html>
@@ -667,7 +665,7 @@ git commit -m "feat(core): extract() pipeline and public api"
 </html>
 ```
 
-`packages/core/test/fixtures/marketing-messy.html` — a landing page where Readability struggles, so the author would pass a selector:
+`packages/core/test/fixtures/marketing-messy.html` — a landing page where the author would pass a selector:
 ```html
 <!DOCTYPE html>
 <html>
@@ -690,7 +688,7 @@ git commit -m "feat(core): extract() pipeline and public api"
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { test, expect } from 'vitest';
+import { test, expect } from 'bun:test';
 import { JSDOM } from 'jsdom';
 import { extract } from '../src/index';
 
@@ -716,8 +714,8 @@ test('messy marketing page: selector targets the real content, drops junk', () =
 
 **Step 3: Run it.**
 
-Run: `pnpm -C packages/core test test/fixtures.test.ts`
-Expected: PASS — 2 tests passed.
+Run: `bun test packages/core/test/fixtures.test.ts`
+Expected: PASS — 2 pass.
 If the docs test fails because Readability did not strip the nav/footer, enlarge the article prose (more paragraphs) until Readability confidently selects it — this fixture is also the realistic signal that extraction quality is good.
 
 **Step 4: Commit.**
@@ -731,27 +729,24 @@ git commit -m "test(core): real-world fixture extraction"
 
 ## Task 8: Build, package exports, and a size sanity check
 
-**Files:**
-- Modify: `packages/core/package.json` (already has scripts/exports from Task 1 — verify)
-
 **Step 1: Build.**
 
-Run: `pnpm -C packages/core build`
+Run: `bun run --filter @copy2llm/core build`
 Expected: `tsup` writes `dist/index.js` (ESM), `dist/index.cjs` (CJS), `dist/index.d.ts`, and source maps; exits 0.
 
 **Step 2: Verify the published shape resolves.**
 
-Run: `pnpm -C packages/core exec node -e "import('@copy2llm/core').then(m => console.log(typeof m.extract))"`
+Run: `bun -e "import('@copy2llm/core').then(m => console.log(typeof m.extract))"`
 Expected: prints `function`.
 
-**Step 3: Eyeball the bundle size** (core is a dependency, not the injected snippet, so no hard budget here — just sanity):
+**Step 3: Eyeball the bundle size.**
 
 Run: `ls -lh packages/core/dist`
-Expected: `index.js` is small (single-digit KB; Readability/Turndown are peer runtime deps, not inlined). Note the number in the commit body for later reference.
+Expected: `index.js` is small (single-digit KB — Readability/Turndown are runtime deps, not inlined). Note the number in the commit body for later reference.
 
 **Step 4: Full green gate.**
 
-Run: `pnpm -C packages/core test && pnpm -C packages/core typecheck && pnpm -C packages/core build`
+Run: `bun test packages/core && bun run --filter @copy2llm/core typecheck && bun run --filter @copy2llm/core build`
 Expected: tests PASS, typecheck clean, build succeeds.
 
 **Step 5: Commit.**
@@ -768,12 +763,12 @@ git commit -m "build(core): tsup dual esm/cjs output with types"
 - `extract(document, options)` returns `{ markdown, title, url }`.
 - Selector override, Readability auto-detect, and `<main>`/`<article>`/`<body>` fallback all covered by passing tests.
 - Relative links/images absolutized; GFM tables/code/lists convert; header toggles.
-- `pnpm -C packages/core test` green, `typecheck` clean, `build` produces ESM + CJS + types.
+- `bun test packages/core` green, typecheck clean, `build` produces ESM + CJS + types.
 - All work committed in small, conventional commits.
 
 ## Deferred follow-ups (out of scope here)
 
-- **Browser-mode fidelity pass** for `core` (Vitest browser mode + Playwright) to confirm in-browser extraction matches the jsdom-based tests (design §8).
+- **Browser-fidelity pass** for `core` (Playwright) to confirm in-browser extraction matches the jsdom-based tests (design §8).
 - **Cookie/consent-banner blocklist** on the `<body>` fallback path (design §4 pre-clean) — add when a fixture demonstrates the need.
 - **Lazy-image handling** (`data-src`, dropping giant inline `data:` URIs) — add with a fixture that exercises it.
 - **`header` duplicate-h1 guard**: if extracted content already opens with the page title as an `<h1>`, the prepended `# {title}` may duplicate it. Refine when a fixture shows it.
