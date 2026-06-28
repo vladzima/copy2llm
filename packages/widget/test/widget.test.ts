@@ -46,14 +46,16 @@ test("mount is idempotent on the same target", () => {
   expect(doc.body.querySelectorAll("[data-copy2llm]").length).toBe(1);
 });
 
-test("primary Copy writes the extracted markdown and shows a toast", async () => {
+test("primary Copy writes the markdown and flashes the button label (no side toast)", async () => {
   const { doc, writes } = page("<main><h1>Hello</h1><p>World</p></main>");
   mount({}, doc.body);
   (q(doc, ".primary") as HTMLButtonElement).click();
   await tick();
   expect(writes.length).toBe(1);
   expect(writes[0]).toContain("World");
-  expect(q(doc, ".toast").hasAttribute("hidden")).toBe(false);
+  // Feedback lives on the button itself now, not the toast beside it.
+  expect(q(doc, ".primary").textContent).toContain("Copied");
+  expect(q(doc, ".toast").hasAttribute("hidden")).toBe(true);
 });
 
 test("caret opens the menu; Open in ChatGPT deep-links and copies", async () => {
@@ -107,6 +109,12 @@ test("empty extraction toasts a failure and opens the overlay", async () => {
   await tick();
   expect(q(doc, ".overlay").hasAttribute("hidden")).toBe(false);
   expect(q(doc, ".toast").textContent).toContain("extract");
+});
+
+test("reveals the button even without requestAnimationFrame (no permanent invisibility)", () => {
+  const { doc } = page("<main><p>hi</p></main>");
+  mount({}, doc.body);
+  expect(q(doc, ".root").classList.contains("c2l-in")).toBe(true);
 });
 
 test("destroy removes the host", () => {

@@ -4,6 +4,7 @@ import {
   contrastText,
   parseColor,
   resolveTheme,
+  resolveThemeSignal,
   watchTheme,
 } from "../src/theme";
 
@@ -64,6 +65,26 @@ test("resolveTheme auto: falls back to prefers-color-scheme", () => {
     },
   });
   expect(resolveTheme("auto", host, win)).toBe("dark");
+});
+
+test("resolveThemeSignal: null when only prefers-color-scheme could decide", () => {
+  const { win, host } = setup();
+  // No :root color-scheme, transparent backgrounds → no confident signal yet.
+  expect(resolveThemeSignal(host, win)).toBeNull();
+});
+
+test("resolveThemeSignal: concrete theme from an opaque background", () => {
+  const { win, host } = setup();
+  host.style.backgroundColor = "rgb(10, 10, 10)";
+  expect(resolveThemeSignal(host, win)).toBe("dark");
+  host.style.backgroundColor = "rgb(245, 245, 245)";
+  expect(resolveThemeSignal(host, win)).toBe("light");
+});
+
+test("resolveThemeSignal: concrete theme from :root color-scheme", () => {
+  const { win, host } = setup();
+  win.document.documentElement.style.colorScheme = "dark";
+  expect(resolveThemeSignal(host, win)).toBe("dark");
 });
 
 test("watchTheme: pinned theme never fires and returns a callable cleanup", () => {

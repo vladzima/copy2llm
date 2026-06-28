@@ -8,7 +8,12 @@ import {
   type WidgetOptions,
 } from "./options";
 import { css, resolveTokens } from "./styles";
-import { type ResolvedTheme, resolveTheme, watchTheme } from "./theme";
+import {
+  type ResolvedTheme,
+  resolveTheme,
+  resolveThemeSignal,
+  watchTheme,
+} from "./theme";
 
 export interface WidgetHandle {
   destroy(): void;
@@ -45,6 +50,15 @@ const CARET_ICON =
   '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>';
 const EXT_ICON =
   '<svg class="c2l-ext" viewBox="0 0 256 256" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg>';
+// Shown in the primary button after a successful copy (replaces the side toast).
+const CHECK_ICON =
+  '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></svg>';
+const COPIED_LABEL = "Copied";
+const COPIED_MS = 1400;
+// `auto` reveal: poll for a confident theme signal for up to this many frames
+// (~0.5s) before falling back to prefers-color-scheme, so a late-painting host
+// background can't flash a wrong-theme button.
+const REVEAL_MAX_FRAMES = 30;
 const EXTERNAL = new Set<Action>(["chatgpt", "claude"]);
 
 /** Parse a trusted inline-SVG string into an element (Shadow-DOM safe). */
@@ -94,6 +108,7 @@ function buildMenuItem(
 type WithHandle = HTMLElement & { [HANDLE_KEY]?: WidgetHandle };
 
 interface State {
+  copiedTimer?: number;
   currentMarkdown: string;
   overlayEl: HTMLElement | null;
   prevFocus: Element | null;
@@ -167,9 +182,13 @@ export function mount(
   const primary = rootEl.querySelector(".primary") as HTMLButtonElement;
 
   const primaryAction = items[0];
-  // Set the label first (keeps `primary.textContent === label`), then prepend the
-  // icon — an SVG node contributes no text, so the public text stays exact.
-  primary.textContent = labels[primaryAction];
+  // Label lives in its own span so the copy-confirmation can swap just the text
+  // (and animate it) without disturbing the icon. `primary.textContent` still
+  // equals the label — an SVG node contributes no text.
+  const primaryLabel = doc.createElement("span");
+  primaryLabel.className = "c2l-label";
+  primaryLabel.textContent = labels[primaryAction];
+  primary.appendChild(primaryLabel);
   prependIcon(primary, doc, ICONS[primaryAction]);
   primary.addEventListener("click", () => {
     closeMenu();
@@ -218,6 +237,40 @@ export function mount(
   mountTarget.appendChild(hostEl);
   applyTheme(resolveTheme(theme, hostEl, win));
   const stopWatch = watchTheme(theme, hostEl, win, applyTheme);
+
+  // Reveal-gating: the button mounts invisible (opacity 0, see styles.ts) and
+  // fades in only once `auto` has a CONFIDENT theme signal — an opaque
+  // background behind the button or an explicit color-scheme. A page that
+  // paints its background a few frames after our snippet mounts (Framer/SPA
+  // hydration) would otherwise resolve to prefers-color-scheme and flash a
+  // white button before correcting. Poll across frames; after a budget, fall
+  // back so we never stay hidden. Pinned theme / no rAF (SSR, tests) → reveal now.
+  const reveal = () => rootEl.classList.add("c2l-in");
+  const raf =
+    typeof win.requestAnimationFrame === "function"
+      ? win.requestAnimationFrame.bind(win)
+      : null;
+  if (theme !== "auto" || !raf) {
+    reveal();
+  } else {
+    let frames = 0;
+    const settle = () => {
+      if (!hostEl.isConnected) {
+        return; // destroyed mid-poll
+      }
+      const signal = resolveThemeSignal(hostEl, win);
+      if (signal) {
+        applyTheme(signal);
+        reveal();
+      } else if (++frames >= REVEAL_MAX_FRAMES) {
+        applyTheme(resolveTheme(theme, hostEl, win));
+        reveal();
+      } else {
+        raf(settle);
+      }
+    };
+    raf(settle);
+  }
 
   // --- document-level listeners (removed on destroy) -------------------------
   const onDocPointer = (e: Event) => {
@@ -332,7 +385,7 @@ export function mount(
     if (action === "copy") {
       const ok = await copyText(markdown, win);
       if (ok) {
-        toast(MSG.copied);
+        flashCopied();
       } else {
         openOverlay(markdown);
       }
@@ -353,6 +406,30 @@ export function mount(
       toast(MSG.paste);
     }
     await copyText(markdown, win);
+  }
+
+  // Swap the primary button's icon + label, restarting the swap-in keyframe so
+  // each change animates (snappy settle in, see styles.ts `.primary.c2l-swap`).
+  function setPrimary(text: string, iconMarkup: string): void {
+    primaryLabel.textContent = text;
+    primary.querySelector(".c2l-ic")?.remove();
+    prependIcon(primary, doc, iconMarkup);
+    primary.classList.remove("c2l-swap");
+    // Read layout to force a reflow so re-adding the class re-triggers the keyframe.
+    primary.getBoundingClientRect();
+    primary.classList.add("c2l-swap");
+  }
+
+  // Copy confirmation on the button itself: morph to "Copied ✓", then revert.
+  function flashCopied(): void {
+    if (state.copiedTimer !== undefined) {
+      win.clearTimeout(state.copiedTimer);
+    }
+    setPrimary(COPIED_LABEL, CHECK_ICON);
+    state.copiedTimer = win.setTimeout(() => {
+      setPrimary(labels[primaryAction], ICONS[primaryAction]);
+      state.copiedTimer = undefined;
+    }, COPIED_MS) as unknown as number;
   }
 
   function toast(message: string): void {
@@ -441,6 +518,9 @@ export function mount(
     doc.removeEventListener("keydown", onDocKey);
     if (state.toastTimer !== undefined) {
       win.clearTimeout(state.toastTimer);
+    }
+    if (state.copiedTimer !== undefined) {
+      win.clearTimeout(state.copiedTimer);
     }
     hostEl.remove();
   }

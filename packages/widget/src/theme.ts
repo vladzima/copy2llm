@@ -120,19 +120,17 @@ function prefersDark(win: Window): boolean | null {
 }
 
 /**
- * Resolve `auto` to a concrete theme by matching the *site*, then the OS:
- * 1. `:root` `color-scheme` (if unambiguous) → 2. background-luminance behind the
- * button → 3. `prefers-color-scheme`. `light`/`dark` pin the value and skip all of it.
+ * Resolve `auto` from a *confident* site signal only: an unambiguous `:root`
+ * `color-scheme`, else the background-luminance behind the button. Returns null
+ * when neither is decisive (only `prefers-color-scheme` would) — the caller can
+ * keep the button hidden and re-check, so a page that paints its background a
+ * few frames after the button mounts (SPA/Framer hydration) doesn't flash a
+ * wrong-theme button before it settles.
  */
-export function resolveTheme(
-  theme: Theme,
+export function resolveThemeSignal(
   host: Element,
   win: Window
-): ResolvedTheme {
-  if (theme === "light" || theme === "dark") {
-    return theme;
-  }
-
+): ResolvedTheme | null {
   const scheme = readColorScheme(win);
   const hasDark = scheme.includes("dark");
   const hasLight = scheme.includes("light");
@@ -145,7 +143,23 @@ export function resolveTheme(
     return lum < 0.5 ? "dark" : "light";
   }
 
-  return prefersDark(win) ? "dark" : "light";
+  return null;
+}
+
+/**
+ * Resolve `auto` to a concrete theme by matching the *site*, then the OS:
+ * 1. `:root` `color-scheme` (if unambiguous) → 2. background-luminance behind the
+ * button → 3. `prefers-color-scheme`. `light`/`dark` pin the value and skip all of it.
+ */
+export function resolveTheme(
+  theme: Theme,
+  host: Element,
+  win: Window
+): ResolvedTheme {
+  if (theme === "light" || theme === "dark") {
+    return theme;
+  }
+  return resolveThemeSignal(host, win) ?? (prefersDark(win) ? "dark" : "light");
 }
 
 /**

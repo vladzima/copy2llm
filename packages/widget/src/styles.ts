@@ -137,6 +137,21 @@ export function css(t: StyleTokens): string {
      heavy; restore it so labels read closer to a designed UI font. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Reveal-gated: the button mounts at opacity 0 (no transition here, or the
+     initial hide would animate 1→0 and briefly show a wrong-theme button) and
+     only fades in once mount() has a confident theme — see the .c2l-in rule. */
+  opacity: 0;
+}
+/* Transitions live ONLY under .c2l-in, so the first paint (still hidden) applies
+   the resolved theme instantly — no native-button → theme cross-fade. After
+   reveal, opacity fades in and later theme flips cross-fade smoothly. */
+.root.c2l-in { opacity: 1; transition: opacity 0.18s ease; }
+.root.c2l-in .btn {
+  transition: background-color 0.18s ease, color 0.18s ease,
+    border-color 0.18s ease;
+}
+.root.c2l-in .menuitem {
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
 .box { position: relative; display: inline-flex; flex-direction: column; }
 .split {
@@ -156,11 +171,20 @@ export function css(t: StyleTokens): string {
   align-items: center;
   gap: 8px;
   white-space: nowrap;
-  transition: background 0.15s ease;
 }
 .btn:hover { background: var(--c2l-hover); }
 .btn:focus-visible { outline: 2px solid var(--c2l-text); outline-offset: 2px; }
 .primary { border-radius: var(--c2l-radius) 0 0 var(--c2l-radius); font-weight: 400; }
+/* Copy confirmation: the icon + label settle in with a quick upward pop. The
+   class is re-applied per swap (see widget.ts) to restart the keyframe. */
+@keyframes c2l-swap-in {
+  0% { opacity: 0; transform: translateY(-5px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.primary.c2l-swap .c2l-ic,
+.primary.c2l-swap .c2l-label {
+  animation: c2l-swap-in 0.2s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
 .caret { border-radius: 0 var(--c2l-radius) var(--c2l-radius) 0; border-left: 0; padding: 9px 9px; }
 .split.single .primary { border-radius: var(--c2l-radius); }
 .c2l-ic { width: 16px; height: 16px; flex: 0 0 auto; fill: currentColor; }
@@ -207,7 +231,6 @@ export function css(t: StyleTokens): string {
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.15s ease;
 }
 .menuitem .c2l-ic { opacity: 0.85; }
 .menuitem:hover, .menuitem:focus-visible { background: var(--c2l-hover); outline: none; }
@@ -296,6 +319,12 @@ export function css(t: StyleTokens): string {
   font-size: 13px;
   line-height: 1.55;
   color: var(--c2l-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  .root.c2l-in,
+  .root.c2l-in .btn,
+  .root.c2l-in .menuitem { transition: none; }
+  .primary.c2l-swap .c2l-ic, .primary.c2l-swap .c2l-label { animation: none; }
 }
 `;
 }

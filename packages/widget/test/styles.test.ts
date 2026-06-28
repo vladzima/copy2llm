@@ -1,6 +1,9 @@
 import { expect, test } from "bun:test";
 import { css, resolveTokens } from "../src/styles";
 
+const COLOR_TRANSITION = /transition:[^;]*\bcolor\b/;
+const BG_TRANSITION = /transition:[^;]*background-color/;
+
 test("resolveTokens: light defaults", () => {
   const t = resolveTokens({}, "light");
   expect(t.position).toBe("bottom-right");
@@ -68,4 +71,21 @@ test("css: embeds precomputed border/hover, not raw color-mix, for default token
   const out = css(resolveTokens({}, "light"));
   expect(out).not.toContain("color-mix");
   expect(out).toContain("--c2l-border: rgb(");
+});
+
+test("css: the root starts hidden and reveals via .c2l-in (masks a wrong-theme first paint)", () => {
+  const out = css(resolveTokens({}, "dark"));
+  expect(out).toContain("opacity: 0");
+  expect(out).toContain(".root.c2l-in");
+});
+
+test("css: themeable colors cross-fade so an auto re-theme eases instead of snapping", () => {
+  const out = css(resolveTokens({}, "dark"));
+  expect(out).toMatch(COLOR_TRANSITION);
+  expect(out).toMatch(BG_TRANSITION);
+});
+
+test("css: reduced motion disables the reveal/cross-fade transitions", () => {
+  const out = css(resolveTokens({}, "dark"));
+  expect(out).toContain("prefers-reduced-motion");
 });
