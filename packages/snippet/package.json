@@ -1,6 +1,6 @@
 {
-  "name": "@copy2llm/snippet",
-  "version": "0.0.0",
+  "name": "copy2llm-snippet",
+  "version": "0.1.0",
   "type": "module",
   "private": true,
   "description": "Self-mounting <script> bundle of the Copy to LLM widget for the CDN.",
@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copy2llm/widget": "workspace:*"
+    "copy2llm-widget": "workspace:*"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.0",

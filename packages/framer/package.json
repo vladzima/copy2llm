@@ -1,6 +1,6 @@
 {
-  "name": "@copy2llm/framer",
-  "version": "0.0.0",
+  "name": "copy2llm-framer",
+  "version": "0.1.0",
   "type": "module",
   "description": "Copy to LLM as a Framer code component, configured from the property panel.",
   "license": "MIT",
@@ -23,7 +23,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copy2llm/react": "workspace:*"
+    "copy2llm-react": "workspace:*"
   },
   "peerDependencies": {
     "framer": "*",

@@ -6,7 +6,7 @@ export default defineConfig({
   entry: ["src/index.tsx"],
   format: ["esm"],
   external: ["react", "react/jsx-runtime", "framer"],
-  noExternal: [/@copy2llm\//],
+  noExternal: [/^copy2llm-/],
   dts: true,
   clean: true,
   sourcemap: true,

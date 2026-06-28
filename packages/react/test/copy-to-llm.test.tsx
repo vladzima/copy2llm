@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { mount } from "@copy2llm/widget";
+import { mount } from "copy2llm-widget";
 import { JSDOM } from "jsdom";
 import { renderToStaticMarkup } from "react-dom/server";
 import { CopyToLLM } from "../src/index";

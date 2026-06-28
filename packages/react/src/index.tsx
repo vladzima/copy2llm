@@ -1,4 +1,4 @@
-import { mount, type WidgetOptions } from "@copy2llm/widget";
+import { mount, type WidgetOptions } from "copy2llm-widget";
 import { type ReactElement, useEffect, useRef } from "react";
 
 export type CopyToLLMProps = WidgetOptions;

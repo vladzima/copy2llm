@@ -21,3 +21,7 @@ build/
 
 # Agent tooling
 .claude/
+
+docs/
+
+.claude/

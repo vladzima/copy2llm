@@ -1,9 +1,9 @@
-import { type CopyToLLMProps, CopyToLLM as Widget } from "@copy2llm/react";
+import { type CopyToLLMProps, CopyToLLM as Widget } from "copy2llm-react";
 import { addPropertyControls, ControlType } from "framer";
 import type { ReactElement } from "react";
 
 /**
- * Copy to LLM as a Framer code component. Thin wrapper over `@copy2llm/react`;
+ * Copy to LLM as a Framer code component. Thin wrapper over `copy2llm-react`;
  * the property panel (below) maps to the same knobs as the snippet and npm package.
  */
 export function CopyToLLM(props: CopyToLLMProps): ReactElement {

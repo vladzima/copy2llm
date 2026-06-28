@@ -1,6 +1,6 @@
 {
-  "name": "@copy2llm/react",
-  "version": "0.0.0",
+  "name": "copy2llm-react",
+  "version": "0.1.0",
   "type": "module",
   "description": "<CopyToLLM /> — the Copy to LLM button as a React component.",
   "license": "MIT",
@@ -28,7 +28,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copy2llm/widget": "workspace:*"
+    "copy2llm-widget": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=17"
@@ -43,5 +43,26 @@
     "react-dom": "^18.3.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
+  },
+  "homepage": "https://copy.computer",
+  "bugs": {
+    "url": "https://github.com/vladzima/copy2llm/issues"
+  },
+  "keywords": [
+    "markdown",
+    "llm",
+    "copy-to-llm",
+    "extract",
+    "readability",
+    "turndown",
+    "chatgpt",
+    "claude",
+    "html-to-markdown"
+  ],
+  "author": "Vlad Arbatov",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladzima/copy2llm.git",
+    "directory": "packages/react"
   }
 }

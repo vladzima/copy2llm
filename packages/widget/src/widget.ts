@@ -1,4 +1,4 @@
-import { type ExtractResult, extract } from "@copy2llm/core";
+import { type ExtractResult, extract } from "copy2llm-core";
 import { copyText } from "./clipboard";
 import { isPublicUrl, type LlmTarget, llmUrl } from "./links";
 import {

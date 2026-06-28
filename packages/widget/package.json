@@ -1,6 +1,6 @@
 {
-  "name": "@copy2llm/widget",
-  "version": "0.0.0",
+  "name": "copy2llm-widget",
+  "version": "0.1.0",
   "type": "module",
   "description": "The Copy to LLM button — a themeable split-button widget in a Shadow DOM.",
   "license": "MIT",
@@ -28,7 +28,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@copy2llm/core": "workspace:*"
+    "copy2llm-core": "workspace:*"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.0",
@@ -36,5 +36,26 @@
     "jsdom": "^25.0.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
+  },
+  "homepage": "https://copy.computer",
+  "bugs": {
+    "url": "https://github.com/vladzima/copy2llm/issues"
+  },
+  "keywords": [
+    "markdown",
+    "llm",
+    "copy-to-llm",
+    "extract",
+    "readability",
+    "turndown",
+    "chatgpt",
+    "claude",
+    "html-to-markdown"
+  ],
+  "author": "Vlad Arbatov",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vladzima/copy2llm.git",
+    "directory": "packages/widget"
   }
 }

@@ -1,4 +1,4 @@
-import { mount, parseDataset } from "@copy2llm/widget";
+import { mount, parseDataset } from "copy2llm-widget";
 
 /**
  * Mount the widget from a `<script data-*>` tag. `script` must be captured during
