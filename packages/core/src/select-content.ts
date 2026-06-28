@@ -23,6 +23,11 @@ export function selectContent(document: Document, selector?: string): SelectedCo
 
   const fallback =
     document.querySelector('main') ?? document.querySelector('article') ?? document.body;
+  if (!fallback) {
+    // No <body> (e.g. an XML or detached document): return an empty root
+    // rather than throwing on cloneNode.
+    return { root: document.createElement('div'), title: docTitle };
+  }
   return { root: fallback.cloneNode(true) as HTMLElement, title: docTitle };
 }
 

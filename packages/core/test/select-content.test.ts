@@ -23,8 +23,40 @@ test('extracts the main content when no selector is given', () => {
   expect(root.textContent).toContain('MAIN CONTENT');
 });
 
-test('falls back to <body> when there is no main/article and readability finds nothing', () => {
+test('Readability auto-detects loose content when no selector is given', () => {
+  // This input is rich enough that Readability returns content (it does NOT
+  // exercise the main/article/body fallback — see the dedicated tests below).
   const d = doc('<html><head><title>T</title></head><body><div><p>LOOSE</p></div></body></html>');
   const { root } = selectContent(d);
   expect(root.textContent).toContain('LOOSE');
+});
+
+// Empty/whitespace-only element bodies make Readability return null, which is
+// the only way to reach the main -> article -> body fallback chain.
+test('F5: fallback prefers <main> over <article>', () => {
+  const d = doc(
+    '<html><head><title>T</title></head><body><article></article><main></main></body></html>',
+  );
+  const { root } = selectContent(d);
+  expect(root.tagName).toBe('MAIN');
+});
+
+test('F5: fallback uses <article> when there is no <main>', () => {
+  const d = doc('<html><head><title>T</title></head><body><article></article></body></html>');
+  const { root } = selectContent(d);
+  expect(root.tagName).toBe('ARTICLE');
+});
+
+test('F5: fallback uses <body> when there is no main/article', () => {
+  const d = doc('<html><head><title>T</title></head><body>   </body></html>');
+  const { root } = selectContent(d);
+  expect(root.tagName).toBe('BODY');
+});
+
+test('F4: a document with no <body> returns an empty root instead of throwing', () => {
+  const d = new JSDOM('<root><a>x</a></root>', { contentType: 'application/xml' }).window.document;
+  expect(d.body).toBeNull();
+  expect(() => selectContent(d)).not.toThrow();
+  const { root } = selectContent(d);
+  expect(root.textContent).toBe('');
 });
