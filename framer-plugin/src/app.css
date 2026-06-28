@@ -1,0 +1,85 @@
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 0 15px 15px;
+}
+
+.intro {
+  margin: 0;
+  color: var(--framer-color-text-secondary);
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 14px;
+  background: var(--framer-color-bg-secondary);
+  border: 1px solid var(--framer-color-divider);
+  border-radius: 8px;
+}
+
+.field {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field > label {
+  color: var(--framer-color-text-secondary);
+  white-space: nowrap;
+}
+
+.field select,
+.field input[type="text"] {
+  flex: 0 0 148px;
+  max-width: 148px;
+}
+
+.field input[type="color"] {
+  width: 36px;
+  height: 22px;
+  padding: 0;
+}
+
+hr {
+  margin: 3px 0;
+  border: none;
+  border-top: 1px solid var(--framer-color-divider);
+}
+
+.section-label {
+  color: var(--framer-color-text-secondary);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+}
+
+.action {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--framer-color-text);
+}
+
+.warn {
+  padding: 8px 10px;
+  margin: 0;
+  color: var(--framer-color-text-secondary);
+  background: var(--framer-color-bg-tertiary);
+  border-radius: 8px;
+}
+
+.install {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}

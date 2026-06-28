@@ -1,0 +1,30 @@
+{
+  "name": "copy2llm-framer-plugin",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Framer plugin that installs the Copy to LLM button on your published site.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "pack": "npx framer-plugin-tools@latest pack"
+  },
+  "dependencies": {
+    "@framer/plugin": "^4",
+    "copy2llm-react": "^0.1.2",
+    "react": "^18",
+    "react-dom": "^18",
+    "vite-plugin-mkcert": "^1"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^6",
+    "typescript": "^5.9",
+    "vite": "^8",
+    "vite-plugin-framer": "^1.1.0"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "id": "fadb6f",
+  "name": "Copy to LLM Button",
+  "modes": ["canvas"],
+  "icon": "/icon.svg"
+}

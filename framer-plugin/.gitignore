@@ -1,0 +1,15 @@
+# dependencies
+/node_modules
+
+# build output
+dist
+
+# packed plugin
+plugin.zip
+framer-plugin-packed.txt
+
+# misc
+.DS_Store
+*.pem
+.env*.local
+npm-debug.log*
