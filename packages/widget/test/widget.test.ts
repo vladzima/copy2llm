@@ -124,3 +124,46 @@ test("does not leak its own button text into the extracted markdown", async () =
   expect(writes[0]).toContain("Real article content.");
   expect(writes[0]).not.toContain("Copy as Markdown");
 });
+
+test("Open in ChatGPT opens the tab synchronously, before awaiting the clipboard", () => {
+  const { doc, win, opened } = page("<main><p>hello world content</p></main>");
+  // A clipboard write that never resolves must NOT delay window.open (WebKit
+  // blocks popups opened after an await — user activation is lost).
+  (win.navigator as Any).clipboard = {
+    writeText: () => new Promise<void>(() => undefined),
+  };
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="chatgpt"]') as HTMLButtonElement).click();
+  // No await: assert the tab opened within the synchronous click.
+  expect(opened[0]?.startsWith("https://chatgpt.com/?q=")).toBe(true);
+});
+
+test("a second mount on the same target returns an inert handle", () => {
+  const { doc } = page("<main><p>hi</p></main>");
+  mount({}, doc.body);
+  const second = mount({}, doc.body);
+  second.destroy();
+  // destroying the second (inert) handle must not remove the first widget
+  expect(doc.body.querySelector("[data-copy2llm]")).not.toBeNull();
+});
+
+test("clicking the primary button closes an open menu", () => {
+  const { doc } = page("<main><p>hi</p></main>");
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  expect(q(doc, ".menu").hasAttribute("hidden")).toBe(false);
+  (q(doc, ".primary") as HTMLButtonElement).click();
+  expect(q(doc, ".menu").hasAttribute("hidden")).toBe(true);
+});
+
+test("the overlay markdown body is keyboard-focusable (scrollable)", async () => {
+  const { doc } = page("<main><p>long content here</p></main>");
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="view"]') as HTMLButtonElement).click();
+  await tick();
+  expect(
+    q(doc, ".overlay").querySelector("pre")?.getAttribute("tabindex")
+  ).toBe("0");
+});

@@ -58,7 +58,13 @@ export function mount(
     `:scope > [${HOST_ATTR}]`
   ) as WithHandle | null;
   if (existing?.[HANDLE_KEY]) {
-    return existing[HANDLE_KEY];
+    // Another owner already mounted here — hand back an inert handle so a second
+    // caller's destroy() can't tear down the first widget.
+    return {
+      destroy() {
+        // no-op: this target is owned by an earlier mount()
+      },
+    };
   }
 
   const theme = options.theme ?? DEFAULTS.theme;
@@ -103,6 +109,7 @@ export function mount(
   const primaryAction = items[0];
   primary.textContent = labels[primaryAction];
   primary.addEventListener("click", () => {
+    closeMenu();
     runAction(primaryAction).catch(() => undefined);
   });
 
@@ -227,6 +234,9 @@ export function mount(
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       itemEls[(idx - 1 + itemEls.length) % itemEls.length]?.focus();
+    } else if (e.key === "Tab") {
+      // Tab out closes the menu (WAI-ARIA menu-button pattern); let focus move.
+      closeMenu();
     }
   }
 
@@ -272,8 +282,10 @@ export function mount(
       return;
     }
 
-    // chatgpt | claude: deep-link, with the clipboard as a silent fallback.
-    await copyText(markdown, win);
+    // chatgpt | claude: open the tab SYNCHRONOUSLY (within the click gesture) —
+    // WebKit/Firefox block window.open after an await, since user activation is
+    // lost. Everything the URL needs is already known, so open first, then copy
+    // the markdown as a silent clipboard fallback.
     const isPublic = isPublicUrl(result?.url ?? "");
     win.open(
       llmUrl(action as LlmTarget, result?.url ?? "", isPublic),
@@ -283,6 +295,7 @@ export function mount(
     if (!isPublic) {
       toast(MSG.paste);
     }
+    await copyText(markdown, win);
   }
 
   function toast(message: string): void {
@@ -315,6 +328,11 @@ export function mount(
 
     const copyBtn = ov.querySelector(".ov-copy") as HTMLButtonElement;
     const closeBtn = ov.querySelector(".ov-close") as HTMLButtonElement;
+    const pre = ov.querySelector("pre") as HTMLElement;
+    // Make the scrollable markdown body keyboard-focusable so long output is
+    // reachable (otherwise keyboard users can't scroll past the first screen).
+    pre.tabIndex = 0;
+    pre.setAttribute("aria-label", "Markdown source");
     copyBtn.addEventListener("click", async () => {
       const ok = await copyText(state.currentMarkdown, win);
       toast(ok ? MSG.copied : MSG.failed);
@@ -325,13 +343,17 @@ export function mount(
         closeOverlay();
       }
     });
+    const focusables = [copyBtn, closeBtn, pre];
     ov.addEventListener("keydown", (e) => {
-      if (e.key === "Tab") {
-        // Two-button focus trap (Copy ⇄ Close).
-        e.preventDefault();
-        const next = shadow.activeElement === copyBtn ? closeBtn : copyBtn;
-        next.focus();
+      if (e.key !== "Tab") {
+        return;
       }
+      // Focus trap across Copy / Close / the scrollable body.
+      e.preventDefault();
+      const i = focusables.indexOf(shadow.activeElement as HTMLElement);
+      const dir = e.shiftKey ? -1 : 1;
+      const n = focusables.length;
+      focusables[(i + dir + n) % n]?.focus();
     });
     rootEl.appendChild(ov);
     state.overlayEl = ov;
@@ -350,7 +372,10 @@ export function mount(
     if (state.overlayEl) {
       state.overlayEl.hidden = true;
     }
-    (state.prevFocus as HTMLElement | null)?.focus?.();
+    // Restore focus to the trigger; fall back to the widget if it's gone (e.g. a
+    // menu item that was hidden when the overlay opened collapses focus to body).
+    const restore = (state.prevFocus as HTMLElement | null) ?? caret ?? primary;
+    restore?.focus?.();
   }
 
   function destroy(): void {
