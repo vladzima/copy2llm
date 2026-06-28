@@ -11,8 +11,13 @@ export function prependHeader(
   if (url) {
     parts.push(`> Source: ${url}`);
   }
-  if (parts.length === 0) {
+  const head = parts.join("\n\n");
+  if (!head) {
     return markdown;
   }
-  return `${parts.join("\n\n")}\n\n${markdown}`;
+  // No body to attach: return the header alone, without a dangling separator.
+  if (markdown.trim() === "") {
+    return head;
+  }
+  return `${head}\n\n${markdown}`;
 }

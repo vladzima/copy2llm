@@ -48,6 +48,27 @@ function rowCells(tr: Element): string[] {
   );
 }
 
+/**
+ * Pad ragged table rows with empty cells so every row matches the widest row.
+ * Prevents column-count mismatches that produce structurally-invalid GFM (a
+ * separator row of N columns with body rows of fewer/more cells). Lossless: only
+ * pads short rows, never truncates.
+ */
+export function normalizeTables(root: Element): void {
+  for (const table of Array.from(root.querySelectorAll("table"))) {
+    const rows = Array.from((table as HTMLTableElement).rows);
+    if (rows.length === 0) {
+      continue;
+    }
+    const maxCols = Math.max(...rows.map((row) => row.cells.length));
+    for (const row of rows) {
+      while (row.cells.length < maxCols) {
+        row.appendChild(row.ownerDocument.createElement("td"));
+      }
+    }
+  }
+}
+
 function configure(td: TurndownService): void {
   td.use(gfm);
 

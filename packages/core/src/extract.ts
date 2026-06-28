@@ -1,7 +1,7 @@
-import { absolutizeUrls } from "./absolutize";
+import { absolutizeUrls, promoteLazyImages } from "./absolutize";
 import { prependHeader } from "./header";
 import { selectContent } from "./select-content";
-import { toMarkdown } from "./to-markdown";
+import { normalizeTables, toMarkdown } from "./to-markdown";
 
 export interface ExtractOptions {
   /** CSS selector for the content root. Overrides auto-detection. */
@@ -25,6 +25,8 @@ export function extract(
   const url = document.baseURI || document.URL || "";
 
   const { root, title } = selectContent(document, content);
+  promoteLazyImages(root);
+  normalizeTables(root);
   absolutizeUrls(root, url);
   let markdown = toMarkdown(root);
   if (header) {
