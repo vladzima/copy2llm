@@ -352,7 +352,7 @@
 
     /* ---------------------------------------------------------- Glass mockup */
     /* Two stacked layers: the window (.mockup) and the menu broken out of it to
-                                                                                                               the upper-right. `[data-px]` layers drift at different rates on scroll. */
+                                                                                                                                       the upper-right. `[data-px]` layers drift at different rates on scroll. */
     .hero-art {
       position: relative;
     }
@@ -365,7 +365,7 @@
       padding: 14px;
       overflow: hidden;
       /* Frosted frame: low opacity so the dawn gradient reads through the frame,
-                                                                                                                                                     while the blur keeps it glassy. The doc inside stays opaque (below). */
+                                                                                                                                                                             while the blur keeps it glassy. The doc inside stays opaque (below). */
       background: rgba(29, 29, 29, 0.42);
       border: 1px solid var(--line-strong);
       border-radius: 24px;
@@ -490,6 +490,59 @@
       margin-left: auto;
       font-size: 13px;
       color: var(--fog);
+    }
+
+    /* "Try it →" nudge floating left of the live demo button (pinned by JS). */
+    .try-hint {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 2147483000;
+      display: inline-flex;
+      gap: 7px;
+      align-items: center;
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--mist);
+      white-space: nowrap;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
+      pointer-events: none;
+      opacity: 0;
+      transition:
+        opacity 0.4s ease,
+        transform 0.4s ease;
+    }
+    .try-hint.show {
+      opacity: 1;
+    }
+    .try-hint.is-gone {
+      opacity: 0;
+      transform: translateX(8px);
+    }
+    .try-arrow {
+      display: inline-block;
+      color: var(--ash);
+      animation: try-nudge 1.15s ease-in-out infinite;
+    }
+    @keyframes try-nudge {
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+      50% {
+        transform: translateX(4px);
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .try-arrow {
+        animation: none;
+      }
+    }
+    @media (max-width: 600px) {
+      .try-hint {
+        display: none;
+      }
     }
 
     /* --------------------------------------------------------------- Section */
@@ -847,9 +900,25 @@
       border: 1px solid var(--line-strong);
       border-radius: 9999px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      opacity: 0;
       -webkit-backdrop-filter: blur(20px) saturate(150%);
       backdrop-filter: blur(20px) saturate(150%);
       transform: translateX(-50%);
+    }
+    /* JS adds .rise once fonts are ready, so the slide-in waits for the real face. */
+    .dock.rise {
+      animation: dock-rise 0.7s var(--ease) 0.35s both;
+    }
+    /* Slide the dock up from below on load (centering translateX kept intact). */
+    @keyframes dock-rise {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(calc(100% + 40px));
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
     }
     .dock-mark {
       margin-right: 8px;
@@ -919,7 +988,7 @@
       font-size: 15px;
     }
     /* The dock CTA grows in (width + fade) only once the hero CTA scrolls away,
-                                                                                                                                                                           so the dock container eases open instead of snapping. */
+                                                                                                                                                                                                   so the dock container eases open instead of snapping. */
     .dock .btn {
       max-width: 0;
       height: 36px;
@@ -944,6 +1013,10 @@
       opacity: 1;
     }
     @media (prefers-reduced-motion: reduce) {
+      .dock {
+        opacity: 1;
+        animation: none;
+      }
       .dock-hl,
       .dock .btn {
         transition: none;
@@ -1050,8 +1123,8 @@
 
     /* ------------------------------------------------- Install (the action band) */
     /* Unlike the flat informational sections, this is where the reader acts — so
-                                                                                                                                                       it reads as a lit glass deck: a full-bleed band (hairlines + faint char
-                                                                                                                                                       tint + an indigo spotlight) with the configurator floating on it as glass. */
+                                                                                                                                                                               it reads as a lit glass deck: a full-bleed band (hairlines + faint char
+                                                                                                                                                                               tint + an indigo spotlight) with the configurator floating on it as glass. */
     #install {
       position: relative;
       padding: 96px 0;
@@ -2108,6 +2181,12 @@
       </section>
     </main>
 
+    <!-- Nudge toward the live demo button; JS pins it left of the real widget
+         and fades it the moment the button or configurator is touched. -->
+    <div class="try-hint" data-try-hint aria-hidden="true">
+      Try it <span class="try-arrow" aria-hidden="true">→</span>
+    </div>
+
     <!-- ========================================================== FOOTER -->
     <footer>
       <div class="wrap foot-grid">
@@ -2168,6 +2247,15 @@
 
     <script>
     "use strict";
+    // Hold load-time animations until web fonts are ready (or a fallback timer),
+    // so the fallback face never swaps in mid-animation.
+    const fontsReady = document.fonts?.ready
+      ? Promise.race([
+          document.fonts.ready,
+          new Promise((resolve) => setTimeout(resolve, 1200)),
+        ])
+      : Promise.resolve();
+
     // Scroll-reveal via IntersectionObserver, not a scroll listener.
     (() => {
       const els = document.querySelectorAll("[data-reveal]");
@@ -2191,9 +2279,13 @@
         },
         { rootMargin: "0px 0px -10% 0px", threshold: 0.1 }
       );
-      for (const el of els) {
-        io.observe(el);
-      }
+      // Observe only once fonts have settled, so the in-view hero reveals with
+      // the real face (off-screen elements still reveal later on scroll).
+      fontsReady.then(() => {
+        for (const el of els) {
+          io.observe(el);
+        }
+      });
     })();
 
     // Configurator: drives the live preview button and writes the install code.
@@ -2545,16 +2637,82 @@
         });
       });
 
+      // "Try it →" nudge: pin it just left of the live button, then fade it on
+      // the first touch of either the button or the configurator panel.
+      const hintEl = document.querySelector("[data-try-hint]");
+      let hintDead = false;
+      // The widget host is a 0×0 element in normal flow; the real button is the
+      // `.root` inside its (open) shadow, where `position: fixed` actually lives.
+      const buttonRect = () => {
+        const host = document.querySelector("[data-copy2llm]");
+        const btn = host?.shadowRoot?.querySelector(".root");
+        return btn?.getBoundingClientRect() ?? null;
+      };
+      // Returns true once the button has a real rect and the hint is placed.
+      const positionHint = () => {
+        const r = buttonRect();
+        if (!(hintEl && r?.width)) {
+          return false;
+        }
+        hintEl.style.top = `${r.top + r.height / 2 - hintEl.offsetHeight / 2}px`;
+        hintEl.style.right = `${window.innerWidth - r.left + 12}px`;
+        return true;
+      };
+      // Only reveal once we have a valid position; the freshly-mounted button
+      // can measure 0 wide for a frame (shadow styles / fonts not applied yet).
+      const showHint = (tries = 0) => {
+        if (hintDead || !hintEl) {
+          return;
+        }
+        if (positionHint()) {
+          hintEl.classList.add("show");
+        } else if (tries < 12) {
+          requestAnimationFrame(() => showHint(tries + 1));
+        }
+      };
+      const dismissHint = () => {
+        if (hintDead || !hintEl) {
+          return;
+        }
+        hintDead = true;
+        hintEl.classList.remove("show");
+        hintEl.classList.add("is-gone");
+        window.removeEventListener("resize", positionHint);
+      };
+      const setupHint = () => {
+        if (!hintEl || hintDead) {
+          return;
+        }
+        requestAnimationFrame(() => showHint());
+        // Re-place after web fonts settle (button width changes with the label).
+        document.fonts?.ready.then(() => {
+          if (!hintDead) {
+            positionHint();
+          }
+        });
+        window.addEventListener("resize", positionHint);
+        document
+          .querySelector("[data-copy2llm]")
+          ?.addEventListener("pointerdown", dismissHint);
+        const panel = root.querySelector(".cfg-panel");
+        panel?.addEventListener("pointerdown", dismissHint);
+        panel?.addEventListener("input", dismissHint);
+      };
+
       // First paint, then mount the preview once the snippet API is ready.
       renderCode();
+      const firstMount = () => {
+        remount();
+        setupHint();
+      };
       const startPreview = () => {
         if (window.copy2llm?.mount) {
-          remount();
+          firstMount();
           return;
         }
         const s = document.getElementById("c2l");
         if (s) {
-          s.addEventListener("load", remount, { once: true });
+          s.addEventListener("load", firstMount, { once: true });
         }
       };
       if (document.readyState === "loading") {
@@ -2570,6 +2728,13 @@
     // only once the hero's "Add to your site" button has scrolled away.
     (() => {
       const dock = document.querySelector(".dock");
+      // Slide the dock up once fonts are ready (reduced motion shows it instantly).
+      if (
+        dock &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        fontsReady.then(() => dock.classList.add("rise"));
+      }
       if (!(dock && "IntersectionObserver" in window)) {
         return;
       }
@@ -2778,14 +2943,9 @@
         return `${html}<span class="caret"></span>`;
       };
 
-      doc.classList.add("is-typing");
-
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        const chars = flatten(PAGES[0].segs);
-        url.textContent = PAGES[0].url;
-        doc.innerHTML = render(chars, chars.length);
-        return;
-      }
+      const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
 
       // Pace: a beat after each line break, a sliver on spaces, steady otherwise.
       const PACE = { "\n": 44, " ": 9 };
@@ -2830,7 +2990,19 @@
         };
         type();
       };
-      run();
+
+      // Start only once fonts are ready so the mono face doesn't swap mid-type;
+      // add `is-typing` here too, to avoid flashing the static block as pre-wrap.
+      fontsReady.then(() => {
+        doc.classList.add("is-typing");
+        if (reduceMotion) {
+          const chars = flatten(PAGES[0].segs);
+          url.textContent = PAGES[0].url;
+          doc.innerHTML = render(chars, chars.length);
+          return;
+        }
+        run();
+      });
     })();
     </script>
 
