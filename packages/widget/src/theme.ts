@@ -98,7 +98,9 @@ function sampleBackgroundLuminance(host: Element, win: Window): number | null {
       bg = "";
     }
     const rgba = bg ? parseColor(bg) : null;
-    if (rgba && rgba[3] > 0) {
+    // Only an effectively-opaque layer wins; keep walking past faint tints
+    // (e.g. an rgba(255,255,255,0.04) elevation scrim over a dark page).
+    if (rgba && rgba[3] >= 0.9) {
       return relativeLuminance(rgba);
     }
     el = el.parentElement;
@@ -163,7 +165,18 @@ export function watchTheme(
     };
   }
 
-  const recompute = () => onChange(resolveTheme("auto", host, win));
+  // Only fire when the resolved theme actually changes — the observer below
+  // sees every <html>/<body> attribute write (scroll libs toggle classes and
+  // inline CSS vars per frame), but a full stylesheet rebuild per mutation is
+  // wasteful and janky.
+  let last = resolveTheme("auto", host, win);
+  const recompute = () => {
+    const next = resolveTheme("auto", host, win);
+    if (next !== last) {
+      last = next;
+      onChange(next);
+    }
+  };
 
   const cleanups: Array<() => void> = [];
 
@@ -180,10 +193,16 @@ export function watchTheme(
   const MO = (win as unknown as { MutationObserver: typeof MutationObserver })
     .MutationObserver;
   const observer = new MO(recompute);
-  observer.observe(win.document.documentElement, {
+  const observed = {
     attributes: true,
     attributeFilter: ["class", "data-theme", "style"],
-  });
+  };
+  // Watch both <html> and <body>: the luminance sample walks through <body>, so
+  // body-class dark modes (and Bootstrap's data-bs-theme on <html>) must re-resolve.
+  observer.observe(win.document.documentElement, observed);
+  if (win.document.body) {
+    observer.observe(win.document.body, observed);
+  }
   cleanups.push(() => observer.disconnect());
 
   return () => {

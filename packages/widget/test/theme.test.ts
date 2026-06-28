@@ -114,3 +114,37 @@ test("watchTheme auto: re-resolves when <html> class mutates", async () => {
   expect(seen).toContain("dark");
   stop();
 });
+
+test("watchTheme auto: does not fire when a mutation leaves the theme unchanged", async () => {
+  const { win, host } = setup();
+  host.style.backgroundColor = "rgb(245, 245, 245)"; // light
+  const seen: string[] = [];
+  const stop = watchTheme("auto", host, win, (t) => seen.push(t));
+
+  win.document.documentElement.className = "scroll-progress-42"; // theme stays light
+  await new Promise((r) => setTimeout(r, 0));
+
+  expect(seen).toEqual([]);
+  stop();
+});
+
+test("watchTheme auto: re-resolves on a <body> mutation (body-class dark mode)", async () => {
+  const { win, host } = setup();
+  host.style.backgroundColor = "rgb(245, 245, 245)"; // light start
+  const seen: string[] = [];
+  const stop = watchTheme("auto", host, win, (t) => seen.push(t));
+
+  host.style.backgroundColor = "rgb(10, 10, 10)"; // becomes dark
+  win.document.body.className = "dark"; // mutate BODY, not <html>
+  await new Promise((r) => setTimeout(r, 0));
+
+  expect(seen).toContain("dark");
+  stop();
+});
+
+test("resolveTheme auto: a near-transparent layer is skipped for the opaque backdrop", () => {
+  const { win, host } = setup();
+  host.style.backgroundColor = "rgba(255, 255, 255, 0.04)"; // faint tint
+  win.document.body.style.backgroundColor = "rgb(10, 10, 10)"; // real backdrop
+  expect(resolveTheme("auto", host, win)).toBe("dark");
+});

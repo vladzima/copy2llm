@@ -3,7 +3,9 @@ import { contrastText, parseColor, type ResolvedTheme } from "./theme";
 
 export interface StyleTokens {
   bg: string;
+  border: string;
   font: string;
+  hover: string;
   position: Position;
   radius: string;
   text: string;
@@ -28,6 +30,21 @@ const THEME_TEXT: Record<ResolvedTheme, string> = {
   dark: "#f5f5f5",
 };
 
+/**
+ * Linearly mix `weightA` of color A into B, as plain rgb. Returns null if either
+ * color isn't parseable (named colors), so the caller can fall back to color-mix.
+ * Precomputing avoids `color-mix()`, which is unsupported before ~2023 browsers.
+ */
+function mix(colorA: string, colorB: string, weightA: number): string | null {
+  const a = parseColor(colorA);
+  const b = parseColor(colorB);
+  if (!(a && b)) {
+    return null;
+  }
+  const ch = (i: number) => Math.round(a[i] * weightA + b[i] * (1 - weightA));
+  return `rgb(${ch(0)}, ${ch(1)}, ${ch(2)})`;
+}
+
 /** Fold options + the resolved theme into concrete CSS values. */
 export function resolveTokens(
   options: WidgetOptions,
@@ -48,7 +65,9 @@ export function resolveTokens(
   } else {
     text = THEME_TEXT[theme];
   }
-  return { position, bg, text, radius, font };
+  const border = mix(text, bg, 0.2) ?? `color-mix(in srgb, ${text} 20%, ${bg})`;
+  const hover = mix(text, bg, 0.09) ?? `color-mix(in srgb, ${text} 9%, ${bg})`;
+  return { position, bg, text, radius, font, border, hover };
 }
 
 function placement(position: Position): string {
@@ -76,8 +95,8 @@ export function css(t: StyleTokens): string {
   --c2l-bg: ${t.bg};
   --c2l-text: ${t.text};
   --c2l-radius: ${t.radius};
-  --c2l-border: color-mix(in srgb, var(--c2l-text) 20%, var(--c2l-bg));
-  --c2l-hover: color-mix(in srgb, var(--c2l-text) 9%, var(--c2l-bg));
+  --c2l-border: ${t.border};
+  --c2l-hover: ${t.hover};
   ${placement(t.position)}
   z-index: 2147483000;
   font-family: ${t.font};

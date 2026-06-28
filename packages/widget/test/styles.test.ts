@@ -52,3 +52,20 @@ test("css: bottom placement opens the menu upward", () => {
   const out = css(resolveTokens({ position: "bottom-right" }, "light"));
   expect(out).toContain("bottom: 100%");
 });
+
+test("resolveTokens: precomputes border/hover as plain rgb for parseable colors", () => {
+  const t = resolveTokens({}, "light");
+  expect(t.border.startsWith("rgb(")).toBe(true);
+  expect(t.hover.startsWith("rgb(")).toBe(true);
+});
+
+test("resolveTokens: falls back to color-mix only for unparseable named colors", () => {
+  const t = resolveTokens({ bg: "rebeccapurple", text: "gold" }, "dark");
+  expect(t.border).toContain("color-mix");
+});
+
+test("css: embeds precomputed border/hover, not raw color-mix, for default tokens", () => {
+  const out = css(resolveTokens({}, "light"));
+  expect(out).not.toContain("color-mix");
+  expect(out).toContain("--c2l-border: rgb(");
+});
