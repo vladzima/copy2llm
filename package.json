@@ -1,12 +1,21 @@
 {
+  "devDependencies": {
+    "@biomejs/biome": "2.4.16",
+    "ultracite": "7.8.3"
+  },
   "name": "copy2llm",
-  "private": true,
-  "type": "module",
-  "workspaces": ["packages/*", "apps/*"],
   "scripts": {
     "test": "bun test",
     "build": "bun run --filter '*' build",
     "typecheck": "bun run --filter '*' typecheck",
-    "lint": "biome check ."
-  }
+    "lint": "biome check .",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
+  },
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "private": true
 }
