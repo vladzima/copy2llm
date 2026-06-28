@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>copy2llm — a "Copy to LLM" button any website can embed</title>
+    <meta
+      name="description"
+      content="Add a Copy-to-LLM button to any website: convert the page to clean Markdown and open it in ChatGPT or Claude. One script tag, an npm package, or a Framer component."
+    >
+    <style>
+    :root {
+      color-scheme: light dark;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.55;
+      color: #111;
+      background: #fff;
+    }
+    main {
+      max-width: 640px;
+      padding: 14vh 24px 24px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin: 0 0 0.4em;
+      font-size: 2.4rem;
+      letter-spacing: -0.02em;
+    }
+    p {
+      margin: 0 0 1em;
+      font-size: 1.05rem;
+    }
+    .muted {
+      color: #666;
+    }
+    code,
+    pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+    }
+    pre {
+      padding: 14px 16px;
+      overflow: auto;
+      background: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+    }
+    a {
+      color: inherit;
+    }
+    footer {
+      margin-top: 3em;
+      font-size: 0.85rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        color: #f5f5f5;
+        background: #111;
+      }
+      .muted {
+        color: #999;
+      }
+      pre {
+        background: #1a1a1a;
+        border-color: #2a2a2a;
+      }
+    }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>copy2llm</h1>
+      <p>
+        A <strong>"Copy to LLM" button any website can embed</strong>. On click
+        it converts the current page to clean Markdown and lets a reader copy
+        it, view it raw, or open it straight in ChatGPT or Claude.
+      </p>
+      <p class="muted">
+        Free in beta · fully client-side · no accounts, no backend. The button
+        in the corner of this page is the real thing — try it.
+      </p>
+
+      <p>Add it to any site with one tag:</p>
+      <pre><code>&lt;script src="https://copy.computer/copy2llm.js" defer
+        data-position="bottom-right" data-theme="auto"&gt;&lt;/script&gt;</code></pre>
+
+      <p>Or, for developers:</p>
+      <pre><code>npm i copy2llm-react   # &lt;CopyToLLM /&gt;
+npm i copy2llm-core    # extract(document) -&gt; { markdown, title, url }</code></pre>
+
+      <footer class="muted">
+        <a href="https://github.com/vladzima/copy2llm">GitHub</a>
+        ·
+        <a href="https://www.npmjs.com/package/copy2llm-core">npm</a>
+      </footer>
+    </main>
+
+    <!-- Dogfood: the site loads its own snippet. -->
+    <script
+      src="/copy2llm.js"
+      defer
+      data-position="bottom-right"
+      data-theme="auto"
+    ></script>
+  </body>
+</html>

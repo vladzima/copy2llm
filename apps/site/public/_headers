@@ -1,0 +1,5 @@
+# The snippet is embedded into other people's pages — allow cross-origin loading
+# and let updates propagate within an hour (the path is unversioned).
+/copy2llm.js
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=3600

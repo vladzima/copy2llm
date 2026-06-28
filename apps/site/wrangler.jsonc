@@ -1,0 +1,11 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "copy2llm-site",
+  "compatibility_date": "2026-06-01",
+  // Assets-only Worker (no `main`): serves ./public as a static site + the CDN snippet.
+  "assets": {
+    "directory": "./public"
+  },
+  // Apex custom domain (copy.computer is a Cloudflare zone in this account).
+  "routes": [{ "pattern": "copy.computer", "custom_domain": true }]
+}

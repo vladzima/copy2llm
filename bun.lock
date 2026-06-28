@@ -10,6 +10,13 @@
         "wrangler": "^4.105.0",
       },
     },
+    "apps/site": {
+      "name": "copy2llm-site",
+      "version": "0.0.0",
+      "devDependencies": {
+        "wrangler": "^4.0.0",
+      },
+    },
     "packages/core": {
       "name": "copy2llm-core",
       "version": "0.1.1",
@@ -381,6 +388,8 @@
     "copy2llm-framer": ["copy2llm-framer@workspace:packages/framer"],
 
     "copy2llm-react": ["copy2llm-react@workspace:packages/react"],
+
+    "copy2llm-site": ["copy2llm-site@workspace:apps/site"],
 
     "copy2llm-snippet": ["copy2llm-snippet@workspace:packages/snippet"],
 
