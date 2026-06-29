@@ -58,7 +58,7 @@ test("primary Copy writes the markdown and flashes the button label (no side toa
   expect(q(doc, ".toast").hasAttribute("hidden")).toBe(true);
 });
 
-test("caret opens the menu; Open in ChatGPT deep-links and copies", async () => {
+test("caret opens the menu; Open in ChatGPT inlines the markdown, no clipboard", async () => {
   const { doc, opened, writes } = page("<main><p>hi there friend</p></main>");
   mount({}, doc.body);
   const caret = q(doc, ".caret") as HTMLButtonElement;
@@ -67,7 +67,10 @@ test("caret opens the menu; Open in ChatGPT deep-links and copies", async () => 
   (q(doc, '[data-action="chatgpt"]') as HTMLButtonElement).click();
   await tick();
   expect(opened[0]?.startsWith("https://chatgpt.com/?q=")).toBe(true);
-  expect(writes.length).toBe(1);
+  // The page content rides in the URL, not the clipboard — so no write fires
+  // (it's the post-open write that triggered Chrome's permission prompt).
+  expect(decodeURIComponent(opened[0] ?? "")).toContain("hi there friend");
+  expect(writes.length).toBe(0);
 });
 
 test("View opens an overlay containing the markdown", async () => {
@@ -88,17 +91,16 @@ test("a single configured action renders no caret or menu", () => {
   expect(shadowOf(doc).querySelector(".menu")).toBeNull();
 });
 
-test("non-public page: deep link omits the URL and toasts to paste", async () => {
-  const { doc, opened } = page(
-    "<main><p>secret staging content</p></main>",
-    "http://localhost:3000/x"
-  );
+test("a page too long to inline falls back to clipboard + paste toast", async () => {
+  const long = `<main><p>${"word ".repeat(4000)}</p></main>`;
+  const { doc, opened } = page(long);
   mount({}, doc.body);
   (q(doc, ".caret") as HTMLButtonElement).click();
   (q(doc, '[data-action="claude"]') as HTMLButtonElement).click();
   await tick();
   expect(opened[0]?.startsWith("https://claude.ai/new?q=")).toBe(true);
-  expect(decodeURIComponent(opened[0] ?? "")).not.toContain("localhost");
+  // The huge body is on the clipboard, not in the URL.
+  expect(decodeURIComponent(opened[0] ?? "")).not.toContain("word word word");
   expect(q(doc, ".toast").textContent?.toLowerCase()).toContain("paste");
 });
 

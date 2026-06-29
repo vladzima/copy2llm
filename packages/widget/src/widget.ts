@@ -1,6 +1,6 @@
 import { type ExtractResult, extract } from "copy2llm-core";
-import { copyText } from "./clipboard";
-import { isPublicUrl, type LlmTarget, llmUrl } from "./links";
+import { copyText, copyTextSync } from "./clipboard";
+import { type LlmTarget, llmUrl } from "./links";
 import {
   type Action,
   ALL_ACTIONS,
@@ -392,20 +392,21 @@ export function mount(
       return;
     }
 
-    // chatgpt | claude: open the tab SYNCHRONOUSLY (within the click gesture) —
-    // WebKit/Firefox block window.open after an await, since user activation is
-    // lost. Everything the URL needs is already known, so open first, then copy
-    // the markdown as a silent clipboard fallback.
-    const isPublic = isPublicUrl(result?.url ?? "");
-    win.open(
-      llmUrl(action as LlmTarget, result?.url ?? "", isPublic),
-      "_blank",
-      "noopener,noreferrer"
-    );
-    if (!isPublic) {
+    // chatgpt | claude: hand the LLM the page's Markdown itself via the chat's
+    // ?q= prefill — that IS the product. Open the tab SYNCHRONOUSLY within the
+    // click gesture (WebKit/Firefox block window.open after an await, since user
+    // activation is lost). Only when the page is too long to inline do we fall
+    // back to the clipboard, copying BEFORE the tab opens — a synchronous copy
+    // keeps the page focused (no permission prompt) and preserves the popup
+    // gesture.
+    const link = llmUrl(action as LlmTarget, markdown);
+    if (link.needsPaste) {
+      copyTextSync(markdown, win);
+    }
+    win.open(link.href, "_blank", "noopener,noreferrer");
+    if (link.needsPaste) {
       toast(MSG.paste);
     }
-    await copyText(markdown, win);
   }
 
   // Swap the primary button's icon + label, restarting the swap-in keyframe so

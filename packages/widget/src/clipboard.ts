@@ -13,10 +13,17 @@ export async function copyText(text: string, win: Window): Promise<boolean> {
       // Permission denied / insecure context — fall through to the legacy path.
     }
   }
-  return legacyCopy(text, win);
+  return copyTextSync(text, win);
 }
 
-function legacyCopy(text: string, win: Window): boolean {
+/**
+ * Synchronous clipboard copy via a hidden textarea + `execCommand('copy')`.
+ * Unlike the async Clipboard API this runs inline within the click gesture, so
+ * it can be called right before `window.open` without losing user activation —
+ * and it never raises the clipboard permission prompt that the async write does
+ * once focus has moved to the freshly opened tab.
+ */
+export function copyTextSync(text: string, win: Window): boolean {
   const doc = win.document;
   const ta = doc.createElement("textarea");
   ta.value = text;
