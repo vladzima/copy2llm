@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script
+      async
+      src="https://getsleek.io/v1.js"
+      data-site="TCwcSP8DdrmqOAvP"
+    ></script>
     <title>Copy2LLM: add a Copy to LLM button to any page</title>
     <meta
       name="description"
@@ -352,7 +357,7 @@
 
     /* ---------------------------------------------------------- Glass mockup */
     /* Two stacked layers: the window (.mockup) and the menu broken out of it to
-                                                                                                                                                                                                                               the upper-right. `[data-px]` layers drift at different rates on scroll. */
+                                                                                                                                                                                                                                                                                                                                                                                                               the upper-right. `[data-px]` layers drift at different rates on scroll. */
     .hero-art {
       position: relative;
     }
@@ -365,7 +370,7 @@
       padding: 14px;
       overflow: hidden;
       /* Frosted frame: low opacity so the dawn gradient reads through the frame,
-                                                                                                                                                                                                                                                                     while the blur keeps it glassy. The doc inside stays opaque (below). */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                     while the blur keeps it glassy. The doc inside stays opaque (below). */
       background: rgba(29, 29, 29, 0.42);
       border: 1px solid var(--line-strong);
       border-radius: 24px;
@@ -625,40 +630,33 @@
       color: var(--mist);
     }
     .tile-copy {
+      flex-direction: row;
       grid-column: span 2;
+      gap: 16px;
+      align-items: center;
+      /* Matches the mockup's #191919 backdrop so the image blends seamlessly. */
+      background: #191919;
+    }
+    .tile-copy-text {
+      display: flex;
+      flex: 1 1 0;
+      flex-direction: column;
+      min-width: 0;
+    }
+    /* The mockup is pressed flush into the card's bottom-right corner
+                                                                                       (clipped by the tile radius + overflow). */
+    .tile-copy-shot {
+      flex: 0 0 52%;
+      align-self: flex-end;
+      width: 52%;
+      height: auto;
+      margin: 0 -24px -24px 0;
     }
     .tile-claude {
       grid-column: span 2;
     }
     .tile-foot {
       margin-top: auto;
-    }
-    /* Mini markdown strip inside the wide Copy tile (visual variation). */
-    .md-strip {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding-top: 22px;
-      margin-top: auto;
-    }
-    .md-strip span {
-      display: block;
-      height: 7px;
-      background: rgba(229, 229, 229, 0.09);
-      border-radius: 4px;
-    }
-    .md-strip span.a {
-      width: 42%;
-      background: rgba(229, 229, 229, 0.18);
-    }
-    .md-strip span.b {
-      width: 88%;
-    }
-    .md-strip span.c {
-      width: 72%;
-    }
-    .md-strip span.d {
-      width: 80%;
     }
     .tile-claude::after {
       position: absolute;
@@ -988,7 +986,7 @@
       font-size: 15px;
     }
     /* The dock CTA grows in (width + fade) only once the hero CTA scrolls away,
-                                                                                                                                                                                                                                                                                           so the dock container eases open instead of snapping. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                           so the dock container eases open instead of snapping. */
     .dock .btn {
       max-width: 0;
       height: 36px;
@@ -1052,6 +1050,19 @@
       .tile-copy,
       .tile-claude {
         grid-column: span 1;
+      }
+      .tile-copy {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .tile-copy-shot {
+        flex-basis: auto;
+        align-self: stretch;
+        /* Full-bleed across the stacked card: content width + the 24px side
+                                                                           padding, pulled out by the negative margins. */
+        width: calc(100% + 48px);
+        height: auto;
+        margin: 16px -24px -24px;
       }
       .mockup-menu {
         position: static;
@@ -1123,8 +1134,8 @@
 
     /* ------------------------------------------------- Install (the action band) */
     /* Unlike the flat informational sections, this is where the reader acts — so
-                                                                                                                                                                                                                                                                       it reads as a lit glass deck: a full-bleed band (hairlines + faint char
-                                                                                                                                                                                                                                                                       tint + an indigo spotlight) with the configurator floating on it as glass. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                       it reads as a lit glass deck: a full-bleed band (hairlines + faint char
+                                                                                                                                                                                                                                                                                                                                                                                                                                                       tint + an indigo spotlight) with the configurator floating on it as glass. */
     #install {
       position: relative;
       padding: 96px 0;
@@ -1171,6 +1182,13 @@
       height: 7px;
       background: var(--bone);
       border-radius: 9999px;
+    }
+    .chip-icons {
+      display: inline-flex;
+      gap: 9px;
+      align-items: center;
+      font-size: 16px;
+      color: var(--bone);
     }
 
     /* ----------------------------------------------------------- Configurator */
@@ -1503,17 +1521,26 @@
     .cfg-actions {
       margin-top: 12px;
     }
-    /* Framer tab: a centered "coming soon" note, with copy/ask hidden. */
-    .cfg-out[data-soon="true"] .copy-code,
-    .cfg-out[data-soon="true"] .cfg-actions {
+    /* Framer tab: show the marketplace shot + install link instead of code. */
+    .cfg-out[data-framer="true"] .code-card,
+    .cfg-out[data-framer="true"] .cfg-actions {
       display: none;
     }
-    .cfg-out[data-soon="true"] .code-card pre {
-      display: grid;
-      place-items: center;
-      min-height: 168px;
-      color: var(--fog);
-      text-align: center;
+    .cfg-framer {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .cfg-framer[hidden] {
+      display: none;
+    }
+    .cfg-framer-shot {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: rgba(29, 29, 29, 0.66);
+      border: 1px solid var(--line-strong);
+      border-radius: 24px;
     }
     .btn-llm {
       display: inline-flex;
@@ -1633,6 +1660,17 @@
       <section class="hero">
         <div class="wrap hero-grid">
           <div class="hero-copy" data-reveal>
+            <span
+              class="chip"
+              aria-label="Works with JavaScript, React, and Framer"
+            >
+              Works with
+              <span class="chip-icons" aria-hidden="true">
+                <svg class="ic"><use href="#ic-script" /></svg>
+                <svg class="ic"><use href="#ic-react" /></svg>
+                <svg class="ic"><use href="#ic-framer" /></svg>
+              </span>
+            </span>
             <h1>Take any page<br>to an LLM.</h1>
             <p class="lede">
               Drop in one script and readers can turn your page into clean
@@ -1764,20 +1802,26 @@
 
           <div class="bento">
             <article class="tile tile-copy" data-reveal>
-              <div class="ic-well">
-                <svg class="ic" aria-hidden="true"><use href="#ic-copy" /></svg>
+              <div class="tile-copy-text">
+                <div class="ic-well">
+                  <svg class="ic" aria-hidden="true">
+                    <use href="#ic-copy" />
+                  </svg>
+                </div>
+                <h3>Copy as Markdown</h3>
+                <p>
+                  The readable part of the page, stripped of nav and clutter,
+                  lands on the clipboard as clean Markdown.
+                </p>
               </div>
-              <h3>Copy as Markdown</h3>
-              <p>
-                The readable part of the page, stripped of nav and clutter,
-                lands on the clipboard as clean Markdown.
-              </p>
-              <div class="md-strip" aria-hidden="true">
-                <span class="a"></span>
-                <span class="b"></span>
-                <span class="c"></span>
-                <span class="d"></span>
-              </div>
+              <img
+                class="tile-copy-shot"
+                src="copy-mockup.png"
+                width="1920"
+                height="1080"
+                loading="lazy"
+                alt=""
+              >
             </article>
 
             <article class="tile" data-reveal>
@@ -2103,6 +2147,27 @@
                 </button>
                 <pre data-code></pre>
               </div>
+              <div class="cfg-framer" hidden>
+                <img
+                  class="cfg-framer-shot"
+                  src="framer-plugin.png"
+                  width="1920"
+                  height="1080"
+                  loading="lazy"
+                  alt="The Copy to LLM button shown in four styles on a site built in Framer"
+                >
+                <a
+                  class="btn-llm"
+                  href="https://www.framer.com/community/marketplace/plugins/copy-to-llm/"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <svg class="ic" aria-hidden="true">
+                    <use href="#ic-framer" />
+                  </svg>
+                  <span>Get official plugin</span>
+                </a>
+              </div>
               <div class="cfg-actions">
                 <button class="btn-llm" type="button" data-ask-llm>
                   <svg class="ic" aria-hidden="true">
@@ -2310,8 +2375,7 @@
         return;
       }
       const out = root.querySelector(".cfg-out");
-      const FRAMER_SOON =
-        "Framer support is coming soon.\n\nFor now, drop the Script embed into a Framer\ncode component, or use the React package.";
+      const framerPanel = root.querySelector(".cfg-framer");
 
       const allItems = () => state.items.length === ORDER.length;
 
@@ -2384,11 +2448,16 @@
 
       const renderCode = () => {
         if (state.format === "framer") {
-          out.setAttribute("data-soon", "true");
-          codeEl.textContent = FRAMER_SOON;
+          out.setAttribute("data-framer", "true");
+          if (framerPanel) {
+            framerPanel.hidden = false;
+          }
           return;
         }
-        out.removeAttribute("data-soon");
+        out.removeAttribute("data-framer");
+        if (framerPanel) {
+          framerPanel.hidden = true;
+        }
         codeEl.textContent =
           state.format === "react" ? genReact() : genScript();
       };
@@ -2602,12 +2671,21 @@
       const copyBtn = root.querySelector("[data-copy-out]");
       const copyLabel = copyBtn.querySelector("span");
       copyBtn.addEventListener("click", () => {
+        // Funnel event: distinct name per flavour — Sleek funnels key on the
+        // event name, not properties (framer hides this button, so it's only
+        // ever "react" or a script variant).
+        window.analytics?.track(
+          state.format === "react" ? "Copy snippet React" : "Copy snippet JS"
+        );
         navigator.clipboard.writeText(codeEl.textContent).then(() => {
           copyLabel.textContent = "Copied";
           setTimeout(() => {
             copyLabel.textContent = "Copy";
           }, 1600);
         });
+      });
+      framerPanel?.querySelector("a")?.addEventListener("click", () => {
+        window.analytics?.track("Get Framer plugin");
       });
 
       // "Ask your LLM to integrate": copy a ready-to-paste prompt that wraps the
