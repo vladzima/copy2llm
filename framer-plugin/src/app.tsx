@@ -54,19 +54,31 @@ export function App() {
   const [installed, setInstalled] = useState(false);
   const [userDisabled, setUserDisabled] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Which write the user is confirming, if any — gates every setCustomCode call
+  // behind a preview so a site-wide change is never one accidental click away.
+  const [pending, setPending] = useState<"install" | "remove" | null>(null);
 
   // Reflect any existing install so the button reads Add vs Update, and warn
   // if the user has switched our code off in Site Settings (unrecoverable here).
   useEffect(() => {
     let active = true;
-    framer.getCustomCode().then((code) => {
-      if (!active) {
-        return;
-      }
-      const slot = code[LOCATION];
-      setInstalled(isOurSnippet(slot?.html));
-      setUserDisabled(Boolean(slot?.disabled));
-    });
+    framer
+      .getCustomCode()
+      .then((code) => {
+        if (!active) {
+          return;
+        }
+        const slot = code[LOCATION];
+        setInstalled(isOurSnippet(slot?.html));
+        setUserDisabled(Boolean(slot?.disabled));
+      })
+      .catch(() => {
+        if (active) {
+          framer.notify("Couldn't read your site's custom code.", {
+            variant: "error",
+          });
+        }
+      });
     return () => {
       active = false;
     };
@@ -100,33 +112,53 @@ export function App() {
   const effective: SnippetConfig = customColors
     ? config
     : { ...config, bg: undefined, text: undefined };
+  // The exact markup the install would write — shown in the confirm step too.
+  const snippet = buildSnippet(effective);
 
-  const install = async () => {
+  const doInstall = async () => {
     setBusy(true);
     try {
-      await framer.setCustomCode({
-        html: buildSnippet(effective),
-        location: LOCATION,
-      });
-      setInstalled(true);
+      await framer.setCustomCode({ html: snippet, location: LOCATION });
       framer.notify(installed ? "Updated on your site" : "Added to your site", {
         variant: "success",
       });
+      setInstalled(true);
+    } catch {
+      framer.notify("Couldn't update your site's custom code. Try again.", {
+        variant: "error",
+      });
     } finally {
       setBusy(false);
+      setPending(null);
     }
   };
 
-  const remove = async () => {
+  const doRemove = async () => {
     setBusy(true);
     try {
       await framer.setCustomCode({ html: null, location: LOCATION });
-      setInstalled(false);
       framer.notify("Removed from your site");
+      setInstalled(false);
+    } catch {
+      framer.notify("Couldn't remove the code from your site. Try again.", {
+        variant: "error",
+      });
     } finally {
       setBusy(false);
+      setPending(null);
     }
   };
+
+  // Confirm-step copy, kept flat to avoid nested ternaries in the markup.
+  let confirmTitle = "Add to your site?";
+  let confirmCta = "Add";
+  if (pending === "remove") {
+    confirmTitle = "Remove from your site?";
+    confirmCta = "Remove";
+  } else if (installed) {
+    confirmTitle = "Update your site?";
+    confirmCta = "Update";
+  }
 
   return (
     <main>
@@ -278,21 +310,59 @@ export function App() {
         </p>
       )}
 
-      <div className="install">
-        <button
-          className="framer-button-primary"
-          disabled={!isAllowed || busy}
-          onClick={install}
-          type="button"
-        >
-          {installed ? "Update on site" : "Add to site"}
-        </button>
-        {installed && (
-          <button disabled={!isAllowed || busy} onClick={remove} type="button">
-            Remove from site
+      {pending ? (
+        <div className="confirm">
+          <span className="section-label">{confirmTitle}</span>
+          <p className="confirm-dest">
+            Destination: end of <code>&lt;body&gt;</code>, on every published
+            page.
+          </p>
+          {pending === "remove" ? (
+            <p className="confirm-note">
+              This removes the Copy to LLM script from every published page.
+            </p>
+          ) : (
+            <pre className="snippet">{snippet}</pre>
+          )}
+          <div className="confirm-actions">
+            <button
+              className="framer-button-primary"
+              disabled={busy}
+              onClick={pending === "remove" ? doRemove : doInstall}
+              type="button"
+            >
+              {confirmCta}
+            </button>
+            <button
+              disabled={busy}
+              onClick={() => setPending(null)}
+              type="button"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="install">
+          <button
+            className="framer-button-primary"
+            disabled={!isAllowed}
+            onClick={() => setPending("install")}
+            type="button"
+          >
+            {installed ? "Update on site" : "Add to site"}
           </button>
-        )}
-      </div>
+          {installed && (
+            <button
+              disabled={!isAllowed}
+              onClick={() => setPending("remove")}
+              type="button"
+            >
+              Remove from site
+            </button>
+          )}
+        </div>
+      )}
     </main>
   );
 }

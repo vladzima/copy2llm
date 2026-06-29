@@ -83,3 +83,45 @@ hr {
   gap: 8px;
   margin-top: 4px;
 }
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 4px;
+  background: var(--framer-color-bg-secondary);
+  border: 1px solid var(--framer-color-divider);
+  border-radius: 8px;
+}
+
+.confirm-dest,
+.confirm-note {
+  margin: 0;
+  color: var(--framer-color-text-secondary);
+}
+
+.confirm-dest code {
+  font-family: var(--framer-font-family-mono, monospace);
+}
+
+.snippet {
+  max-height: 110px;
+  padding: 8px 10px;
+  margin: 0;
+  overflow: auto;
+  font-family: var(--framer-font-family-mono, monospace);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--framer-color-text);
+  word-break: break-all;
+  white-space: pre-wrap;
+  background: var(--framer-color-bg-tertiary);
+  border-radius: 6px;
+}
+
+.confirm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
