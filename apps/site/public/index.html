@@ -357,7 +357,7 @@
 
     /* ---------------------------------------------------------- Glass mockup */
     /* Two stacked layers: the window (.mockup) and the menu broken out of it to
-                                                                                                                                                                                                                                                                                                                                                                                                               the upper-right. `[data-px]` layers drift at different rates on scroll. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                       the upper-right. `[data-px]` layers drift at different rates on scroll. */
     .hero-art {
       position: relative;
     }
@@ -370,7 +370,7 @@
       padding: 14px;
       overflow: hidden;
       /* Frosted frame: low opacity so the dawn gradient reads through the frame,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                     while the blur keeps it glassy. The doc inside stays opaque (below). */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             while the blur keeps it glassy. The doc inside stays opaque (below). */
       background: rgba(29, 29, 29, 0.42);
       border: 1px solid var(--line-strong);
       border-radius: 24px;
@@ -644,7 +644,7 @@
       min-width: 0;
     }
     /* The mockup is pressed flush into the card's bottom-right corner
-                                                                                       (clipped by the tile radius + overflow). */
+                                                                                                                               (clipped by the tile radius + overflow). */
     .tile-copy-shot {
       flex: 0 0 52%;
       align-self: flex-end;
@@ -801,7 +801,7 @@
     }
     .why-row {
       display: grid;
-      grid-template-columns: 44px 1fr auto;
+      grid-template-columns: 44px 1fr;
       gap: 20px;
       align-items: baseline;
       padding: 22px 4px;
@@ -823,13 +823,6 @@
     .why-row .lab b {
       font-weight: 500;
       color: var(--bone);
-    }
-    .why-row .meta {
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: var(--fog);
-      text-align: right;
-      white-space: nowrap;
     }
 
     /* ------------------------------------------------------------------ Footer */
@@ -986,7 +979,7 @@
       font-size: 15px;
     }
     /* The dock CTA grows in (width + fade) only once the hero CTA scrolls away,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                           so the dock container eases open instead of snapping. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   so the dock container eases open instead of snapping. */
     .dock .btn {
       max-width: 0;
       height: 36px;
@@ -1059,7 +1052,7 @@
         flex-basis: auto;
         align-self: stretch;
         /* Full-bleed across the stacked card: content width + the 24px side
-                                                                           padding, pulled out by the negative margins. */
+                                                                                                                   padding, pulled out by the negative margins. */
         width: calc(100% + 48px);
         height: auto;
         margin: 16px -24px -24px;
@@ -1078,9 +1071,6 @@
       }
       .why-row {
         grid-template-columns: 36px 1fr;
-      }
-      .why-row .meta {
-        display: none;
       }
     }
 
@@ -1134,8 +1124,8 @@
 
     /* ------------------------------------------------- Install (the action band) */
     /* Unlike the flat informational sections, this is where the reader acts — so
-                                                                                                                                                                                                                                                                                                                                                                                                                                                       it reads as a lit glass deck: a full-bleed band (hairlines + faint char
-                                                                                                                                                                                                                                                                                                                                                                                                                                                       tint + an indigo spotlight) with the configurator floating on it as glass. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               it reads as a lit glass deck: a full-bleed band (hairlines + faint char
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               tint + an indigo spotlight) with the configurator floating on it as glass. */
     #install {
       position: relative;
       padding: 96px 0;
@@ -2206,7 +2196,6 @@
                 No server, no API key, no account. The page never leaves the
                 reader's machine.</span
               >
-              <span class="meta">client-side</span>
             </div>
             <div class="why-row">
               <span class="num">02</span>
@@ -2214,7 +2203,6 @@
                 ><b>Isolated in a Shadow DOM.</b>
                 It can't touch your styles and your styles can't touch it.</span
               >
-              <span class="meta">zero CSS bleed</span>
             </div>
             <div class="why-row">
               <span class="num">03</span>
@@ -2222,7 +2210,6 @@
                 ><b>Loads after your content.</b>
                 A small deferred script, around 20&nbsp;KB gzipped.</span
               >
-              <span class="meta">~20 KB</span>
             </div>
             <div class="why-row">
               <span class="num">04</span>
@@ -2231,7 +2218,6 @@
                 Reads the page and themes itself, or take control with a few
                 data attributes.</span
               >
-              <span class="meta">auto theme</span>
             </div>
             <div class="why-row">
               <span class="num">05</span>
@@ -2239,7 +2225,6 @@
                 ><b>Open source, MIT.</b>
                 Read it, fork it, ship it.</span
               >
-              <span class="meta">MIT</span>
             </div>
           </div>
         </div>
