@@ -712,6 +712,34 @@
       justify-content: center;
     }
 
+    /* -------------------------------------------------------------- Security */
+    /* The page's one pure-type beat: no card. Hierarchy is opacity — guarantees bright, connective words recede. */
+    .pledge {
+      padding: 60px 0;
+    }
+    .pledge-mark {
+      display: block;
+      margin: 0 0 22px;
+      font-size: 36px;
+      color: var(--ash);
+    }
+    .pledge-text {
+      max-width: 38ch;
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.3rem, 2.5vw, 1.85rem);
+      font-weight: 400;
+      line-height: 1.34;
+      color: var(--fog);
+      letter-spacing: -0.02em;
+    }
+    .pledge-text .k {
+      color: var(--paper);
+    }
+    .pledge-cta {
+      margin-top: 28px;
+    }
+
     /* ------------------------------------------------------------- Install code */
     .install-grid {
       display: grid;
@@ -1726,6 +1754,11 @@
           d="M40,88H73a32,32,0,0,0,62,0h81a8,8,0,0,0,0-16H135a32,32,0,0,0-62,0H40a8,8,0,0,0,0,16Zm64-24A16,16,0,1,1,88,80,16,16,0,0,1,104,64ZM216,168H199a32,32,0,0,0-62,0H40a8,8,0,0,0,0,16h97a32,32,0,0,0,62,0h17a8,8,0,0,0,0-16Zm-48,24a16,16,0,1,1,16-16A16,16,0,0,1,168,192Z"
         />
       </symbol>
+      <symbol id="ic-shield" viewBox="0 0 256 256">
+        <path
+          d="M208,40H48A16,16,0,0,0,32,56v58.77c0,89.62,75.82,119.34,91,124.39a15.51,15.51,0,0,0,10,0c15.2-5.05,91-34.77,91-124.39V56A16,16,0,0,0,208,40Zm0,74.79c0,78.42-66.35,104.62-80,109.18-13.53-4.51-80-30.69-80-109.18V56H208ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.68l50.34-50.34a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"
+        />
+      </symbol>
       <symbol id="ic-x" viewBox="0 0 24 24">
         <path
           d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"
@@ -2038,6 +2071,32 @@
                 to fit your site, no CSS required.
               </p>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================= SECURITY -->
+      <section id="secure" class="pledge">
+        <div class="wrap" data-reveal>
+          <svg class="ic pledge-mark" aria-hidden="true">
+            <use href="#ic-shield" />
+          </svg>
+          <p class="pledge-text">
+            It all happens <span class="k">in the reader's browser</span>. Your
+            page <span class="k">never reaches a server of ours</span> — we run
+            none in the loop — and every line is
+            <span class="k">open source you can audit</span>.
+          </p>
+          <div class="pledge-cta">
+            <a
+              class="btn btn-ghost"
+              href="https://github.com/vladzima/copy2llm"
+              target="_blank"
+              rel="noopener"
+            >
+              Read the source
+              <svg class="ic" aria-hidden="true"><use href="#ic-arrow" /></svg>
+            </a>
           </div>
         </div>
       </section>
@@ -2514,6 +2573,7 @@
         <span class="dock-hl" aria-hidden="true"></span>
         <a href="#why">Why</a>
         <a href="#actions">How</a>
+        <a href="#secure">Secure</a>
       </div>
       <a
         class="dock-x"
