@@ -22,11 +22,21 @@ function mount(options?: WidgetOptions, target?: Element): { destroy(): void };
 
 ## Actions
 
-Split button: **Copy as Markdown** (primary) · **View as Markdown** (overlay) · **Open in ChatGPT** · **Open in Claude**. A click never does nothing — every failure degrades to something visible (clipboard fallback, "couldn't extract" toast).
+Split button: **Copy as Markdown** (primary) · **View as Markdown** (overlay) · **Open in ChatGPT / Claude / Perplexity / Grok** · plus any **custom endpoints** you add. A click never does nothing — every failure degrades to something visible (clipboard fallback, "couldn't extract" toast).
 
 ## Options
 
-`content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` · `label`. `theme: auto` matches the host site, falling back to the OS, and stays live as the site/OS theme changes.
+`content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` · `endpoints` · `label`. `theme: auto` matches the host site, falling back to the OS, and stays live as the site/OS theme changes.
+
+Add your own LLM target (enterprise/internal chat, self-hosted, anything that takes a prompt in the URL):
+
+```ts
+mount({
+  endpoints: [{ label: "Open in Acme AI", href: "https://acme.ai/?q={q}" }],
+});
+```
+
+`{q}` is replaced with the page's Markdown (or appended if the template has none); pages too long to inline fall back to a clipboard paste.
 
 ## License
 

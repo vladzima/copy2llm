@@ -18,7 +18,11 @@ Mounts the Shadow-DOM widget on mount and tears it down on unmount. `position="i
 
 ## Props
 
-All [`copy2llm-widget`](https://www.npmjs.com/package/copy2llm-widget) options: `content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` · `label`.
+All [`copy2llm-widget`](https://www.npmjs.com/package/copy2llm-widget) options: `content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` (copy, view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`) · `label`.
+
+```tsx
+<CopyToLLM endpoints={[{ label: "Open in Acme AI", href: "https://acme.ai/?q={q}" }]} />
+```
 
 `react >= 17` is a peer dependency.
 

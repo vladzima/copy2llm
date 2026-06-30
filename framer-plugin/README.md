@@ -2,7 +2,8 @@
 
 A Framer plugin that installs the [Copy to LLM](https://copy.computer) button on
 every published page of your site. Configure position, theme, colors, font,
-label, and menu actions with a live preview, then click **Add to site** — the
+label, menu actions (ChatGPT, Claude, Perplexity, Grok), and your own custom
+endpoints with a live preview, then click **Add to site** — the
 plugin injects the `copy.computer/copy2llm.js` snippet via Framer Custom Code
 (`bodyEnd`). **Remove from site** clears it.
 
