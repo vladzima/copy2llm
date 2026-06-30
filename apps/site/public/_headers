@@ -1,3 +1,9 @@
+# Agent discovery (RFC 8288): point crawlers/agents at the docs + package.
+# No API here, so we only advertise rels that map to real resources.
+/
+  Link: <https://github.com/vladzima/copy2llm>; rel="service-doc"
+  Link: <https://www.npmjs.com/package/copy2llm-core>; rel="describedby"
+
 # The snippet is embedded into other people's pages — allow cross-origin loading.
 # The path is unversioned, so keep the fresh window short (5 min) and lean on
 # stale-while-revalidate: pages stay fast but pick up fixes within minutes.
