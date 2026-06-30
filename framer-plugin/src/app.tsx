@@ -1,5 +1,8 @@
 import { framer, useIsAllowedTo } from "@framer/plugin";
 import { CopyToLLM } from "copy2llm-react";
+// The reviewed widget IIFE, inlined into the plugin bundle at build time and
+// written verbatim into the site's custom code — never fetched from a URL.
+import widgetSource from "copy2llm-snippet/dist/copy2llm.global.js?raw";
 import { useEffect, useState } from "react";
 import "./app.css";
 import {
@@ -129,8 +132,14 @@ export function App() {
   const effective: SnippetConfig = customColors
     ? config
     : { ...config, bg: undefined, text: undefined };
-  // The exact markup the install would write — shown in the confirm step too.
-  const snippet = buildSnippet(effective);
+  // The exact markup the install would write.
+  const snippet = buildSnippet(effective, widgetSource);
+  // The confirm step shows the same config-bearing tag with the bundled widget
+  // body elided — dumping 70 KB of minified JS into the preview helps no one.
+  const snippetPreview = buildSnippet(
+    effective,
+    "/* … Copy to LLM widget, bundled with the plugin … */"
+  );
 
   const doInstall = async () => {
     setBusy(true);
@@ -379,7 +388,7 @@ export function App() {
               This removes the Copy to LLM script from every published page.
             </p>
           ) : (
-            <pre className="snippet">{snippet}</pre>
+            <pre className="snippet">{snippetPreview}</pre>
           )}
           <div className="confirm-actions">
             <button

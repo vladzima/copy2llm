@@ -1,7 +1,10 @@
-// Pure builder: turns a config into the exact <script> tag the Framer plugin
-// installs via framer.setCustomCode. Kept dependency-free so it unit-tests
-// without the React/widget runtime. The data-* names mirror the widget's
-// parseDataset contract (copy2llm-widget/options.ts).
+// Pure builder: turns a config into the exact inline <script> tag the Framer
+// plugin installs via framer.setCustomCode. The widget code is INLINED (passed
+// in by the caller, baked into the plugin bundle at build time) rather than
+// loaded from a remote URL — the Marketplace requires the executed code to be
+// part of the reviewed plugin and unable to change after publication.
+// Kept dependency-free so it unit-tests without the React/widget runtime. The
+// data-* names mirror the widget's parseDataset contract (copy2llm-widget/options.ts).
 
 export type Position =
   | "bottom-right"
@@ -39,7 +42,12 @@ export interface SnippetConfig {
   theme: Theme;
 }
 
-export const SNIPPET_SRC = "https://copy.computer/copy2llm.js";
+// Boolean attribute stamped on the inline <script> so a re-opened plugin can
+// tell our install apart from other custom code (replaces the old src= check).
+const SNIPPET_MARKER = "data-copy2llm";
+// Installs from before inlining loaded the widget from this URL; still detected
+// so existing users can Update/Remove and get migrated to the inline version.
+const LEGACY_SRC = "https://copy.computer/copy2llm.js";
 
 export const ALL_ACTIONS: readonly Action[] = [
   "copy",
@@ -71,9 +79,14 @@ function escapeAttr(value: string): string {
     .replaceAll(">", "&gt;");
 }
 
-/** Build the install snippet, emitting `data-*` only for non-default values. */
-export function buildSnippet(config: SnippetConfig): string {
-  const attrs: string[] = [`src="${SNIPPET_SRC}"`];
+/**
+ * Build the install snippet: an inline <script> carrying the widget `source`
+ * (the reviewed, bundled copy2llm IIFE) plus `data-*` for non-default values.
+ * The widget reads its config from `document.currentScript.dataset`, which works
+ * for inline scripts exactly as it did for the remote one.
+ */
+export function buildSnippet(config: SnippetConfig, source: string): string {
+  const attrs: string[] = [SNIPPET_MARKER];
   const add = (key: string, value: string) => {
     attrs.push(`data-${key}="${escapeAttr(value)}"`);
   };
@@ -115,11 +128,16 @@ export function buildSnippet(config: SnippetConfig): string {
     add("content", config.content);
   }
 
-  attrs.push("async");
-  return `<script ${attrs.join(" ")}></script>`;
+  // Defuse any literal `</script` in the bundle so it can't close the tag early.
+  // The current build has none, but the bundle can change — keep the guard.
+  const safeSource = source.replace(/<\/script/gi, "<\\/script");
+  return `<script ${attrs.join(" ")}>${safeSource}</script>`;
 }
 
 /** True when custom code at a location is our snippet (for install detection). */
 export function isOurSnippet(html: string | null | undefined): boolean {
-  return typeof html === "string" && html.includes(SNIPPET_SRC);
+  return (
+    typeof html === "string" &&
+    (html.includes(SNIPPET_MARKER) || html.includes(LEGACY_SRC))
+  );
 }

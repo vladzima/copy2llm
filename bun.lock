@@ -19,10 +19,11 @@
     },
     "framer-plugin": {
       "name": "copy2llm-framer-plugin",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
         "@framer/plugin": "^4",
         "copy2llm-react": "workspace:*",
+        "copy2llm-snippet": "workspace:*",
         "react": "^18",
         "react-dom": "^18",
         "vite-plugin-mkcert": "^1",
@@ -55,7 +56,7 @@
     },
     "packages/framer": {
       "name": "copy2llm-framer",
-      "version": "0.1.1",
+      "version": "0.2.1",
       "dependencies": {
         "copy2llm-react": "workspace:*",
       },
@@ -75,7 +76,7 @@
     },
     "packages/react": {
       "name": "copy2llm-react",
-      "version": "0.1.5",
+      "version": "0.2.1",
       "dependencies": {
         "copy2llm-widget": "workspace:*",
       },
@@ -96,7 +97,7 @@
     },
     "packages/snippet": {
       "name": "copy2llm-snippet",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "copy2llm-widget": "workspace:*",
       },
@@ -110,7 +111,7 @@
     },
     "packages/widget": {
       "name": "copy2llm-widget",
-      "version": "0.1.4",
+      "version": "0.2.0",
       "dependencies": {
         "copy2llm-core": "workspace:*",
       },

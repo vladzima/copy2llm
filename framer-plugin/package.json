@@ -1,7 +1,7 @@
 {
   "name": "copy2llm-framer-plugin",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Framer plugin that installs the Copy to LLM button on your published site.",
   "scripts": {
@@ -15,6 +15,7 @@
   "dependencies": {
     "@framer/plugin": "^4",
     "copy2llm-react": "workspace:*",
+    "copy2llm-snippet": "workspace:*",
     "react": "^18",
     "react-dom": "^18",
     "vite-plugin-mkcert": "^1"
