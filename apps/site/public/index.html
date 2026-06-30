@@ -1709,6 +1709,13 @@
       .cfg-out {
         position: static;
       }
+      /* Anchor the help tooltip to the badge's right edge so its fixed 240px
+         width grows leftward (into the panel) instead of off the right of a
+         narrow viewport — left:0 here pushed the page ~100px wide on phones. */
+      .hint-q::after {
+        right: 0;
+        left: auto;
+      }
     }
     @media (max-width: 680px) {
       .points {
