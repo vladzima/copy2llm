@@ -3,7 +3,9 @@ import {
   buildSnippet,
   DEFAULT_CONFIG,
   isOurSnippet,
+  mergeSnippet,
   type SnippetConfig,
+  stripSnippet,
 } from "./snippet";
 
 // Stand-in for the bundled widget IIFE; the builder treats it as opaque text.
@@ -114,5 +116,55 @@ describe("isOurSnippet", () => {
     ).toBe(false);
     expect(isOurSnippet(null)).toBe(false);
     expect(isOurSnippet(undefined)).toBe(false);
+  });
+});
+
+const OTHER = '<script src="https://analytics.example/a.js"></script>';
+
+describe("mergeSnippet / stripSnippet — preserve unrelated custom code", () => {
+  test("merge into an empty slot is just our wrapped block", () => {
+    const merged = mergeSnippet(null, build());
+    expect(merged).toContain("<!-- copy2llm:start -->");
+    expect(merged).toContain("<!-- copy2llm:end -->");
+    expect(isOurSnippet(merged)).toBe(true);
+  });
+
+  test("merge keeps the site owner's existing code ahead of our block", () => {
+    const merged = mergeSnippet(OTHER, build());
+    expect(merged).toContain(OTHER);
+    expect(merged.indexOf(OTHER)).toBeLessThan(merged.indexOf("data-copy2llm"));
+  });
+
+  test("re-installing replaces our block in place, never duplicates it", () => {
+    const once = mergeSnippet(OTHER, build());
+    const twice = mergeSnippet(once, build({ label: "Copy" }));
+    // exactly one managed block, other code still present once
+    expect(twice.match(/<!-- copy2llm:start -->/g)).toHaveLength(1);
+    expect(twice.match(/data-copy2llm/g)).toHaveLength(1);
+    expect(twice.split(OTHER)).toHaveLength(2); // OTHER appears once
+    expect(twice).toContain('data-label="Copy"');
+  });
+
+  test("strip removes our block and leaves unrelated code intact", () => {
+    const merged = mergeSnippet(OTHER, build());
+    expect(stripSnippet(merged)).toBe(OTHER);
+  });
+
+  test("strip of a slot holding only our install yields an empty string", () => {
+    expect(stripSnippet(mergeSnippet(null, build()))).toBe("");
+  });
+
+  test("strip removes a bare (un-wrapped) inline install from older versions", () => {
+    const bare = `${OTHER}\n${build()}`;
+    expect(stripSnippet(bare)).toBe(OTHER);
+  });
+
+  test("strip removes the legacy remote install", () => {
+    const legacy = `${OTHER}\n<script src="https://copy.computer/copy2llm.js" async></script>`;
+    expect(stripSnippet(legacy)).toBe(OTHER);
+  });
+
+  test("strip leaves a slot with no install of ours untouched", () => {
+    expect(stripSnippet(OTHER)).toBe(OTHER);
   });
 });

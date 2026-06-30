@@ -134,10 +134,66 @@ export function buildSnippet(config: SnippetConfig, source: string): string {
   return `<script ${attrs.join(" ")}>${safeSource}</script>`;
 }
 
+// Comment delimiters wrapping our install inside the (shared) custom-code slot.
+// Framer's bodyEnd is a single HTML string that can also hold the site owner's
+// own code and other plugins' code, and setCustomCode REPLACES the whole slot —
+// so we splice only the text between these markers and leave everything else
+// untouched. Kept free of regex-special characters so they match literally.
+const MANAGED_START = "<!-- copy2llm:start -->";
+const MANAGED_END = "<!-- copy2llm:end -->";
+const MANAGED_NOTE =
+  "<!-- Managed by the Copy to LLM plugin. Edit it from the plugin, not here. -->";
+
 /** True when custom code at a location is our snippet (for install detection). */
 export function isOurSnippet(html: string | null | undefined): boolean {
   return (
     typeof html === "string" &&
     (html.includes(SNIPPET_MARKER) || html.includes(LEGACY_SRC))
   );
+}
+
+/**
+ * Remove every form of our install from a custom-code slot, leaving any
+ * unrelated code (other plugins, the site owner's own code) intact. Handles the
+ * marker-wrapped block (current), plus bare installs from older versions: the
+ * unwrapped inline `data-copy2llm` script, and the pre-inline remote `<script
+ * src=…copy2llm.js>`. Our generated script has every inner `</script` defused,
+ * so the first `</script>` after our opening tag is reliably its own close.
+ */
+export function stripSnippet(html: string | null | undefined): string {
+  if (!html) {
+    return "";
+  }
+  return (
+    html
+      // Marker-wrapped block, including the markers themselves.
+      .replace(
+        new RegExp(`${MANAGED_START}[\\s\\S]*?${MANAGED_END}`, "g"),
+        ""
+      )
+      // Bare inline install from before we wrapped it in markers.
+      .replace(/<script[^>]*\bdata-copy2llm\b[^>]*>[\s\S]*?<\/script>/gi, "")
+      // Legacy remote install.
+      .replace(
+        /<script[^>]*src=["']https:\/\/copy\.computer\/copy2llm\.js["'][^>]*>[\s\S]*?<\/script>/gi,
+        ""
+      )
+      // Tidy the blank lines our removal may leave behind.
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
+}
+
+/**
+ * Splice our snippet into an existing custom-code slot: drop any prior install,
+ * then append the new one wrapped in markers. Unrelated code is preserved and
+ * stays ahead of our block. Returns the full new slot value for setCustomCode.
+ */
+export function mergeSnippet(
+  existing: string | null | undefined,
+  snippet: string
+): string {
+  const rest = stripSnippet(existing);
+  const block = `${MANAGED_START}\n${MANAGED_NOTE}\n${snippet}\n${MANAGED_END}`;
+  return rest ? `${rest}\n${block}` : block;
 }

@@ -12,8 +12,10 @@ import {
   DEFAULT_CONFIG,
   type Font,
   isOurSnippet,
+  mergeSnippet,
   type Position,
   type SnippetConfig,
+  stripSnippet,
   type Theme,
 } from "./snippet";
 
@@ -53,11 +55,17 @@ const ACTION_LABELS: Record<Action, string> = {
 };
 
 export function App() {
+  // Writing the shared custom-code slot needs this permission.
   const isAllowed = useIsAllowedTo("setCustomCode");
   const [config, setConfig] = useState<SnippetConfig>(DEFAULT_CONFIG);
   const [customColors, setCustomColors] = useState(false);
   const [installed, setInstalled] = useState(false);
   const [userDisabled, setUserDisabled] = useState(false);
+  // The workflow reads the existing slot (to merge into it) before any write.
+  // Don't enable the buttons until that read succeeds — otherwise we'd offer
+  // Add/Update/Remove based on incomplete data and could clobber it on write.
+  const [loaded, setLoaded] = useState(false);
+  const [readError, setReadError] = useState(false);
   const [busy, setBusy] = useState(false);
   // Which write the user is confirming, if any — gates every setCustomCode call
   // behind a preview so a site-wide change is never one accidental click away.
@@ -76,9 +84,11 @@ export function App() {
         const slot = code[LOCATION];
         setInstalled(isOurSnippet(slot?.html));
         setUserDisabled(Boolean(slot?.disabled));
+        setLoaded(true);
       })
       .catch(() => {
         if (active) {
+          setReadError(true);
           framer.notify("Couldn't read your site's custom code.", {
             variant: "error",
           });
@@ -144,7 +154,11 @@ export function App() {
   const doInstall = async () => {
     setBusy(true);
     try {
-      await framer.setCustomCode({ html: snippet, location: LOCATION });
+      // Read the current slot and splice our block in, so any unrelated custom
+      // code in bodyEnd survives the write.
+      const current = await framer.getCustomCode();
+      const merged = mergeSnippet(current[LOCATION]?.html, snippet);
+      await framer.setCustomCode({ html: merged, location: LOCATION });
       framer.notify(installed ? "Updated on your site" : "Added to your site", {
         variant: "success",
       });
@@ -162,7 +176,14 @@ export function App() {
   const doRemove = async () => {
     setBusy(true);
     try {
-      await framer.setCustomCode({ html: null, location: LOCATION });
+      // Strip only our block; write back the rest (or clear the slot if ours
+      // was all it held).
+      const current = await framer.getCustomCode();
+      const rest = stripSnippet(current[LOCATION]?.html);
+      await framer.setCustomCode({
+        html: rest === "" ? null : rest,
+        location: LOCATION,
+      });
       framer.notify("Removed from your site");
       setInstalled(false);
     } catch {
@@ -378,6 +399,19 @@ export function App() {
         </p>
       )}
 
+      {!isAllowed && (
+        <p className="warn">
+          This plugin needs permission to update your site’s custom code. Ask the
+          project owner for edit access, then reopen the plugin.
+        </p>
+      )}
+      {isAllowed && readError && (
+        <p className="warn">
+          Couldn’t read your site’s custom code, so changes are paused — reopen
+          the plugin to try again.
+        </p>
+      )}
+
       {pending ? (
         <div className="confirm">
           <span className="section-label">{confirmTitle}</span>
@@ -387,10 +421,17 @@ export function App() {
           </p>
           {pending === "remove" ? (
             <p className="confirm-note">
-              This removes the Copy to LLM script from every published page.
+              This removes the Copy to LLM block from every published page. Any
+              other custom code in this location is left untouched.
             </p>
           ) : (
-            <pre className="snippet">{snippetPreview}</pre>
+            <>
+              <pre className="snippet">{snippetPreview}</pre>
+              <p className="confirm-note">
+                Only the Copy to LLM block is changed — any other custom code in
+                this location is preserved.
+              </p>
+            </>
           )}
           <div className="confirm-actions">
             <button
@@ -414,7 +455,7 @@ export function App() {
         <div className="install">
           <button
             className="framer-button-primary"
-            disabled={!isAllowed}
+            disabled={!(isAllowed && loaded)}
             onClick={() => setPending("install")}
             type="button"
           >
@@ -422,7 +463,7 @@ export function App() {
           </button>
           {installed && (
             <button
-              disabled={!isAllowed}
+              disabled={!(isAllowed && loaded)}
               onClick={() => setPending("remove")}
               type="button"
             >
