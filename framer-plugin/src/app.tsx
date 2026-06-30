@@ -45,6 +45,8 @@ const ACTION_LABELS: Record<Action, string> = {
   view: "View as Markdown",
   chatgpt: "Open in ChatGPT",
   claude: "Open in Claude",
+  perplexity: "Open in Perplexity",
+  grok: "Open in Grok",
 };
 
 export function App() {
@@ -100,6 +102,21 @@ export function App() {
     );
     update("items", next);
   };
+
+  // Custom endpoints: a controlled list of {label, href} rows.
+  const endpoints = config.endpoints ?? [];
+  const addEndpoint = () =>
+    update("endpoints", [...endpoints, { label: "", href: "" }]);
+  const updateEndpoint = (i: number, key: "label" | "href", value: string) =>
+    update(
+      "endpoints",
+      endpoints.map((e, idx) => (idx === i ? { ...e, [key]: value } : e))
+    );
+  const removeEndpoint = (i: number) =>
+    update(
+      "endpoints",
+      endpoints.filter((_, idx) => idx !== i)
+    );
 
   const toggleCustomColors = (on: boolean) => {
     setCustomColors(on);
@@ -302,6 +319,46 @@ export function App() {
           </label>
         ))}
       </div>
+
+      <hr />
+
+      <span className="section-label">
+        Custom endpoints <span className="opt">(optional)</span>
+      </span>
+      <p className="hint">
+        Add your own LLM target — an internal or self-hosted chat. Put{" "}
+        <code>{"{q}"}</code> where the page Markdown goes, or end the URL with{" "}
+        <code>?q=</code>.
+      </p>
+      {endpoints.map((ep, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: controlled positional rows, no stable id
+        <div className="endpoint" key={i}>
+          <input
+            aria-label="Endpoint label"
+            onChange={(e) => updateEndpoint(i, "label", e.target.value)}
+            placeholder="Label (e.g. Acme AI)"
+            type="text"
+            value={ep.label}
+          />
+          <input
+            aria-label="Endpoint URL"
+            onChange={(e) => updateEndpoint(i, "href", e.target.value)}
+            placeholder="https://acme.ai/?q={q}"
+            type="text"
+            value={ep.href}
+          />
+          <button
+            aria-label="Remove endpoint"
+            onClick={() => removeEndpoint(i)}
+            type="button"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      <button className="add-endpoint" onClick={addEndpoint} type="button">
+        + Add endpoint
+      </button>
 
       {userDisabled && (
         <p className="warn">

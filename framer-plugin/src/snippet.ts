@@ -11,11 +11,24 @@ export type Position =
   | "inline";
 export type Theme = "auto" | "light" | "dark";
 export type Font = "sans" | "serif" | "mono";
-export type Action = "copy" | "view" | "chatgpt" | "claude";
+export type Action =
+  | "copy"
+  | "view"
+  | "chatgpt"
+  | "claude"
+  | "perplexity"
+  | "grok";
+
+/** A site-owner's own LLM target (mirrors copy2llm-widget CustomEndpoint). */
+export interface CustomEndpoint {
+  href: string;
+  label: string;
+}
 
 export interface SnippetConfig {
   bg?: string;
   content?: string;
+  endpoints?: CustomEndpoint[];
   font: Font;
   header: boolean;
   items: Action[];
@@ -33,6 +46,8 @@ export const ALL_ACTIONS: readonly Action[] = [
   "view",
   "chatgpt",
   "claude",
+  "perplexity",
+  "grok",
 ];
 
 export const DEFAULT_CONFIG: SnippetConfig = {
@@ -83,6 +98,12 @@ export function buildSnippet(config: SnippetConfig): string {
   }
   if (config.items.join(",") !== DEFAULT_CONFIG.items.join(",")) {
     add("items", config.items.join(","));
+  }
+  // Custom endpoints ride as a JSON array; escapeAttr turns the inner quotes
+  // into entities the browser decodes back to valid JSON for parseDataset.
+  const endpoints = (config.endpoints ?? []).filter((e) => e.label && e.href);
+  if (endpoints.length > 0) {
+    add("endpoints", JSON.stringify(endpoints));
   }
   if (config.bg) {
     add("bg", config.bg);

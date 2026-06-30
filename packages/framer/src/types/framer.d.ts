@@ -6,6 +6,8 @@ declare module "framer" {
     Boolean: "boolean";
     Enum: "enum";
     Color: "color";
+    Array: "array";
+    Object: "object";
   };
   export function addPropertyControls(
     component: unknown,

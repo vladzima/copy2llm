@@ -58,6 +58,36 @@ addPropertyControls(CopyToLLM, {
     title: "Label",
     defaultValue: "Copy as Markdown",
   },
-  // `items` is omitted from the panel (defaults to all four actions); add a
-  // multi-toggle later if a Framer user asks for it.
+  items: {
+    type: ControlType.Array,
+    title: "Actions",
+    description:
+      "Which actions to show, in order. Leave empty for all built-ins.",
+    control: {
+      type: ControlType.Enum,
+      options: ["copy", "view", "chatgpt", "claude", "perplexity", "grok"],
+      optionTitles: ["Copy", "View", "ChatGPT", "Claude", "Perplexity", "Grok"],
+    },
+  },
+  endpoints: {
+    type: ControlType.Array,
+    title: "Custom targets",
+    description:
+      "Your own LLM endpoints. Put {q} where the page Markdown goes.",
+    control: {
+      type: ControlType.Object,
+      controls: {
+        label: {
+          type: ControlType.String,
+          title: "Label",
+          defaultValue: "Open in…",
+        },
+        href: {
+          type: ControlType.String,
+          title: "URL",
+          placeholder: "https://acme.ai/?q={q}",
+        },
+      },
+    },
+  },
 });

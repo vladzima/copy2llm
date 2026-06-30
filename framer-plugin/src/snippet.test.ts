@@ -37,6 +37,38 @@ describe("buildSnippet", () => {
     );
   });
 
+  test("supports the perplexity and grok built-in actions in items", () => {
+    expect(
+      buildSnippet(cfg({ items: ["copy", "perplexity", "grok"] }))
+    ).toContain('data-items="copy,perplexity,grok"');
+  });
+
+  test("emits data-endpoints as a JSON array only when endpoints are set", () => {
+    expect(buildSnippet(cfg())).not.toContain("data-endpoints");
+    const html = buildSnippet(
+      cfg({ endpoints: [{ label: "Acme AI", href: "https://acme.ai/?q={q}" }] })
+    );
+    // The inner JSON quotes are entity-escaped; the browser decodes them back to
+    // valid JSON for the widget's parseDataset.
+    expect(html).toContain(
+      'data-endpoints="[{&quot;label&quot;:&quot;Acme AI&quot;,&quot;href&quot;:&quot;https://acme.ai/?q={q}&quot;}]"'
+    );
+  });
+
+  test("drops custom endpoints missing a label or href", () => {
+    expect(
+      buildSnippet(
+        cfg({
+          endpoints: [
+            { label: "ok", href: "https://x/?q=" },
+            { label: "", href: "https://y" },
+            { label: "no href", href: "" },
+          ],
+        })
+      )
+    ).toContain('data-endpoints="[{&quot;label&quot;:&quot;ok&quot;');
+  });
+
   test("includes optional colors and content only when set", () => {
     const html = buildSnippet(
       cfg({ bg: "#6b62f2", text: "#ffffff", content: "main" })

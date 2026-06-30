@@ -69,6 +69,42 @@ hr {
   color: var(--framer-color-text);
 }
 
+.opt {
+  font-weight: 400;
+  color: var(--framer-color-text-tertiary);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--framer-color-text-tertiary);
+}
+
+.hint code {
+  font-family: var(--framer-font-family-mono, monospace);
+}
+
+.endpoint {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.endpoint input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.endpoint button {
+  flex: 0 0 auto;
+  padding: 0 8px;
+}
+
+.add-endpoint {
+  align-self: flex-start;
+}
+
 .warn {
   padding: 8px 10px;
   margin: 0;
