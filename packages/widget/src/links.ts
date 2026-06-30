@@ -1,8 +1,10 @@
-export type LlmTarget = "chatgpt" | "claude";
+export type LlmTarget = "chatgpt" | "claude" | "perplexity" | "grok";
 
 const BASE: Record<LlmTarget, string> = {
   chatgpt: "https://chatgpt.com/?q=",
   claude: "https://claude.ai/new?q=",
+  perplexity: "https://www.perplexity.ai/search?q=",
+  grok: "https://grok.com/?q=",
 };
 
 // Short lead-in so the auto-submitted first message reads sensibly; the page's
@@ -26,14 +28,31 @@ export interface LlmLink {
   needsPaste: boolean;
 }
 
-/** Build a ChatGPT/Claude deep link that carries the page's Markdown itself. */
-export function llmUrl(target: LlmTarget, markdown: string): LlmLink {
-  const inline = BASE[target] + encodeURIComponent(`${LEAD}\n\n${markdown}`);
+// Fill a target's deep-link template with the page's Markdown. `template` either
+// carries a `{q}` placeholder (custom endpoints can put the query mid-URL) or
+// ends where the encoded query is appended (the built-in `?q=` bases).
+function linkFor(template: string, markdown: string): LlmLink {
+  const put = (s: string): string => {
+    const q = encodeURIComponent(s);
+    return template.includes("{q}")
+      ? template.replaceAll("{q}", q)
+      : template + q;
+  };
+  const inline = put(`${LEAD}\n\n${markdown}`);
   if (inline.length <= MAX_URL) {
     return { href: inline, needsPaste: false };
   }
-  return {
-    href: BASE[target] + encodeURIComponent(ASK_PASTE),
-    needsPaste: true,
-  };
+  return { href: put(ASK_PASTE), needsPaste: true };
+}
+
+/** Build a built-in target's deep link (ChatGPT/Claude/Perplexity/Grok) that
+ * carries the page's Markdown itself. */
+export function llmUrl(target: LlmTarget, markdown: string): LlmLink {
+  return linkFor(BASE[target], markdown);
+}
+
+/** Build a deep link for a site-owner's custom endpoint. `template` is their
+ * `hrefTemplate` — a `{q}` placeholder, or a base the encoded query appends to. */
+export function customLink(template: string, markdown: string): LlmLink {
+  return linkFor(template, markdown);
 }

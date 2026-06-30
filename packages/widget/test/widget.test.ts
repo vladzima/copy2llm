@@ -73,6 +73,37 @@ test("caret opens the menu; Open in ChatGPT inlines the markdown, no clipboard",
   expect(writes.length).toBe(0);
 });
 
+test("Open in Perplexity inlines the markdown into its ?q= base", () => {
+  const { doc, opened } = page("<main><p>perplexity body here</p></main>");
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="perplexity"]') as HTMLButtonElement).click();
+  expect(opened[0]?.startsWith("https://www.perplexity.ai/search?q=")).toBe(
+    true
+  );
+  expect(decodeURIComponent(opened[0] ?? "")).toContain("perplexity body here");
+});
+
+test("a custom endpoint renders in the menu and opens its hrefTemplate", () => {
+  const { doc, opened } = page("<main><p>custom body here</p></main>");
+  mount(
+    {
+      items: ["copy"],
+      endpoints: [{ label: "Acme AI", href: "https://acme.ai/?q={q}" }],
+    },
+    doc.body
+  );
+  // A custom endpoint alone is enough to warrant the caret + menu.
+  const caret = q(doc, ".caret") as HTMLButtonElement;
+  expect(caret).not.toBeNull();
+  caret.click();
+  const item = q(doc, '[data-action="endpoint"]') as HTMLButtonElement;
+  expect(item.textContent).toContain("Acme AI");
+  item.click();
+  expect(opened[0]?.startsWith("https://acme.ai/?q=")).toBe(true);
+  expect(decodeURIComponent(opened[0] ?? "")).toContain("custom body here");
+});
+
 test("View opens an overlay containing the markdown", async () => {
   const { doc } = page("<main><p>Body text here</p></main>");
   mount({}, doc.body);

@@ -1,4 +1,18 @@
-export type Action = "copy" | "view" | "chatgpt" | "claude";
+export type Action =
+  | "copy"
+  | "view"
+  | "chatgpt"
+  | "claude"
+  | "perplexity"
+  | "grok";
+
+/** A site-owner's own LLM target (enterprise/internal chat, self-hosted, etc.). */
+export interface CustomEndpoint {
+  /** Deep-link template: a `{q}` placeholder, or a base the query appends to. */
+  href: string;
+  /** Menu label, e.g. "Open in Acme AI". */
+  label: string;
+}
 export type Position =
   | "bottom-right"
   | "bottom-left"
@@ -13,6 +27,8 @@ export interface WidgetOptions {
   bg?: string;
   /** CSS selector for the content root (→ core ExtractOptions.content). */
   content?: string;
+  /** Extra LLM targets appended to the menu (custom/enterprise/self-hosted). */
+  endpoints?: CustomEndpoint[];
   /** System font stack. Default: sans. */
   font?: Font;
   /** Prepend a title + source header (→ core ExtractOptions.header). Default: true. */
@@ -36,6 +52,8 @@ export const ALL_ACTIONS: readonly Action[] = Object.freeze([
   "view",
   "chatgpt",
   "claude",
+  "perplexity",
+  "grok",
 ]);
 
 export const DEFAULTS = {
@@ -82,6 +100,7 @@ export function parseDataset(data: DOMStringMap): WidgetOptions {
     label,
     header,
     items,
+    endpoints,
   } = data;
 
   if (position && POSITIONS.has(position)) {
@@ -120,5 +139,30 @@ export function parseDataset(data: DOMStringMap): WidgetOptions {
       opts.items = parsed;
     }
   }
+  if (endpoints !== undefined) {
+    const parsed = parseEndpoints(endpoints);
+    if (parsed.length > 0) {
+      opts.endpoints = parsed;
+    }
+  }
   return opts;
+}
+
+/** Parse `data-endpoints` (a JSON array) into validated custom endpoints,
+ * dropping malformed JSON and entries missing a string label/href. */
+function parseEndpoints(raw: string): CustomEndpoint[] {
+  let arr: unknown;
+  try {
+    arr = JSON.parse(raw);
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(arr)) {
+    return [];
+  }
+  return arr.filter(
+    (e): e is CustomEndpoint =>
+      typeof (e as CustomEndpoint)?.label === "string" &&
+      typeof (e as CustomEndpoint)?.href === "string"
+  );
 }

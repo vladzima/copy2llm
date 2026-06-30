@@ -11,13 +11,20 @@ function dataset(attrs: Record<string, string>): DOMStringMap {
   return el.dataset;
 }
 
-test("defaults: bottom-right, auto theme, all four items", () => {
+test("defaults: bottom-right, auto theme, all built-in items", () => {
   expect(DEFAULTS.position).toBe("bottom-right");
   expect(DEFAULTS.theme).toBe("auto");
   expect(DEFAULTS.font).toBe("sans");
   expect(DEFAULTS.radius).toBe("rounded");
   expect(DEFAULTS.header).toBe(true);
-  expect(DEFAULTS.items).toEqual(["copy", "view", "chatgpt", "claude"]);
+  expect(DEFAULTS.items).toEqual([
+    "copy",
+    "view",
+    "chatgpt",
+    "claude",
+    "perplexity",
+    "grok",
+  ]);
 });
 
 test("parseDataset reads known knobs", () => {
@@ -60,6 +67,30 @@ test("parseDataset drops unknown enum values and unknown items", () => {
   expect(opts.position).toBeUndefined();
   expect(opts.theme).toBeUndefined();
   expect(opts.items).toEqual(["copy", "claude"]);
+});
+
+test("parseDataset reads custom endpoints from a JSON array", () => {
+  const opts = parseDataset(
+    dataset({
+      "data-endpoints": '[{"label":"Acme AI","href":"https://acme.ai/?q={q}"}]',
+    })
+  );
+  expect(opts.endpoints).toEqual([
+    { label: "Acme AI", href: "https://acme.ai/?q={q}" },
+  ]);
+});
+
+test("parseDataset drops malformed JSON and entries missing label/href", () => {
+  expect(
+    parseDataset(dataset({ "data-endpoints": "not json" })).endpoints
+  ).toBe(undefined);
+  const opts = parseDataset(
+    dataset({
+      "data-endpoints":
+        '[{"label":"ok","href":"https://x/?q="},{"label":"no href"},{"href":"https://y"}]',
+    })
+  );
+  expect(opts.endpoints).toEqual([{ label: "ok", href: "https://x/?q=" }]);
 });
 
 test("parseDataset returns an empty object when nothing is set", () => {
