@@ -342,13 +342,22 @@ export function App() {
       {endpoints.map((ep, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: controlled positional rows, no stable id
         <div className="endpoint" key={i}>
-          <input
-            aria-label="Endpoint label"
-            onChange={(e) => updateEndpoint(i, "label", e.target.value)}
-            placeholder="Label (e.g. Acme AI)"
-            type="text"
-            value={ep.label}
-          />
+          <div className="endpoint-row">
+            <input
+              aria-label="Endpoint label"
+              onChange={(e) => updateEndpoint(i, "label", e.target.value)}
+              placeholder="Label (e.g. Acme AI)"
+              type="text"
+              value={ep.label}
+            />
+            <button
+              aria-label="Remove endpoint"
+              onClick={() => removeEndpoint(i)}
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
           <input
             aria-label="Endpoint URL"
             onChange={(e) => updateEndpoint(i, "href", e.target.value)}
@@ -356,13 +365,6 @@ export function App() {
             type="text"
             value={ep.href}
           />
-          <button
-            aria-label="Remove endpoint"
-            onClick={() => removeEndpoint(i)}
-            type="button"
-          >
-            ✕
-          </button>
         </div>
       ))}
       <button className="add-endpoint" onClick={addEndpoint} type="button">

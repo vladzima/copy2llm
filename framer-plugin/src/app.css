@@ -87,17 +87,25 @@ hr {
 
 .endpoint {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.endpoint-row {
+  display: flex;
   gap: 6px;
   align-items: center;
 }
 
 .endpoint input[type="text"] {
   flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 
 .endpoint button {
   flex: 0 0 auto;
+  width: auto;
   padding: 0 8px;
 }
 
