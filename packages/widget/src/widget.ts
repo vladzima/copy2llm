@@ -4,7 +4,6 @@ import { customLink, type LlmLink, type LlmTarget, llmUrl } from "./links";
 import {
   type Action,
   ALL_ACTIONS,
-  type CustomEndpoint,
   DEFAULTS,
   type WidgetOptions,
 } from "./options";
@@ -29,39 +28,21 @@ const MSG = {
   paste: "Copied — paste into the chat",
 };
 
-// Build flag (esbuild `define`). The Framer/local-only bundle sets this to false
-// so every third-party deep-link path below is dead-code-eliminated — the built
-// script then has NO ability to send page content anywhere. Undefined in the
-// normal builds and in tests → full features.
-declare const __C2L_EXTERNAL__: boolean;
-const EXTERNAL_ENABLED =
-  typeof __C2L_EXTERNAL__ === "undefined" ? true : __C2L_EXTERNAL__;
-
-// Labels/icons for the always-present local actions, plus the external targets.
-// The external maps are referenced only under `EXTERNAL_ENABLED`, so the
-// local-only build dead-code-eliminates them — no brand names or marks remain.
-const LOCAL_LABELS: Record<"copy" | "view", string> = {
+const MENU_LABELS: Record<Action, string> = {
   copy: DEFAULTS.label,
   view: "View as Markdown",
-};
-const EXTERNAL_LABELS: Record<LlmTarget, string> = {
   chatgpt: "Open in ChatGPT",
   claude: "Open in Claude",
   perplexity: "Open in Perplexity",
   grok: "Open in Grok",
 };
-const MENU_LABELS: Partial<Record<Action, string>> = EXTERNAL_ENABLED
-  ? { ...LOCAL_LABELS, ...EXTERNAL_LABELS }
-  : LOCAL_LABELS;
 
 // Monoline action glyphs (Phosphor) + the ChatGPT/Claude brand marks, drawn in
 // `currentColor` so they inherit the resolved theme. Kept inline to avoid a
 // network request and to survive Shadow-DOM isolation.
-const LOCAL_ICONS: Record<"copy" | "view", string> = {
+const ICONS: Record<Action, string> = {
   copy: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></svg>',
   view: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M86.75,44.3,33.48,128l53.27,83.7a8,8,0,0,1-2.46,11.05A7.91,7.91,0,0,1,80,224a8,8,0,0,1-6.76-3.71l-56-88a8,8,0,0,1,0-8.59l56-88a8,8,0,1,1,13.5,8.59Zm152,79.41-56-88a8,8,0,1,0-13.5,8.59L222.52,128l-53.27,83.7a8,8,0,0,0,2.46,11.05A7.91,7.91,0,0,0,176,224a8,8,0,0,0,6.76-3.71l56-88A8,8,0,0,0,238.75,123.71Z"/></svg>',
-};
-const EXTERNAL_ICONS: Record<LlmTarget, string> = {
   chatgpt:
     '<svg class="c2l-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>',
   claude:
@@ -70,9 +51,6 @@ const EXTERNAL_ICONS: Record<LlmTarget, string> = {
     '<svg class="c2l-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.3977 7.0896h-2.3106V.0676l-7.5094 6.3542V.1577h-1.1554v6.1966L4.4904 0v7.0896H1.6023v10.3976h2.8882V24l6.932-6.3591v6.2005h1.1554v-6.0469l6.9318 6.1807v-6.4879h2.8882V7.0896zm-3.4657-4.531v4.531h-5.355l5.355-4.531zm-13.2862.0676 4.8691 4.4634H5.6458V2.6262zM2.7576 16.332V8.245h7.8476l-6.1149 6.1147v1.9723H2.7576zm2.8882 5.0404v-3.8852h.0001v-2.6488l5.7763-5.7764v7.0111l-5.7764 5.2993zm12.7086.0248-5.7766-5.1509V9.0618l5.7766 5.7766v6.5588zm2.8882-5.0652h-1.733v-1.9723L13.3948 8.245h7.8478v8.087z"/></svg>',
   grok: '<svg class="c2l-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.27 15.29l7.978-5.897c.391-.29.95-.177 1.137.272.98 2.369.542 5.215-1.41 7.169-1.951 1.954-4.667 2.382-7.149 1.406l-2.711 1.257c3.889 2.661 8.611 2.003 11.562-.953 2.341-2.344 3.066-5.539 2.388-8.42l.006.007c-.983-4.232.242-5.924 2.75-9.383.06-.082.12-.164.179-.248l-3.301 3.305v-.01L9.267 15.292M7.623 16.723c-2.792-2.67-2.31-6.801.071-9.184 1.761-1.763 4.647-2.483 7.166-1.425l2.705-1.25a7.808 7.808 0 00-1.829-1A8.975 8.975 0 005.984 5.83c-2.533 2.536-3.33 6.436-1.962 9.764 1.022 2.487-.653 4.246-2.34 6.022-.599.63-1.199 1.259-1.682 1.925l7.62-6.815"/></svg>',
 };
-const ICONS: Partial<Record<Action, string>> = EXTERNAL_ENABLED
-  ? { ...LOCAL_ICONS, ...EXTERNAL_ICONS }
-  : LOCAL_ICONS;
 // Generic mark for a site-owner custom endpoint (no brand glyph available).
 const CUSTOM_ICON =
   '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M197.58,129.06,146,110l-19-51.62a15.92,15.92,0,0,0-29.88,0L78,110l-51.62,19a15.92,15.92,0,0,0,0,29.88L78,178l19,51.62a15.92,15.92,0,0,0,29.88,0L146,178l51.62-19a15.92,15.92,0,0,0,0-29.88ZM137,164.22a8,8,0,0,0-4.74,4.74L112,223.85,91.78,169A8,8,0,0,0,87,164.22L32.15,144,87,123.78A8,8,0,0,0,91.78,119L112,64.15,132.22,119a8,8,0,0,0,4.74,4.74L191.85,144Z"/></svg>';
@@ -89,9 +67,7 @@ const COPIED_MS = 1400;
 // (~0.5s) before falling back to prefers-color-scheme, so a late-painting host
 // background can't flash a wrong-theme button.
 const REVEAL_MAX_FRAMES = 30;
-const EXTERNAL: Set<Action> = EXTERNAL_ENABLED
-  ? new Set<Action>(["chatgpt", "claude", "perplexity", "grok"])
-  : new Set<Action>();
+const EXTERNAL = new Set<Action>(["chatgpt", "claude", "perplexity", "grok"]);
 
 /** Parse a trusted inline-SVG string into an element (Shadow-DOM safe). */
 function svgEl(doc: Document, markup: string): Element | null {
@@ -155,31 +131,6 @@ interface State {
   toastTimer?: number;
 }
 
-// Which actions to show. In the local-only build, external targets are stripped
-// even if `data-items` asks for them; the primary Copy always remains.
-function resolveItems(options: WidgetOptions): Action[] {
-  const requested =
-    options.items && options.items.length > 0
-      ? options.items
-      : [...ALL_ACTIONS];
-  const items = EXTERNAL_ENABLED
-    ? requested
-    : requested.filter((a) => a === "copy" || a === "view");
-  return items.length > 0 ? items : ["copy"];
-}
-
-// Site-owner custom targets, appended after the built-ins; guard against junk
-// (the React/Framer prop path isn't validated like `data-endpoints` is). None in
-// the local-only build.
-function resolveEndpoints(options: WidgetOptions): CustomEndpoint[] {
-  if (!EXTERNAL_ENABLED) {
-    return [];
-  }
-  return (options.endpoints ?? []).filter(
-    (e) => e && typeof e.label === "string" && typeof e.href === "string"
-  );
-}
-
 /**
  * Mount the Copy-to-LLM button into `target` (default `document.body`). Extraction
  * is lazy — it reads the live DOM on each click, so it stays correct in SPAs.
@@ -208,13 +159,14 @@ export function mount(
   }
 
   const theme = options.theme ?? DEFAULTS.theme;
-  const items = resolveItems(options);
-  const labels: Partial<Record<Action, string>> = {
+  const items: Action[] =
+    options.items && options.items.length > 0
+      ? options.items
+      : [...ALL_ACTIONS];
+  const labels: Record<Action, string> = {
     ...MENU_LABELS,
     copy: options.label ?? DEFAULTS.label,
   };
-  const labelOf = (a: Action): string => labels[a] ?? "";
-  const iconOf = (a: Action): string => ICONS[a] ?? "";
 
   // Mutable state in one object so the hoisted helpers below mutate fields
   // rather than reassign `let`s (avoids TDZ and keeps the linter happy).
@@ -251,16 +203,20 @@ export function mount(
   // equals the label — an SVG node contributes no text.
   const primaryLabel = doc.createElement("span");
   primaryLabel.className = "c2l-label";
-  primaryLabel.textContent = labelOf(primaryAction);
+  primaryLabel.textContent = labels[primaryAction];
   primary.appendChild(primaryLabel);
-  prependIcon(primary, doc, iconOf(primaryAction));
+  prependIcon(primary, doc, ICONS[primaryAction]);
   primary.addEventListener("click", () => {
     closeMenu();
     runAction(primaryAction).catch(() => undefined);
   });
 
   const menuActions = items.slice(1);
-  const endpoints = resolveEndpoints(options);
+  // Site-owner custom targets, appended after the built-ins; guard against junk
+  // (the React/Framer prop path isn't validated like `data-endpoints` is).
+  const endpoints = (options.endpoints ?? []).filter(
+    (e) => e && typeof e.label === "string" && typeof e.href === "string"
+  );
   let menuEl: HTMLElement | null = null;
   let caret: HTMLButtonElement | null = null;
 
@@ -292,8 +248,8 @@ export function mount(
         doc,
         {
           action,
-          icon: iconOf(action),
-          label: labelOf(action),
+          icon: ICONS[action],
+          label: labels[action],
           external: EXTERNAL.has(action),
         },
         () => {
@@ -303,23 +259,21 @@ export function mount(
       );
       menuEl.appendChild(item);
     }
-    if (EXTERNAL_ENABLED) {
-      for (const ep of endpoints) {
-        const item = buildMenuItem(
-          doc,
-          {
-            action: "endpoint",
-            icon: CUSTOM_ICON,
-            label: ep.label,
-            external: true,
-          },
-          () => {
-            closeMenu();
-            runEndpoint(ep.href);
-          }
-        );
-        menuEl.appendChild(item);
-      }
+    for (const ep of endpoints) {
+      const item = buildMenuItem(
+        doc,
+        {
+          action: "endpoint",
+          icon: CUSTOM_ICON,
+          label: ep.label,
+          external: true,
+        },
+        () => {
+          closeMenu();
+          runEndpoint(ep.href);
+        }
+      );
+      menuEl.appendChild(item);
     }
     menuEl.addEventListener("keydown", onMenuKeydown);
     box.insertBefore(menuEl, toastEl);
@@ -485,10 +439,8 @@ export function mount(
     }
 
     // chatgpt | claude | perplexity | grok: hand the LLM the page's Markdown
-    // itself via the chat's ?q= prefill. Dead-code-eliminated in local builds.
-    if (EXTERNAL_ENABLED) {
-      openLlm(llmUrl(action as LlmTarget, markdown), markdown);
-    }
+    // itself via the chat's ?q= prefill — that IS the product.
+    openLlm(llmUrl(action as LlmTarget, markdown), markdown);
   }
 
   // A site-owner custom endpoint: same flow as a built-in target, but the deep
@@ -537,7 +489,7 @@ export function mount(
     }
     setPrimary(COPIED_LABEL, CHECK_ICON);
     state.copiedTimer = win.setTimeout(() => {
-      setPrimary(labelOf(primaryAction), iconOf(primaryAction));
+      setPrimary(labels[primaryAction], ICONS[primaryAction]);
       state.copiedTimer = undefined;
     }, COPIED_MS) as unknown as number;
   }

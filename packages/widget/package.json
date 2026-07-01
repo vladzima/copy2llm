@@ -2,7 +2,6 @@
   "name": "copy2llm-widget",
   "version": "0.2.0",
   "type": "module",
-  "sideEffects": false,
   "description": "The Copy to LLM button — a themeable split-button widget in a Shadow DOM.",
   "license": "MIT",
   "main": "./dist/index.cjs",
@@ -17,12 +16,6 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
-      }
-    },
-    "./local": {
-      "import": {
-        "types": "./dist/local.d.ts",
-        "default": "./dist/local.js"
       }
     }
   },

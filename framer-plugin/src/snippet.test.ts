@@ -1,11 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import {
-  ALL_ACTIONS,
   buildSnippet,
   DEFAULT_CONFIG,
+  externalDestinations,
   isOurSnippet,
   mergeSnippet,
   type SnippetConfig,
+  sendsContentExternally,
   stripSnippet,
 } from "./snippet";
 
@@ -40,14 +41,6 @@ describe("buildSnippet", () => {
     expect(build()).not.toContain("http");
   });
 
-  test("local-only: no third-party AI target is ever emitted", () => {
-    expect(ALL_ACTIONS).toEqual(["copy", "view"]);
-    const html = build();
-    for (const brand of ["chatgpt", "claude", "perplexity", "grok"]) {
-      expect(html).not.toContain(brand);
-    }
-  });
-
   test("escapes a literal </script in the source so it can't close the tag", () => {
     const html = build({}, 'a("</script>")');
     expect(html).toContain('a("<\\/script>")');
@@ -58,6 +51,7 @@ describe("buildSnippet", () => {
     const html = build({ position: "top-left", label: "Copy" });
     expect(html).toContain('data-position="top-left"');
     expect(html).toContain('data-label="Copy"');
+    // defaults stay out
     expect(html).not.toContain("data-theme");
     expect(html).not.toContain("data-font");
     expect(html).not.toContain("data-radius");
@@ -68,9 +62,95 @@ describe("buildSnippet", () => {
     expect(build({ header: false })).toContain('data-header="false"');
   });
 
-  test("always emits the enabled actions", () => {
+  test("always emits the enabled actions, defaulting to the local-only set", () => {
     expect(build()).toContain('data-items="copy,view"');
     expect(build({ items: ["copy"] })).toContain('data-items="copy"');
+  });
+
+  test("sendsContentExternally is false for the local-only default", () => {
+    expect(sendsContentExternally(DEFAULT_CONFIG)).toBe(false);
+  });
+
+  test("sendsContentExternally is true with a built-in AI action", () => {
+    expect(
+      sendsContentExternally({ ...DEFAULT_CONFIG, items: ["copy", "chatgpt"] })
+    ).toBe(true);
+  });
+
+  test("sendsContentExternally is true only for a fully filled endpoint", () => {
+    const base = { ...DEFAULT_CONFIG, items: ["copy" as const] };
+    expect(
+      sendsContentExternally({ ...base, endpoints: [{ label: "", href: "" }] })
+    ).toBe(false);
+    expect(
+      sendsContentExternally({
+        ...base,
+        endpoints: [{ label: "Acme", href: "https://acme.ai/?q=" }],
+      })
+    ).toBe(true);
+  });
+
+  test("externalDestinations lists built-in AI targets with their host", () => {
+    const dests = externalDestinations({
+      ...DEFAULT_CONFIG,
+      items: ["copy", "chatgpt", "claude"],
+    });
+    expect(dests).toEqual(["ChatGPT (chatgpt.com)", "Claude (claude.ai)"]);
+  });
+
+  test("externalDestinations names a custom endpoint by label + host", () => {
+    const dests = externalDestinations({
+      ...DEFAULT_CONFIG,
+      items: ["copy"],
+      endpoints: [
+        { label: "Acme", href: "https://acme.ai/chat?q={q}" },
+        { label: "", href: "https://skip.me" },
+      ],
+    });
+    expect(dests).toEqual(["Acme (acme.ai)"]);
+  });
+
+  test("externalDestinations is empty for the local-only default", () => {
+    expect(externalDestinations(DEFAULT_CONFIG)).toEqual([]);
+  });
+
+  test("external AI actions are off in the default install", () => {
+    for (const action of ["chatgpt", "claude", "perplexity", "grok"]) {
+      expect(DEFAULT_CONFIG.items).not.toContain(action);
+    }
+    // A default install carries only the two local-only actions.
+    expect(build()).not.toContain("chatgpt");
+    expect(build()).not.toContain("perplexity");
+  });
+
+  test("supports the perplexity and grok built-in actions in items", () => {
+    expect(build({ items: ["copy", "perplexity", "grok"] })).toContain(
+      'data-items="copy,perplexity,grok"'
+    );
+  });
+
+  test("emits data-endpoints as a JSON array only when endpoints are set", () => {
+    expect(build()).not.toContain("data-endpoints");
+    const html = build({
+      endpoints: [{ label: "Acme AI", href: "https://acme.ai/?q={q}" }],
+    });
+    // The inner JSON quotes are entity-escaped; the browser decodes them back to
+    // valid JSON for the widget's parseDataset.
+    expect(html).toContain(
+      'data-endpoints="[{&quot;label&quot;:&quot;Acme AI&quot;,&quot;href&quot;:&quot;https://acme.ai/?q={q}&quot;}]"'
+    );
+  });
+
+  test("drops custom endpoints missing a label or href", () => {
+    expect(
+      build({
+        endpoints: [
+          { label: "ok", href: "https://x/?q=" },
+          { label: "", href: "https://y" },
+          { label: "no href", href: "" },
+        ],
+      })
+    ).toContain('data-endpoints="[{&quot;label&quot;:&quot;ok&quot;');
   });
 
   test("includes optional colors and content only when set", () => {
@@ -83,6 +163,7 @@ describe("buildSnippet", () => {
   test("escapes HTML-special characters in attribute values", () => {
     const html = build({ label: 'A & B "x" <y>' });
     expect(html).toContain('data-label="A &amp; B &quot;x&quot; &lt;y&gt;"');
+    // the raw, unescaped form must never reach the markup
     expect(html).not.toContain('"x"');
     expect(html).not.toContain("<y>");
   });
@@ -129,9 +210,10 @@ describe("mergeSnippet / stripSnippet — preserve unrelated custom code", () =>
   test("re-installing replaces our block in place, never duplicates it", () => {
     const once = mergeSnippet(OTHER, build());
     const twice = mergeSnippet(once, build({ label: "Copy" }));
+    // exactly one managed block, other code still present once
     expect(twice.match(/<!-- copy2llm:start -->/g)).toHaveLength(1);
     expect(twice.match(/data-copy2llm/g)).toHaveLength(1);
-    expect(twice.split(OTHER)).toHaveLength(2);
+    expect(twice.split(OTHER)).toHaveLength(2); // OTHER appears once
     expect(twice).toContain('data-label="Copy"');
   });
 

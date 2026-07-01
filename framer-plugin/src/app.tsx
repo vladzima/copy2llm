@@ -1,13 +1,9 @@
 import { framer, useIsAllowedTo } from "@framer/plugin";
-// The reviewed, LOCAL-ONLY widget IIFE, inlined into the plugin bundle at build
-// time and written verbatim into the site's custom code — never fetched from a
-// URL. This build has no code to send page content to any third party.
-import widgetSource from "copy2llm-snippet/dist/copy2llm.local.global.js?raw";
-// The LOCAL-ONLY widget mount for the live preview — the build with every
-// third-party deep-link path dead-code-eliminated. Using it (rather than the
-// full copy2llm-react) keeps the whole plugin bundle free of any send code.
-import { mount } from "copy2llm-widget/local";
-import { useEffect, useRef, useState } from "react";
+import { CopyToLLM } from "copy2llm-react";
+// The reviewed widget IIFE, inlined into the plugin bundle at build time and
+// written verbatim into the site's custom code — never fetched from a URL.
+import widgetSource from "copy2llm-snippet/dist/copy2llm.global.js?raw";
+import { useEffect, useState } from "react";
 // Plugin version — stamped into the injected script's banner and shown in the UI
 // so the exact runtime code is versioned and auditable.
 import { version as WIDGET_VERSION } from "../package.json";
@@ -17,6 +13,7 @@ import {
   ALL_ACTIONS,
   buildSnippet,
   DEFAULT_CONFIG,
+  externalDestinations,
   type Font,
   isOurSnippet,
   mergeSnippet,
@@ -39,8 +36,20 @@ function confirmCopy(pending: PendingKind | null, installed: boolean) {
   return { title: "Add to your site?", cta: "Add" };
 }
 
-// The install-confirm body: what the site owner is agreeing to.
-function InstallConfirm({ snippetPreview }: { snippetPreview: string }) {
+// The install-confirm body: what the site owner is agreeing to. When any action
+// can send page content off-site it lists the exact destinations and requires an
+// explicit acknowledgement (the stronger confirmation for the high-impact case).
+function InstallConfirm({
+  destinations,
+  ackExternal,
+  onAck,
+  snippetPreview,
+}: {
+  destinations: string[];
+  ackExternal: boolean;
+  onAck: (v: boolean) => void;
+  snippetPreview: string;
+}) {
   return (
     <>
       <p className="confirm-note">
@@ -49,10 +58,34 @@ function InstallConfirm({ snippetPreview }: { snippetPreview: string }) {
         Only the Copy to LLM block changes — any other custom code here is
         preserved.
       </p>
-      <p className="confirm-note">
-        Copy and View stay in the visitor’s browser —{" "}
-        <strong>no page content is sent anywhere</strong>.
-      </p>
+      {destinations.length > 0 ? (
+        <div className="warn">
+          <p>
+            <strong>Page content will be shareable off-site.</strong> When a
+            visitor clicks an “Open in…” action on any published page, this
+            page’s Markdown is sent to:
+          </p>
+          <ul className="dest-list">
+            {destinations.map((d) => (
+              <li key={d}>{d}</li>
+            ))}
+          </ul>
+          <label className="ack">
+            <input
+              checked={ackExternal}
+              onChange={(e) => onAck(e.target.checked)}
+              type="checkbox"
+            />
+            I understand visitors can send this page’s content to the services
+            above.
+          </label>
+        </div>
+      ) : (
+        <p className="confirm-note">
+          All actions are local — Copy and View stay in the visitor’s browser
+          and <strong>no page content is sent anywhere</strong>.
+        </p>
+      )}
       <p className="confirm-src">
         Injects Copy to LLM widget v{WIDGET_VERSION} — open source (MIT),
         inlined into the page (not fetched).
@@ -63,43 +96,6 @@ function InstallConfirm({ snippetPreview }: { snippetPreview: string }) {
       </details>
     </>
   );
-}
-
-// Live in-plugin preview, mounted with the local-only widget so the plugin
-// bundle carries no third-party send code. Re-mounts when a visible option
-// changes (arrays keyed by content to avoid identity churn).
-function Preview({ config }: { config: SnippetConfig }) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const cfgRef = useRef(config);
-  cfgRef.current = config;
-  const { position, theme, font, radius, label, header, bg, text, content } =
-    config;
-  const itemsKey = config.items.join(",");
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: latest config read via ref; re-mount is keyed by the explicit fields below
-  useEffect(() => {
-    if (!ref.current) {
-      return;
-    }
-    const handle = mount(
-      { ...cfgRef.current, position: "inline" },
-      ref.current
-    );
-    return () => handle.destroy();
-  }, [
-    position,
-    theme,
-    font,
-    radius,
-    label,
-    header,
-    bg,
-    text,
-    content,
-    itemsKey,
-  ]);
-
-  return <span ref={ref} />;
 }
 
 // Custom code is injected at the end of <body> on every published page.
@@ -131,6 +127,10 @@ const RADII = [
 const ACTION_LABELS: Record<Action, string> = {
   copy: "Copy as Markdown",
   view: "View as Markdown",
+  chatgpt: "Open in ChatGPT",
+  claude: "Open in Claude",
+  perplexity: "Open in Perplexity",
+  grok: "Open in Grok",
 };
 
 export function App() {
@@ -149,6 +149,9 @@ export function App() {
   // Which write the user is confirming, if any — gates every setCustomCode call
   // behind a preview so a site-wide change is never one accidental click away.
   const [pending, setPending] = useState<PendingKind | null>(null);
+  // Explicit acknowledgement required before an install that enables external
+  // page-content sharing — the high-impact case gets a stronger confirmation.
+  const [ackExternal, setAckExternal] = useState(false);
 
   // Reflect any existing install so the button reads Add vs Update, and warn
   // if the user has switched our code off in Site Settings (unrecoverable here).
@@ -195,6 +198,21 @@ export function App() {
     update("items", next);
   };
 
+  // Custom endpoints: a controlled list of {label, href} rows.
+  const endpoints = config.endpoints ?? [];
+  const addEndpoint = () =>
+    update("endpoints", [...endpoints, { label: "", href: "" }]);
+  const updateEndpoint = (i: number, key: "label" | "href", value: string) =>
+    update(
+      "endpoints",
+      endpoints.map((e, idx) => (idx === i ? { ...e, [key]: value } : e))
+    );
+  const removeEndpoint = (i: number) =>
+    update(
+      "endpoints",
+      endpoints.filter((_, idx) => idx !== i)
+    );
+
   const toggleCustomColors = (on: boolean) => {
     setCustomColors(on);
     if (on && !config.bg) {
@@ -206,6 +224,10 @@ export function App() {
   const effective: SnippetConfig = customColors
     ? config
     : { ...config, bg: undefined, text: undefined };
+  // The exact external services this install would let visitors reach — listed
+  // in the confirm step so the consequence is explicit before applying.
+  const destinations = externalDestinations(effective);
+  const sharesExternally = destinations.length > 0;
   // The exact markup the install would write.
   const snippet = buildSnippet(effective, widgetSource, WIDGET_VERSION);
   // The confirm step shows the same config-bearing tag with the bundled widget
@@ -294,7 +316,7 @@ export function App() {
       </p>
 
       <div className="preview">
-        <Preview config={effective} />
+        <CopyToLLM {...effective} position="inline" />
       </div>
 
       <div className="field">
@@ -430,10 +452,54 @@ export function App() {
         ))}
       </div>
       <p className="hint">
-        Both actions stay in the visitor’s browser — the page is turned into
-        Markdown and either copied to the clipboard or shown on the page.{" "}
-        <strong>Nothing is sent anywhere.</strong>
+        <strong>Copy</strong> and <strong>View</strong> stay in the visitor’s
+        browser — nothing is sent anywhere. The <strong>Open in…</strong>{" "}
+        actions are off by default; turning one on lets a visitor open that AI
+        service with this page’s Markdown in the URL. Enable them only if you’re
+        fine sharing published page content with those services.
       </p>
+
+      <hr />
+
+      <span className="section-label">
+        Custom endpoints <span className="opt">(optional)</span>
+      </span>
+      <p className="hint">
+        Add your own LLM target — an internal or self-hosted chat. Put{" "}
+        <code>{"{q}"}</code> where the page Markdown goes, or end the URL with{" "}
+        <code>?q=</code>.
+      </p>
+      {endpoints.map((ep, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: controlled positional rows, no stable id
+        <div className="endpoint" key={i}>
+          <div className="endpoint-row">
+            <input
+              aria-label="Endpoint label"
+              onChange={(e) => updateEndpoint(i, "label", e.target.value)}
+              placeholder="Label (e.g. Acme AI)"
+              type="text"
+              value={ep.label}
+            />
+            <button
+              aria-label="Remove endpoint"
+              onClick={() => removeEndpoint(i)}
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+          <input
+            aria-label="Endpoint URL"
+            onChange={(e) => updateEndpoint(i, "href", e.target.value)}
+            placeholder="https://acme.ai/?q={q}"
+            type="text"
+            value={ep.href}
+          />
+        </div>
+      ))}
+      <button className="add-endpoint" onClick={addEndpoint} type="button">
+        + Add endpoint
+      </button>
 
       {userDisabled && (
         <p className="warn">
@@ -468,12 +534,20 @@ export function App() {
               other custom code in this location is left untouched.
             </p>
           ) : (
-            <InstallConfirm snippetPreview={snippetPreview} />
+            <InstallConfirm
+              ackExternal={ackExternal}
+              destinations={destinations}
+              onAck={setAckExternal}
+              snippetPreview={snippetPreview}
+            />
           )}
           <div className="confirm-actions">
             <button
               className="framer-button-primary"
-              disabled={busy}
+              disabled={
+                busy ||
+                (pending === "install" && sharesExternally && !ackExternal)
+              }
               onClick={pending === "remove" ? doRemove : doInstall}
               type="button"
             >
@@ -493,7 +567,10 @@ export function App() {
           <button
             className="framer-button-primary"
             disabled={!(isAllowed && loaded)}
-            onClick={() => setPending("install")}
+            onClick={() => {
+              setAckExternal(false);
+              setPending("install");
+            }}
             type="button"
           >
             {installed ? "Update on site" : "Add to site"}

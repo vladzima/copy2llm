@@ -2,7 +2,6 @@
   "name": "copy2llm-core",
   "version": "0.1.1",
   "type": "module",
-  "sideEffects": false,
   "description": "Turn a live DOM into clean Markdown.",
   "license": "MIT",
   "main": "./dist/index.cjs",

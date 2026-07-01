@@ -14,14 +14,24 @@ export type Position =
   | "inline";
 export type Theme = "auto" | "light" | "dark";
 export type Font = "sans" | "serif" | "mono";
-// Local-only: the Framer plugin exposes only actions that keep page content on
-// the page. No third-party AI targets or custom endpoints are offered, and the
-// injected widget bundle (copy2llm.local.global.js) has no code to reach them.
-export type Action = "copy" | "view";
+export type Action =
+  | "copy"
+  | "view"
+  | "chatgpt"
+  | "claude"
+  | "perplexity"
+  | "grok";
+
+/** A site-owner's own LLM target (mirrors copy2llm-widget CustomEndpoint). */
+export interface CustomEndpoint {
+  href: string;
+  label: string;
+}
 
 export interface SnippetConfig {
   bg?: string;
   content?: string;
+  endpoints?: CustomEndpoint[];
   font: Font;
   header: boolean;
   items: Action[];
@@ -39,7 +49,64 @@ const SNIPPET_MARKER = "data-copy2llm";
 // so existing users can Update/Remove and get migrated to the inline version.
 const LEGACY_SRC = "https://copy.computer/copy2llm.js";
 
-export const ALL_ACTIONS: readonly Action[] = ["copy", "view"];
+export const ALL_ACTIONS: readonly Action[] = [
+  "copy",
+  "view",
+  "chatgpt",
+  "claude",
+  "perplexity",
+  "grok",
+];
+
+// Built-in actions that send the page's Markdown to a third party (via a
+// visitor-opened deep link), with the exact host each targets. OFF by default —
+// the site owner must explicitly enable them.
+const EXTERNAL_DESTINATIONS: Partial<Record<Action, string>> = {
+  chatgpt: "ChatGPT (chatgpt.com)",
+  claude: "Claude (claude.ai)",
+  perplexity: "Perplexity (perplexity.ai)",
+  grok: "Grok (grok.com)",
+};
+
+export const EXTERNAL_ACTIONS = Object.keys(
+  EXTERNAL_DESTINATIONS
+) as readonly Action[];
+
+// The host a custom endpoint targets, for disclosure. Endpoints may carry a
+// `{q}` placeholder, so strip it before parsing; fall back to the raw href.
+function endpointHost(href: string): string {
+  try {
+    return new URL(href.replace("{q}", "q")).host || href;
+  } catch {
+    return href;
+  }
+}
+
+/**
+ * The external services this config can send page Markdown to, as human-readable
+ * labels — built-in AI targets plus any filled-in custom endpoint. Empty when
+ * the config is local-only (copy/view). Drives the install-time disclosure.
+ */
+export function externalDestinations(config: SnippetConfig): string[] {
+  const out: string[] = [];
+  for (const action of config.items) {
+    const dest = EXTERNAL_DESTINATIONS[action];
+    if (dest) {
+      out.push(dest);
+    }
+  }
+  for (const e of config.endpoints ?? []) {
+    if (e.label && e.href) {
+      out.push(`${e.label} (${endpointHost(e.href)})`);
+    }
+  }
+  return out;
+}
+
+/** True when the config lets a visitor send page content off-site. */
+export function sendsContentExternally(config: SnippetConfig): boolean {
+  return externalDestinations(config).length > 0;
+}
 
 export const DEFAULT_CONFIG: SnippetConfig = {
   position: "bottom-right",
@@ -48,8 +115,9 @@ export const DEFAULT_CONFIG: SnippetConfig = {
   radius: "rounded",
   label: "Copy as Markdown",
   header: true,
-  // Copy (clipboard) and View (overlay) both transmit nothing — page content
-  // never leaves the site.
+  // Local-only by default: Copy (clipboard) and View (overlay) transmit nothing.
+  // External AI targets are opt-in so no page content leaves the site unless the
+  // owner turns them on. See EXTERNAL_ACTIONS.
   items: ["copy", "view"],
 };
 
@@ -113,8 +181,15 @@ export function buildSnippet(
     add("header", "false");
   }
   // Always emit the enabled actions explicitly, so the published widget matches
-  // the plugin's checkboxes exactly.
+  // the plugin's checkboxes exactly and defaults to the local-only set rather
+  // than the widget runtime's own (all-actions) fallback.
   add("items", config.items.join(","));
+  // Custom endpoints ride as a JSON array; escapeAttr turns the inner quotes
+  // into entities the browser decodes back to valid JSON for parseDataset.
+  const endpoints = (config.endpoints ?? []).filter((e) => e.label && e.href);
+  if (endpoints.length > 0) {
+    add("endpoints", JSON.stringify(endpoints));
+  }
   if (config.bg) {
     add("bg", config.bg);
   }
