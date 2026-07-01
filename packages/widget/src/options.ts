@@ -47,14 +47,18 @@ export interface WidgetOptions {
   theme?: Theme;
 }
 
-export const ALL_ACTIONS: readonly Action[] = Object.freeze([
-  "copy",
-  "view",
-  "chatgpt",
-  "claude",
-  "perplexity",
-  "grok",
-]);
+// Build flag (esbuild `define`); see widget.ts. The local-only bundle sets this
+// false so the external action names are dead-code-eliminated here too — they
+// then can't be defaulted in or accepted from `data-items`.
+declare const __C2L_EXTERNAL__: boolean;
+const EXTERNAL_ENABLED =
+  typeof __C2L_EXTERNAL__ === "undefined" ? true : __C2L_EXTERNAL__;
+
+export const ALL_ACTIONS: readonly Action[] = Object.freeze(
+  EXTERNAL_ENABLED
+    ? ["copy", "view", "chatgpt", "claude", "perplexity", "grok"]
+    : ["copy", "view"]
+);
 
 export const DEFAULTS = {
   position: "bottom-right",

@@ -2,6 +2,7 @@
   "name": "copy2llm-react",
   "version": "0.2.1",
   "type": "module",
+  "sideEffects": false,
   "description": "<CopyToLLM /> — the Copy to LLM button as a React component.",
   "license": "MIT",
   "main": "./dist/index.cjs",
