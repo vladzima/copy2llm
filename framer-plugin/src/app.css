@@ -169,3 +169,49 @@ hr {
   flex-direction: column;
   gap: 8px;
 }
+
+.warn > p {
+  margin: 0;
+}
+
+.dest-list {
+  padding-left: 18px;
+  margin: 4px 0 0;
+  color: var(--framer-color-text);
+}
+
+.dest-list li {
+  margin: 2px 0;
+}
+
+.ack {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin-top: 8px;
+  color: var(--framer-color-text);
+}
+
+.confirm-src {
+  margin: 0;
+  font-size: 11px;
+  color: var(--framer-color-text-tertiary);
+}
+
+.snippet-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snippet-details summary {
+  font-size: 11px;
+  color: var(--framer-color-text-tertiary);
+}
+
+.version {
+  margin: 6px 0 0;
+  font-size: 10px;
+  color: var(--framer-color-text-tertiary);
+  text-align: center;
+}

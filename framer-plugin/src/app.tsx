@@ -4,18 +4,21 @@ import { CopyToLLM } from "copy2llm-react";
 // written verbatim into the site's custom code — never fetched from a URL.
 import widgetSource from "copy2llm-snippet/dist/copy2llm.global.js?raw";
 import { useEffect, useState } from "react";
+// Plugin version — stamped into the injected script's banner and shown in the UI
+// so the exact runtime code is versioned and auditable.
+import { version as WIDGET_VERSION } from "../package.json";
 import "./app.css";
 import {
   type Action,
   ALL_ACTIONS,
   buildSnippet,
   DEFAULT_CONFIG,
+  externalDestinations,
   type Font,
   isOurSnippet,
   mergeSnippet,
   type Position,
   type SnippetConfig,
-  sendsContentExternally,
   stripSnippet,
   type Theme,
 } from "./snippet";
@@ -31,6 +34,68 @@ function confirmCopy(pending: PendingKind | null, installed: boolean) {
     return { title: "Update your site?", cta: "Update" };
   }
   return { title: "Add to your site?", cta: "Add" };
+}
+
+// The install-confirm body: what the site owner is agreeing to. When any action
+// can send page content off-site it lists the exact destinations and requires an
+// explicit acknowledgement (the stronger confirmation for the high-impact case).
+function InstallConfirm({
+  destinations,
+  ackExternal,
+  onAck,
+  snippetPreview,
+}: {
+  destinations: string[];
+  ackExternal: boolean;
+  onAck: (v: boolean) => void;
+  snippetPreview: string;
+}) {
+  return (
+    <>
+      <p className="confirm-note">
+        This adds the Copy to LLM button to{" "}
+        <strong>every published page</strong>, and re-applies on every update.
+        Only the Copy to LLM block changes — any other custom code here is
+        preserved.
+      </p>
+      {destinations.length > 0 ? (
+        <div className="warn">
+          <p>
+            <strong>Page content will be shareable off-site.</strong> When a
+            visitor clicks an “Open in…” action on any published page, this
+            page’s Markdown is sent to:
+          </p>
+          <ul className="dest-list">
+            {destinations.map((d) => (
+              <li key={d}>{d}</li>
+            ))}
+          </ul>
+          <label className="ack">
+            <input
+              checked={ackExternal}
+              onChange={(e) => onAck(e.target.checked)}
+              type="checkbox"
+            />
+            I understand visitors can send this page’s content to the services
+            above.
+          </label>
+        </div>
+      ) : (
+        <p className="confirm-note">
+          All actions are local — Copy and View stay in the visitor’s browser
+          and <strong>no page content is sent anywhere</strong>.
+        </p>
+      )}
+      <p className="confirm-src">
+        Injects Copy to LLM widget v{WIDGET_VERSION} — open source (MIT),
+        inlined into the page (not fetched).
+      </p>
+      <details className="snippet-details">
+        <summary>View injected code</summary>
+        <pre className="snippet">{snippetPreview}</pre>
+      </details>
+    </>
+  );
 }
 
 // Custom code is injected at the end of <body> on every published page.
@@ -83,7 +148,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
   // Which write the user is confirming, if any — gates every setCustomCode call
   // behind a preview so a site-wide change is never one accidental click away.
-  const [pending, setPending] = useState<"install" | "remove" | null>(null);
+  const [pending, setPending] = useState<PendingKind | null>(null);
+  // Explicit acknowledgement required before an install that enables external
+  // page-content sharing — the high-impact case gets a stronger confirmation.
+  const [ackExternal, setAckExternal] = useState(false);
 
   // Reflect any existing install so the button reads Add vs Update, and warn
   // if the user has switched our code off in Site Settings (unrecoverable here).
@@ -156,16 +224,18 @@ export function App() {
   const effective: SnippetConfig = customColors
     ? config
     : { ...config, bg: undefined, text: undefined };
+  // The exact external services this install would let visitors reach — listed
+  // in the confirm step so the consequence is explicit before applying.
+  const destinations = externalDestinations(effective);
+  const sharesExternally = destinations.length > 0;
   // The exact markup the install would write.
-  // Whether the current config lets a visitor send page content off-site — used
-  // to spell out the data-sharing consequence in the confirm step.
-  const sharesExternally = sendsContentExternally(effective);
-  const snippet = buildSnippet(effective, widgetSource);
+  const snippet = buildSnippet(effective, widgetSource, WIDGET_VERSION);
   // The confirm step shows the same config-bearing tag with the bundled widget
   // body elided — dumping 70 KB of minified JS into the preview helps no one.
   const snippetPreview = buildSnippet(
     effective,
-    "/* … Copy to LLM widget, bundled with the plugin … */"
+    "/* … Copy to LLM widget, bundled with the plugin … */",
+    WIDGET_VERSION
   );
 
   const doInstall = async () => {
@@ -464,28 +534,20 @@ export function App() {
               other custom code in this location is left untouched.
             </p>
           ) : (
-            <>
-              <pre className="snippet">{snippetPreview}</pre>
-              <p className="confirm-note">
-                This adds the Copy to LLM button to{" "}
-                <strong>every published page</strong>. Only the Copy to LLM
-                block changes — any other custom code here is preserved.
-              </p>
-              {sharesExternally && (
-                <p className="warn">
-                  You’ve enabled actions that let a visitor send this page’s
-                  Markdown to an external service (e.g. ChatGPT). That transfer
-                  happens when the visitor clicks, on every published page. Turn
-                  off the “Open in…” actions and custom endpoints to keep
-                  everything on-page.
-                </p>
-              )}
-            </>
+            <InstallConfirm
+              ackExternal={ackExternal}
+              destinations={destinations}
+              onAck={setAckExternal}
+              snippetPreview={snippetPreview}
+            />
           )}
           <div className="confirm-actions">
             <button
               className="framer-button-primary"
-              disabled={busy}
+              disabled={
+                busy ||
+                (pending === "install" && sharesExternally && !ackExternal)
+              }
               onClick={pending === "remove" ? doRemove : doInstall}
               type="button"
             >
@@ -505,7 +567,10 @@ export function App() {
           <button
             className="framer-button-primary"
             disabled={!(isAllowed && loaded)}
-            onClick={() => setPending("install")}
+            onClick={() => {
+              setAckExternal(false);
+              setPending("install");
+            }}
             type="button"
           >
             {installed ? "Update on site" : "Add to site"}
@@ -521,6 +586,10 @@ export function App() {
           )}
         </div>
       )}
+
+      <p className="version">
+        Injects Copy to LLM widget v{WIDGET_VERSION} · open source (MIT)
+      </p>
     </main>
   );
 }

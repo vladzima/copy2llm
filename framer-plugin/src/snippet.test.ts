@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   buildSnippet,
   DEFAULT_CONFIG,
+  externalDestinations,
   isOurSnippet,
   mergeSnippet,
   type SnippetConfig,
@@ -27,6 +28,12 @@ describe("buildSnippet", () => {
   test("prepends a self-identifying banner to the injected script", () => {
     expect(build()).toContain("Copy to LLM widget");
     expect(build()).toContain("not fetched at runtime");
+  });
+
+  test("stamps the version into the banner when given", () => {
+    expect(buildSnippet(DEFAULT_CONFIG, SRC, "1.2.3")).toContain(
+      "Copy to LLM widget v1.2.3"
+    );
   });
 
   test("never references a remote URL — the code is inlined, not fetched", () => {
@@ -81,6 +88,30 @@ describe("buildSnippet", () => {
         endpoints: [{ label: "Acme", href: "https://acme.ai/?q=" }],
       })
     ).toBe(true);
+  });
+
+  test("externalDestinations lists built-in AI targets with their host", () => {
+    const dests = externalDestinations({
+      ...DEFAULT_CONFIG,
+      items: ["copy", "chatgpt", "claude"],
+    });
+    expect(dests).toEqual(["ChatGPT (chatgpt.com)", "Claude (claude.ai)"]);
+  });
+
+  test("externalDestinations names a custom endpoint by label + host", () => {
+    const dests = externalDestinations({
+      ...DEFAULT_CONFIG,
+      items: ["copy"],
+      endpoints: [
+        { label: "Acme", href: "https://acme.ai/chat?q={q}" },
+        { label: "", href: "https://skip.me" },
+      ],
+    });
+    expect(dests).toEqual(["Acme (acme.ai)"]);
+  });
+
+  test("externalDestinations is empty for the local-only default", () => {
+    expect(externalDestinations(DEFAULT_CONFIG)).toEqual([]);
   });
 
   test("external AI actions are off in the default install", () => {

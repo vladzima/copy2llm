@@ -58,24 +58,54 @@ export const ALL_ACTIONS: readonly Action[] = [
   "grok",
 ];
 
-// Actions that send the page's Markdown to a third party (via a visitor-opened
-// deep link). OFF by default — the site owner must explicitly enable them.
-export const EXTERNAL_ACTIONS: readonly Action[] = [
-  "chatgpt",
-  "claude",
-  "perplexity",
-  "grok",
-];
+// Built-in actions that send the page's Markdown to a third party (via a
+// visitor-opened deep link), with the exact host each targets. OFF by default —
+// the site owner must explicitly enable them.
+const EXTERNAL_DESTINATIONS: Partial<Record<Action, string>> = {
+  chatgpt: "ChatGPT (chatgpt.com)",
+  claude: "Claude (claude.ai)",
+  perplexity: "Perplexity (perplexity.ai)",
+  grok: "Grok (grok.com)",
+};
+
+export const EXTERNAL_ACTIONS = Object.keys(
+  EXTERNAL_DESTINATIONS
+) as readonly Action[];
+
+// The host a custom endpoint targets, for disclosure. Endpoints may carry a
+// `{q}` placeholder, so strip it before parsing; fall back to the raw href.
+function endpointHost(href: string): string {
+  try {
+    return new URL(href.replace("{q}", "q")).host || href;
+  } catch {
+    return href;
+  }
+}
 
 /**
- * True when the config lets a visitor send page content off-site — any built-in
- * AI target, or a filled-in custom endpoint. Local-only (copy/view) is false.
+ * The external services this config can send page Markdown to, as human-readable
+ * labels — built-in AI targets plus any filled-in custom endpoint. Empty when
+ * the config is local-only (copy/view). Drives the install-time disclosure.
  */
+export function externalDestinations(config: SnippetConfig): string[] {
+  const out: string[] = [];
+  for (const action of config.items) {
+    const dest = EXTERNAL_DESTINATIONS[action];
+    if (dest) {
+      out.push(dest);
+    }
+  }
+  for (const e of config.endpoints ?? []) {
+    if (e.label && e.href) {
+      out.push(`${e.label} (${endpointHost(e.href)})`);
+    }
+  }
+  return out;
+}
+
+/** True when the config lets a visitor send page content off-site. */
 export function sendsContentExternally(config: SnippetConfig): boolean {
-  return (
-    config.items.some((a) => EXTERNAL_ACTIONS.includes(a)) ||
-    (config.endpoints ?? []).some((e) => Boolean(e.label && e.href))
-  );
+  return externalDestinations(config).length > 0;
 }
 
 export const DEFAULT_CONFIG: SnippetConfig = {
@@ -102,22 +132,31 @@ function escapeAttr(value: string): string {
     .replaceAll(">", "&gt;");
 }
 
-// Self-identifying header on the injected script, so anyone auditing a page's
-// custom code can see what it is and that it is inlined (never fetched), not an
-// anonymous minified blob. The full readable source is the open-source
-// copy2llm-snippet package (Mozilla Readability + Turndown do the extraction).
-// No URL here to keep the injected code free of any remote reference.
-const BANNER =
-  "/* Copy to LLM widget — MIT, open source. Inlined verbatim into this page; " +
-  "not fetched at runtime, so it cannot change after review. */\n";
+// Self-identifying, versioned header on the injected script, so anyone auditing
+// a page's custom code can see what it is, which version, and that it is inlined
+// (never fetched), not an anonymous minified blob. The full readable source is
+// the open-source copy2llm-snippet package (Mozilla Readability + Turndown do
+// the extraction). No URL here to keep the injected code free of any remote ref.
+function banner(version: string): string {
+  const v = version ? ` v${version}` : "";
+  return (
+    `/* Copy to LLM widget${v} — MIT, open source. Inlined verbatim into this ` +
+    "page; not fetched at runtime, so it cannot change after review. */\n"
+  );
+}
 
 /**
  * Build the install snippet: an inline <script> carrying the widget `source`
  * (the reviewed, bundled copy2llm IIFE) plus `data-*` for non-default values.
  * The widget reads its config from `document.currentScript.dataset`, which works
- * for inline scripts exactly as it did for the remote one.
+ * for inline scripts exactly as it did for the remote one. `version` is stamped
+ * into the banner for auditability.
  */
-export function buildSnippet(config: SnippetConfig, source: string): string {
+export function buildSnippet(
+  config: SnippetConfig,
+  source: string,
+  version = ""
+): string {
   const attrs: string[] = [SNIPPET_MARKER];
   const add = (key: string, value: string) => {
     attrs.push(`data-${key}="${escapeAttr(value)}"`);
@@ -164,7 +203,7 @@ export function buildSnippet(config: SnippetConfig, source: string): string {
   // Defuse any literal `</script` in the bundle so it can't close the tag early.
   // The current build has none, but the bundle can change — keep the guard.
   const safeSource = source.replace(/<\/script/gi, "<\\/script");
-  return `<script ${attrs.join(" ")}>${BANNER}${safeSource}</script>`;
+  return `<script ${attrs.join(" ")}>${banner(version)}${safeSource}</script>`;
 }
 
 // Comment delimiters wrapping our install inside the (shared) custom-code slot.
