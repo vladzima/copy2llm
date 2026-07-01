@@ -102,6 +102,15 @@ function escapeAttr(value: string): string {
     .replaceAll(">", "&gt;");
 }
 
+// Self-identifying header on the injected script, so anyone auditing a page's
+// custom code can see what it is and that it is inlined (never fetched), not an
+// anonymous minified blob. The full readable source is the open-source
+// copy2llm-snippet package (Mozilla Readability + Turndown do the extraction).
+// No URL here to keep the injected code free of any remote reference.
+const BANNER =
+  "/* Copy to LLM widget — MIT, open source. Inlined verbatim into this page; " +
+  "not fetched at runtime, so it cannot change after review. */\n";
+
 /**
  * Build the install snippet: an inline <script> carrying the widget `source`
  * (the reviewed, bundled copy2llm IIFE) plus `data-*` for non-default values.
@@ -155,7 +164,7 @@ export function buildSnippet(config: SnippetConfig, source: string): string {
   // Defuse any literal `</script` in the bundle so it can't close the tag early.
   // The current build has none, but the bundle can change — keep the guard.
   const safeSource = source.replace(/<\/script/gi, "<\\/script");
-  return `<script ${attrs.join(" ")}>${safeSource}</script>`;
+  return `<script ${attrs.join(" ")}>${BANNER}${safeSource}</script>`;
 }
 
 // Comment delimiters wrapping our install inside the (shared) custom-code slot.

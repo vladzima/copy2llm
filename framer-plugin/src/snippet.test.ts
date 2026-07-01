@@ -16,9 +16,17 @@ const build = (over: Partial<SnippetConfig> = {}, source = SRC) =>
 
 describe("buildSnippet", () => {
   test("inlines the widget source in a marked, src-less script tag", () => {
-    expect(build()).toBe(
-      '<script data-copy2llm data-items="copy,view">/* widget */</script>'
-    );
+    const html = build();
+    expect(
+      html.startsWith('<script data-copy2llm data-items="copy,view">')
+    ).toBe(true);
+    expect(html).toContain("/* widget */");
+    expect(html.endsWith("</script>")).toBe(true);
+  });
+
+  test("prepends a self-identifying banner to the injected script", () => {
+    expect(build()).toContain("Copy to LLM widget");
+    expect(build()).toContain("not fetched at runtime");
   });
 
   test("never references a remote URL — the code is inlined, not fetched", () => {
