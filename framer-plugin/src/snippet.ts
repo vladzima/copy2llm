@@ -58,6 +58,15 @@ export const ALL_ACTIONS: readonly Action[] = [
   "grok",
 ];
 
+// Actions that send the page's Markdown to a third party (via a visitor-opened
+// deep link). OFF by default — the site owner must explicitly enable them.
+export const EXTERNAL_ACTIONS: readonly Action[] = [
+  "chatgpt",
+  "claude",
+  "perplexity",
+  "grok",
+];
+
 export const DEFAULT_CONFIG: SnippetConfig = {
   position: "bottom-right",
   theme: "auto",
@@ -65,7 +74,10 @@ export const DEFAULT_CONFIG: SnippetConfig = {
   radius: "rounded",
   label: "Copy as Markdown",
   header: true,
-  items: [...ALL_ACTIONS],
+  // Local-only by default: Copy (clipboard) and View (overlay) transmit nothing.
+  // External AI targets are opt-in so no page content leaves the site unless the
+  // owner turns them on. See EXTERNAL_ACTIONS.
+  items: ["copy", "view"],
 };
 
 // Escape values before they land inside a double-quoted HTML attribute. The
@@ -109,9 +121,10 @@ export function buildSnippet(config: SnippetConfig, source: string): string {
   if (config.header === false) {
     add("header", "false");
   }
-  if (config.items.join(",") !== DEFAULT_CONFIG.items.join(",")) {
-    add("items", config.items.join(","));
-  }
+  // Always emit the enabled actions explicitly, so the published widget matches
+  // the plugin's checkboxes exactly and defaults to the local-only set rather
+  // than the widget runtime's own (all-actions) fallback.
+  add("items", config.items.join(","));
   // Custom endpoints ride as a JSON array; escapeAttr turns the inner quotes
   // into entities the browser decodes back to valid JSON for parseDataset.
   const endpoints = (config.endpoints ?? []).filter((e) => e.label && e.href);

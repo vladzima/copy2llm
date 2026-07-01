@@ -15,7 +15,9 @@ const build = (over: Partial<SnippetConfig> = {}, source = SRC) =>
 
 describe("buildSnippet", () => {
   test("inlines the widget source in a marked, src-less script tag", () => {
-    expect(build()).toBe("<script data-copy2llm>/* widget */</script>");
+    expect(build()).toBe(
+      '<script data-copy2llm data-items="copy,view">/* widget */</script>'
+    );
   });
 
   test("never references a remote URL — the code is inlined, not fetched", () => {
@@ -44,11 +46,18 @@ describe("buildSnippet", () => {
     expect(build({ header: false })).toContain('data-header="false"');
   });
 
-  test("emits data-items only for a non-default action set, preserving order", () => {
-    expect(build()).not.toContain("data-items");
-    expect(build({ items: ["copy", "view"] })).toContain(
-      'data-items="copy,view"'
-    );
+  test("always emits the enabled actions, defaulting to the local-only set", () => {
+    expect(build()).toContain('data-items="copy,view"');
+    expect(build({ items: ["copy"] })).toContain('data-items="copy"');
+  });
+
+  test("external AI actions are off in the default install", () => {
+    for (const action of ["chatgpt", "claude", "perplexity", "grok"]) {
+      expect(DEFAULT_CONFIG.items).not.toContain(action);
+    }
+    // A default install carries only the two local-only actions.
+    expect(build()).not.toContain("chatgpt");
+    expect(build()).not.toContain("perplexity");
   });
 
   test("supports the perplexity and grok built-in actions in items", () => {

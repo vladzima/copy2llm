@@ -349,6 +349,13 @@ export function App() {
           </label>
         ))}
       </div>
+      <p className="hint">
+        <strong>Copy</strong> and <strong>View</strong> stay in the visitor’s
+        browser — nothing is sent anywhere. The <strong>Open in…</strong> actions
+        are off by default; turning one on lets a visitor open that AI service
+        with this page’s Markdown in the URL. Enable them only if you’re fine
+        sharing published page content with those services.
+      </p>
 
       <hr />
 
