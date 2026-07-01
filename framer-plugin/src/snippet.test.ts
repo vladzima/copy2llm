@@ -5,6 +5,7 @@ import {
   isOurSnippet,
   mergeSnippet,
   type SnippetConfig,
+  sendsContentExternally,
   stripSnippet,
 } from "./snippet";
 
@@ -49,6 +50,29 @@ describe("buildSnippet", () => {
   test("always emits the enabled actions, defaulting to the local-only set", () => {
     expect(build()).toContain('data-items="copy,view"');
     expect(build({ items: ["copy"] })).toContain('data-items="copy"');
+  });
+
+  test("sendsContentExternally is false for the local-only default", () => {
+    expect(sendsContentExternally(DEFAULT_CONFIG)).toBe(false);
+  });
+
+  test("sendsContentExternally is true with a built-in AI action", () => {
+    expect(
+      sendsContentExternally({ ...DEFAULT_CONFIG, items: ["copy", "chatgpt"] })
+    ).toBe(true);
+  });
+
+  test("sendsContentExternally is true only for a fully filled endpoint", () => {
+    const base = { ...DEFAULT_CONFIG, items: ["copy" as const] };
+    expect(
+      sendsContentExternally({ ...base, endpoints: [{ label: "", href: "" }] })
+    ).toBe(false);
+    expect(
+      sendsContentExternally({
+        ...base,
+        endpoints: [{ label: "Acme", href: "https://acme.ai/?q=" }],
+      })
+    ).toBe(true);
   });
 
   test("external AI actions are off in the default install", () => {

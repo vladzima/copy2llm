@@ -67,6 +67,17 @@ export const EXTERNAL_ACTIONS: readonly Action[] = [
   "grok",
 ];
 
+/**
+ * True when the config lets a visitor send page content off-site — any built-in
+ * AI target, or a filled-in custom endpoint. Local-only (copy/view) is false.
+ */
+export function sendsContentExternally(config: SnippetConfig): boolean {
+  return (
+    config.items.some((a) => EXTERNAL_ACTIONS.includes(a)) ||
+    (config.endpoints ?? []).some((e) => Boolean(e.label && e.href))
+  );
+}
+
 export const DEFAULT_CONFIG: SnippetConfig = {
   position: "bottom-right",
   theme: "auto",
@@ -180,10 +191,7 @@ export function stripSnippet(html: string | null | undefined): string {
   return (
     html
       // Marker-wrapped block, including the markers themselves.
-      .replace(
-        new RegExp(`${MANAGED_START}[\\s\\S]*?${MANAGED_END}`, "g"),
-        ""
-      )
+      .replace(new RegExp(`${MANAGED_START}[\\s\\S]*?${MANAGED_END}`, "g"), "")
       // Bare inline install from before we wrapped it in markers.
       .replace(/<script[^>]*\bdata-copy2llm\b[^>]*>[\s\S]*?<\/script>/gi, "")
       // Legacy remote install.

@@ -15,9 +15,23 @@ import {
   mergeSnippet,
   type Position,
   type SnippetConfig,
+  sendsContentExternally,
   stripSnippet,
   type Theme,
 } from "./snippet";
+
+type PendingKind = "install" | "remove";
+
+// Confirm-step copy, kept as a pure module helper so App stays simple.
+function confirmCopy(pending: PendingKind | null, installed: boolean) {
+  if (pending === "remove") {
+    return { title: "Remove from your site?", cta: "Remove" };
+  }
+  if (installed) {
+    return { title: "Update your site?", cta: "Update" };
+  }
+  return { title: "Add to your site?", cta: "Add" };
+}
 
 // Custom code is injected at the end of <body> on every published page.
 const LOCATION = "bodyEnd";
@@ -143,6 +157,9 @@ export function App() {
     ? config
     : { ...config, bg: undefined, text: undefined };
   // The exact markup the install would write.
+  // Whether the current config lets a visitor send page content off-site — used
+  // to spell out the data-sharing consequence in the confirm step.
+  const sharesExternally = sendsContentExternally(effective);
   const snippet = buildSnippet(effective, widgetSource);
   // The confirm step shows the same config-bearing tag with the bundled widget
   // body elided — dumping 70 KB of minified JS into the preview helps no one.
@@ -152,6 +169,17 @@ export function App() {
   );
 
   const doInstall = async () => {
+    // Re-check write access at call time (not just via the disabled button).
+    if (!framer.isAllowedTo("setCustomCode")) {
+      framer.notify(
+        "You don’t have permission to update this site’s custom code.",
+        {
+          variant: "error",
+        }
+      );
+      setPending(null);
+      return;
+    }
     setBusy(true);
     try {
       // Read the current slot and splice our block in, so any unrelated custom
@@ -174,6 +202,16 @@ export function App() {
   };
 
   const doRemove = async () => {
+    if (!framer.isAllowedTo("setCustomCode")) {
+      framer.notify(
+        "You don’t have permission to update this site’s custom code.",
+        {
+          variant: "error",
+        }
+      );
+      setPending(null);
+      return;
+    }
     setBusy(true);
     try {
       // Strip only our block; write back the rest (or clear the slot if ours
@@ -196,16 +234,10 @@ export function App() {
     }
   };
 
-  // Confirm-step copy, kept flat to avoid nested ternaries in the markup.
-  let confirmTitle = "Add to your site?";
-  let confirmCta = "Add";
-  if (pending === "remove") {
-    confirmTitle = "Remove from your site?";
-    confirmCta = "Remove";
-  } else if (installed) {
-    confirmTitle = "Update your site?";
-    confirmCta = "Update";
-  }
+  const { title: confirmTitle, cta: confirmCta } = confirmCopy(
+    pending,
+    installed
+  );
 
   return (
     <main>
@@ -351,10 +383,10 @@ export function App() {
       </div>
       <p className="hint">
         <strong>Copy</strong> and <strong>View</strong> stay in the visitor’s
-        browser — nothing is sent anywhere. The <strong>Open in…</strong> actions
-        are off by default; turning one on lets a visitor open that AI service
-        with this page’s Markdown in the URL. Enable them only if you’re fine
-        sharing published page content with those services.
+        browser — nothing is sent anywhere. The <strong>Open in…</strong>{" "}
+        actions are off by default; turning one on lets a visitor open that AI
+        service with this page’s Markdown in the URL. Enable them only if you’re
+        fine sharing published page content with those services.
       </p>
 
       <hr />
@@ -408,8 +440,8 @@ export function App() {
 
       {!isAllowed && (
         <p className="warn">
-          This plugin needs permission to update your site’s custom code. Ask the
-          project owner for edit access, then reopen the plugin.
+          This plugin needs permission to update your site’s custom code. Ask
+          the project owner for edit access, then reopen the plugin.
         </p>
       )}
       {isAllowed && readError && (
@@ -435,9 +467,19 @@ export function App() {
             <>
               <pre className="snippet">{snippetPreview}</pre>
               <p className="confirm-note">
-                Only the Copy to LLM block is changed — any other custom code in
-                this location is preserved.
+                This adds the Copy to LLM button to{" "}
+                <strong>every published page</strong>. Only the Copy to LLM
+                block changes — any other custom code here is preserved.
               </p>
+              {sharesExternally && (
+                <p className="warn">
+                  You’ve enabled actions that let a visitor send this page’s
+                  Markdown to an external service (e.g. ChatGPT). That transfer
+                  happens when the visitor clicks, on every published page. Turn
+                  off the “Open in…” actions and custom endpoints to keep
+                  everything on-page.
+                </p>
+              )}
             </>
           )}
           <div className="confirm-actions">

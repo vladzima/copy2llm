@@ -1,5 +1,5 @@
 import { mount, type WidgetOptions } from "copy2llm-widget";
-import { type ReactElement, useEffect, useRef } from "react";
+import { type ReactElement, useEffect, useMemo, useRef } from "react";
 
 export type CopyToLLMProps = WidgetOptions;
 
@@ -10,16 +10,53 @@ export type CopyToLLMProps = WidgetOptions;
  */
 export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
   const ref = useRef<HTMLSpanElement | null>(null);
-  // Re-mount whenever an option changes; serializing keeps the dep stable.
-  const serialized = JSON.stringify(props);
+
+  const { position, theme, font, radius, label, header, content, bg, text } =
+    props;
+  const { items, endpoints } = props;
+  // items/endpoints are fresh array references on every render; key the memo on
+  // their content so the options object is stable until a value truly changes.
+  const itemsKey = items?.join(",");
+  const endpointsKey = endpoints?.map((e) => `${e.label} ${e.href}`).join("|");
+
+  // A stable options object — re-created only when an actual option changes, so
+  // the widget re-mounts on real edits, not on unrelated re-renders.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: items/endpoints are intentionally keyed by content (itemsKey/endpointsKey) rather than identity
+  const options = useMemo<WidgetOptions>(
+    () => ({
+      position,
+      theme,
+      font,
+      radius,
+      label,
+      header,
+      content,
+      bg,
+      text,
+      items,
+      endpoints,
+    }),
+    [
+      position,
+      theme,
+      font,
+      radius,
+      label,
+      header,
+      content,
+      bg,
+      text,
+      itemsKey,
+      endpointsKey,
+    ]
+  );
 
   useEffect(() => {
-    const options = JSON.parse(serialized) as WidgetOptions;
     const target =
       options.position === "inline" ? (ref.current ?? undefined) : undefined;
     const handle = mount(options, target);
     return () => handle.destroy();
-  }, [serialized]);
+  }, [options]);
 
-  return props.position === "inline" ? <span ref={ref} /> : null;
+  return position === "inline" ? <span ref={ref} /> : null;
 }
