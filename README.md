@@ -6,7 +6,7 @@ Free in beta · fully client-side · no accounts, no backend.
 
 ## Install — pick one
 
-**0. Agent skill (fastest)** [![skills.sh](https://skills.sh/b/vladzima/copy2llm)](https://skills.sh/vladzima/copy2llm)
+**0. Agent skill (fastest)** — [on skills.sh](https://skills.sh/vladzima/copy2llm)
 
 ```bash
 npx skills add vladzima/copy2llm
