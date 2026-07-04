@@ -6,6 +6,14 @@ Free in beta · fully client-side · no accounts, no backend.
 
 ## Install — pick one
 
+**0. Agent skill (fastest)** [![skills.sh](https://skills.sh/b/vladzima/copy2llm)](https://skills.sh/vladzima/copy2llm)
+
+```bash
+npx skills add vladzima/copy2llm
+```
+
+Installs the [copy2llm skill](skills/copy2llm/SKILL.md) into your coding agent (Claude Code, Cursor, Codex, …) — then just ask it to add the button to your site. Also discoverable at [`/.well-known/agent-skills/index.json`](https://copy.computer/.well-known/agent-skills/index.json).
+
 **1. Script tag (zero build)**
 
 ```html

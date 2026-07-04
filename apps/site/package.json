@@ -6,8 +6,9 @@
   "description": "copy2llm landing + live demo; dogfoods the button and serves the CDN snippet.",
   "scripts": {
     "snippet": "bun run --filter copy2llm-snippet build && cp ../../packages/snippet/dist/copy2llm.global.js public/copy2llm.js",
-    "deploy": "bun run snippet && wrangler deploy",
-    "dev": "bun run snippet && wrangler dev"
+    "wellknown": "bun scripts/wellknown.ts",
+    "deploy": "bun run snippet && bun run wellknown && wrangler deploy",
+    "dev": "bun run snippet && bun run wellknown && wrangler dev"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

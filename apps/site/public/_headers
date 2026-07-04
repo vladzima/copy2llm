@@ -4,6 +4,12 @@
   Link: <https://github.com/vladzima/copy2llm>; rel="service-doc"
   Link: <https://www.npmjs.com/package/copy2llm-core>; rel="describedby"
 
+# Agent Skills discovery (RFC v0.2.0) — index + SKILL.md are fetched by
+# agents/scanners from other origins.
+/.well-known/agent-skills/*
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=300, stale-while-revalidate=3600
+
 # The snippet is embedded into other people's pages — allow cross-origin loading.
 # The path is unversioned, so keep the fresh window short (5 min) and lean on
 # stale-while-revalidate: pages stay fast but pick up fixes within minutes.

@@ -1,2 +1,4 @@
 # Generated at build time from packages/snippet (see `bun run snippet`).
 public/copy2llm.js
+# Generated at build time from /skills (see `bun run wellknown`).
+public/.well-known/

@@ -859,6 +859,32 @@
       font-size: 0.85rem;
       color: var(--mist);
     }
+    .install-note a {
+      color: var(--mist);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .skill-cmd {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 5px 12px;
+      cursor: pointer;
+      background: rgba(10, 10, 10, 0.5);
+      border: 1px solid var(--line-strong);
+      border-radius: 9999px;
+      transition: border-color 0.18s var(--ease);
+    }
+    .skill-cmd:hover {
+      border-color: rgba(229, 229, 229, 0.22);
+    }
+    .skill-cmd .ic {
+      font-size: 14px;
+      color: var(--ash);
+    }
+    .skill-cmd:hover .ic {
+      color: var(--bone);
+    }
 
     /* --------------------------------------------------------- Numbered features */
     .why-list {
@@ -2120,6 +2146,20 @@
               Tweak it below and the snippet updates as you go — the live button
               in the corner of this page changes with it.
             </p>
+            <p class="install-note">
+              Fastest: install the
+              <a
+                href="https://skills.sh/vladzima/copy2llm"
+                target="_blank"
+                rel="noopener"
+                >agent skill</a
+              >
+              and let your coding agent wire it in —
+              <button class="skill-cmd" type="button" data-copy-skill>
+                <code>npx skills add vladzima/copy2llm</code>
+                <svg class="ic" aria-hidden="true"><use href="#ic-copy" /></svg>
+              </button>
+            </p>
           </div>
 
           <div class="cfg" data-reveal>
@@ -3032,6 +3072,20 @@
           askLabel.textContent = "Prompt copied — paste it to your LLM";
           setTimeout(() => {
             askLabel.textContent = "Ask your LLM to integrate";
+          }, 2200);
+        });
+      });
+
+      // skills.sh install command: click-to-copy for the "fastest" line.
+      const skillBtn = root.querySelector("[data-copy-skill]");
+      const skillCmd = skillBtn.querySelector("code");
+      const skillText = skillCmd.textContent;
+      skillBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(skillText).then(() => {
+          skillCmd.textContent = "Copied — paste it to your agent";
+          window.analytics?.track("Copy skills.sh command");
+          setTimeout(() => {
+            skillCmd.textContent = skillText;
           }, 2200);
         });
       });
