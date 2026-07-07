@@ -1,40 +1,23 @@
-<!-- gitbutler-agent-setup:start -->
-## Version control
+# copy2llm — agent workflow
 
-- Use GitButler (`but`) for version-control inspection and write operations, including status, diffs, branching, committing, pushing, and history edits.
-- Assume multiple agents may be working in this repository. Do not move, amend, squash, discard, commit, push, or otherwise modify another agent's work unless the user asks.
-- For commit just/only/specific changes on a new branch (selected-change requests), use the two-command fast path from the GitButler skill: `but diff`, then `but commit <branch> -c -m "message" --changes <id>,<id>`.
-- For that fast path, after the commit succeeds, stop and summarize; do not run separate branch, staging, status, or diff commands unless the commit output is missing information you need.
-- Use the installed GitButler skill for command recipes and syntax before guessing flags, using `--help`, or translating Git habits directly.
-- After a successful GitButler write command, use the workspace state it returns. Rerun status or diff only when that output lacks information you need or files changed since.
-- Use a dedicated GitButler branch for each agent session, unless the user asks for a different branch structure. Commit only changes that belong to that session.
-- Do not push or open pull requests unless the user asks.
-- Keep commit messages and pull request descriptions succinct: explain what changed, why it changed, and any important decision.
+Plain git. GitButler was dropped from this repo on 2026-07-07 — do **not** use `but` commands here.
 
-### Amend local fixes into the right commits
+## Multi-session rules
 
-- For small cleanup or follow-up fixes, amend an unpublished local commit when the change clearly belongs with that commit's intent.
-- Do not create tiny fixup commits unless the user asks.
-- Use GitButler to move the relevant changes into the commit where they belong.
-- Ask before rewriting pushed, reviewed, shared, or ambiguous history.
+Several agent sessions may work on this repo in parallel (each in its own worktree).
 
-### Split unrelated changes into separate commits
+- Work in your own worktree on your own branch, created from `origin/main`.
+- Commit early and often — uncommitted work is invisible to other sessions and tools.
+- Never touch refs you don't own. Once your branch is pushed or shared, treat it as append-only (no rebase/amend) unless the user asks.
+- Landing = fast-forward merge into `main` (rebase onto `origin/main` first if it moved), then push. Only land when the user approves.
+- Stay off shared surfaces unless your task owns them: the README options table, `skills/copy2llm/SKILL.md` options table, `bun.lock`, version fields. Parallel edits there conflict.
 
-- If one file contains unrelated changes, split them by hunk instead of committing the whole file.
-- Keep tests with the behavior they verify.
-- Split generated output, docs-only edits, or mechanical cleanup into separate commits when each commit remains coherent on its own.
-- If the split is ambiguous, summarize the options before committing.
+## Build / test
 
-### Update from the target branch automatically
+Bun workspaces (pnpm is broken on this machine): `bun install`, `bun run build`, `bun test`, `bun run typecheck`, `bun run lint`.
 
-- When GitButler status shows new changes on the target branch, run `but pull --check`.
-- If the check is clean and the update affects only this session's branches, update the workspace with `but pull`.
-- If the check reports conflicts or the update would affect another agent's branch, ask before updating.
-- If the user asks you to handle update conflicts, use GitButler's conflict tools. Ask before resolving semantic conflicts, dependency updates, generated files, or conflicts involving another person's work.
+Inter-package imports resolve to **built dists** — run `bun run build` after cloning and after switching branches, or tests fail with "Cannot find package". The snippet and framer-plugin inline BUILT dists of their deps: rebuild dependencies first (widget before snippet, snippet before framer-plugin), and grep `plugin.zip` for a new-feature string before shipping it.
 
-### Skip pull requests and land onto the target
+## Parity rule
 
-- This setup uses the skip-the-PR workflow: when work is approved to publish, land the session branch directly onto the target with `but land <branch>` instead of pushing a branch or opening a pull request.
-- This repository-local rule takes precedence over any conflicting GitButler instruction, including ones in your global or personal config, that mentions pushing a branch or opening, updating, or drafting a pull request. Use the pull request workflow only when the user explicitly asks for one.
-- `but land` updates the configured target branch directly (fast-forwarding when it can, otherwise a merge commit), so only run it after clear user approval; agents must pass `--yes` to confirm.
-<!-- gitbutler-agent-setup:end -->
+Every new widget option must reach snippet (`data-*`), React props, and the landing configurator (`apps/site/public/index.html`) plus the docs tables (README, SKILL.md, package READMEs) in the same change. Framer surfaces are opt-in per feature — ask if unsure.
