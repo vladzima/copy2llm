@@ -169,6 +169,25 @@ test("honors the active text selection: copies just it, with an anchored source"
   expect(writes[0]).toContain("> Source: https://example.com/p#beta");
 });
 
+test("primary label flips to 'Copy selected' with a selection, and back", () => {
+  const { doc, win } = page("<main><p>Some words to select.</p></main>");
+  mount({}, doc.body);
+  const label = q(doc, ".primary .c2l-label");
+  expect(label.textContent).toBe("Copy as Markdown");
+
+  const range = doc.createRange();
+  range.selectNodeContents(doc.querySelector("p") as HTMLElement);
+  const sel = win.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  doc.dispatchEvent(new win.Event("selectionchange"));
+  expect(label.textContent).toBe("Copy selected");
+
+  sel.removeAllRanges();
+  doc.dispatchEvent(new win.Event("selectionchange"));
+  expect(label.textContent).toBe("Copy as Markdown");
+});
+
 test("pick mode: clicking a block copies just that block, then exits", async () => {
   const { doc, writes } = page(
     '<main><h2 id="one">One</h2><p>Alpha block.</p><p>Beta block.</p></main>'

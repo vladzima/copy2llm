@@ -65,6 +65,9 @@ const EXT_ICON =
 const CHECK_ICON =
   '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></svg>';
 const COPIED_LABEL = "Copied";
+// Primary Copy label while the page has an active text selection (every action
+// then uses the selection instead of the whole page).
+const SELECTED_LABEL = "Copy selected";
 const COPIED_MS = 1400;
 // `auto` reveal: poll for a confident theme signal for up to this many frames
 // (~0.5s) before falling back to prefers-color-scheme, so a late-painting host
@@ -360,8 +363,18 @@ export function mount(
       closeOverlay();
     }
   };
+  // Flip the primary Copy label to "Copy selected" while a page selection is
+  // active, so the button says what a click will actually copy. Plain text
+  // assignment (no swap keyframe): selectionchange fires on every drag tick.
+  const onSelectionChange = () => {
+    if (primaryAction !== "copy" || state.copiedTimer !== undefined) {
+      return; // not a Copy button / mid "Copied ✓" confirmation
+    }
+    primaryLabel.textContent = pageSelection() ? SELECTED_LABEL : labels.copy;
+  };
   doc.addEventListener("click", onDocPointer, true);
   doc.addEventListener("keydown", onDocKey);
+  doc.addEventListener("selectionchange", onSelectionChange);
 
   const handle: WidgetHandle = { destroy };
   hostEl[HANDLE_KEY] = handle;
@@ -622,7 +635,12 @@ export function mount(
     }
     setPrimary(COPIED_LABEL, CHECK_ICON);
     state.copiedTimer = win.setTimeout(() => {
-      setPrimary(labels[primaryAction], ICONS[primaryAction]);
+      // Revert selection-aware: the selection usually survives the copy.
+      const idle =
+        primaryAction === "copy" && pageSelection()
+          ? SELECTED_LABEL
+          : labels[primaryAction];
+      setPrimary(idle, ICONS[primaryAction]);
       state.copiedTimer = undefined;
     }, COPIED_MS) as unknown as number;
   }
@@ -712,6 +730,7 @@ export function mount(
     exitPick();
     doc.removeEventListener("click", onDocPointer, true);
     doc.removeEventListener("keydown", onDocKey);
+    doc.removeEventListener("selectionchange", onSelectionChange);
     if (state.toastTimer !== undefined) {
       win.clearTimeout(state.toastTimer);
     }
