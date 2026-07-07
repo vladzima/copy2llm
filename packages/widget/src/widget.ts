@@ -26,10 +26,12 @@ const MSG = {
   copied: "Copied ✓",
   failed: "Couldn’t extract this page",
   paste: "Copied — paste into the chat",
+  pick: "Click a section to copy it — Esc cancels",
 };
 
 const MENU_LABELS: Record<Action, string> = {
   copy: DEFAULTS.label,
+  pick: "Copy a section",
   view: "View as Markdown",
   chatgpt: "Open in ChatGPT",
   claude: "Open in Claude",
@@ -42,6 +44,7 @@ const MENU_LABELS: Record<Action, string> = {
 // network request and to survive Shadow-DOM isolation.
 const ICONS: Record<Action, string> = {
   copy: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></svg>',
+  pick: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,40H176a8,8,0,0,0,0,16h32V88a8,8,0,0,0,16,0V48A8,8,0,0,0,216,40ZM80,200H48V168a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H80a8,8,0,0,0,0-16Zm136-40a8,8,0,0,0-8,8v32H176a8,8,0,0,0,0,16h40a8,8,0,0,0,8-8V168A8,8,0,0,0,216,160ZM80,40H40a8,8,0,0,0-8,8V88a8,8,0,0,0,16,0V56H80a8,8,0,0,0,0-16Z"/></svg>',
   view: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M86.75,44.3,33.48,128l53.27,83.7a8,8,0,0,1-2.46,11.05A7.91,7.91,0,0,1,80,224a8,8,0,0,1-6.76-3.71l-56-88a8,8,0,0,1,0-8.59l56-88a8,8,0,1,1,13.5,8.59Zm152,79.41-56-88a8,8,0,1,0-13.5,8.59L222.52,128l-53.27,83.7a8,8,0,0,0,2.46,11.05A7.91,7.91,0,0,0,176,224a8,8,0,0,0,6.76-3.71l56-88A8,8,0,0,0,238.75,123.71Z"/></svg>',
   chatgpt:
     '<svg class="c2l-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>',
@@ -68,6 +71,10 @@ const COPIED_MS = 1400;
 // background can't flash a wrong-theme button.
 const REVEAL_MAX_FRAMES = 30;
 const EXTERNAL = new Set<Action>(["chatgpt", "claude", "perplexity", "grok"]);
+// Blocks a region-pick click can select — the meaningful content units the
+// spec calls out (paragraphs, sections, tables, code), nearest match first.
+const PICK_SELECTOR =
+  "p, pre, table, ul, ol, dl, blockquote, figure, h1, h2, h3, h4, h5, h6, section, article";
 
 /** Parse a trusted inline-SVG string into an element (Shadow-DOM safe). */
 function svgEl(doc: Document, markup: string): Element | null {
@@ -127,6 +134,8 @@ interface State {
   copiedTimer?: number;
   currentMarkdown: string;
   overlayEl: HTMLElement | null;
+  /** Tears down region-pick mode; null when pick mode is off. */
+  pickCleanup: (() => void) | null;
   prevFocus: Element | null;
   toastTimer?: number;
 }
@@ -172,6 +181,7 @@ export function mount(
   // rather than reassign `let`s (avoids TDZ and keeps the linter happy).
   const state: State = {
     overlayEl: null,
+    pickCleanup: null,
     prevFocus: null,
     currentMarkdown: "",
   };
@@ -196,6 +206,14 @@ export function mount(
   const split = rootEl.querySelector(".split") as HTMLElement;
   const toastEl = rootEl.querySelector(".toast") as HTMLElement;
   const primary = rootEl.querySelector(".primary") as HTMLButtonElement;
+
+  // Preserve the page's text selection: a mousedown on any widget button would
+  // collapse it before the click handler could read it (see pageSelection).
+  rootEl.addEventListener("mousedown", (e) => {
+    if ((e.target as Element | null)?.closest?.(".btn, .menuitem")) {
+      e.preventDefault();
+    }
+  });
 
   const primaryAction = items[0];
   // Label lives in its own span so the copy-confirmation can swap just the text
@@ -396,11 +414,25 @@ export function mount(
     }
   }
 
-  function safeExtract(): ExtractResult | null {
+  /** The user's active selection, if it lives in the page (not our shadow UI). */
+  function pageSelection(): Range | undefined {
+    const sel = win.getSelection?.();
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    return range.commonAncestorContainer.getRootNode?.() === doc
+      ? range
+      : undefined;
+  }
+
+  /** Extract the page — or just `region` / the live text selection when present. */
+  function safeExtract(region?: Range | Element): ExtractResult | null {
     try {
       return extract(win.document, {
         content: options.content,
         header: options.header,
+        region: region ?? pageSelection(),
       });
     } catch {
       return null;
@@ -411,6 +443,11 @@ export function mount(
   }
 
   async function runAction(action: Action): Promise<void> {
+    if (action === "pick") {
+      startPick();
+      return;
+    }
+
     const result = safeExtract();
     const markdown = result?.markdown ?? "";
 
@@ -441,6 +478,102 @@ export function mount(
     // chatgpt | claude | perplexity | grok: hand the LLM the page's Markdown
     // itself via the chat's ?q= prefill — that IS the product.
     openLlm(llmUrl(action as LlmTarget, markdown), markdown);
+  }
+
+  // --- region-pick mode ("copy just this") ------------------------------------
+  // Hover highlights the content block under the pointer; click copies it; Esc
+  // (or a click that hits no block) exits. The highlight box and crosshair
+  // cursor live in the page, not our shadow root, so position:fixed can't be
+  // broken by a transformed ancestor.
+  function pickTarget(target: EventTarget | null): Element | null {
+    const el = target as Element | null;
+    if (!el || hostEl.contains(el) || typeof el.closest !== "function") {
+      return null;
+    }
+    return el.closest(PICK_SELECTOR);
+  }
+
+  function startPick(): void {
+    if (state.pickCleanup) {
+      return;
+    }
+    const boxEl = doc.createElement("div");
+    boxEl.style.cssText =
+      "position:fixed;display:none;pointer-events:none;z-index:2147482999;" +
+      "background:rgba(82,139,255,0.13);outline:2px solid rgba(82,139,255,0.85);" +
+      "outline-offset:-1px;border-radius:3px;";
+    const cursorEl = doc.createElement("style");
+    cursorEl.textContent = "* { cursor: crosshair !important; }";
+    doc.body.appendChild(boxEl);
+    (doc.head ?? doc.body).appendChild(cursorEl);
+
+    let hovered: Element | null = null;
+    const place = () => {
+      if (!hovered) {
+        boxEl.style.display = "none";
+        return;
+      }
+      const r = hovered.getBoundingClientRect();
+      boxEl.style.display = "block";
+      boxEl.style.top = `${r.top}px`;
+      boxEl.style.left = `${r.left}px`;
+      boxEl.style.width = `${r.width}px`;
+      boxEl.style.height = `${r.height}px`;
+    };
+    const onMove = (e: Event) => {
+      hovered = pickTarget(e.target);
+      place();
+    };
+    const onPickClick = (e: Event) => {
+      if (hostEl.contains(e.target as Node)) {
+        exitPick(); // clicking the widget cancels; its own handlers still run
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      const el = pickTarget(e.target);
+      exitPick();
+      if (el) {
+        copyRegion(el).catch(() => undefined);
+      }
+    };
+    const onPickKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        exitPick();
+      }
+    };
+    doc.addEventListener("mousemove", onMove, true);
+    doc.addEventListener("click", onPickClick, true);
+    doc.addEventListener("keydown", onPickKey, true);
+    win.addEventListener("scroll", place, true);
+    state.pickCleanup = () => {
+      doc.removeEventListener("mousemove", onMove, true);
+      doc.removeEventListener("click", onPickClick, true);
+      doc.removeEventListener("keydown", onPickKey, true);
+      win.removeEventListener("scroll", place, true);
+      boxEl.remove();
+      cursorEl.remove();
+      state.pickCleanup = null;
+    };
+    toast(MSG.pick);
+  }
+
+  function exitPick(): void {
+    state.pickCleanup?.();
+  }
+
+  // Copy just the picked block; its Source header deep-links to the section.
+  async function copyRegion(el: Element): Promise<void> {
+    const markdown = safeExtract(el)?.markdown ?? "";
+    if (isEmpty(markdown)) {
+      toast(MSG.failed);
+      return;
+    }
+    if (await copyText(markdown, win)) {
+      flashCopied();
+    } else {
+      openOverlay(markdown);
+    }
   }
 
   // A site-owner custom endpoint: same flow as a built-in target, but the deep
@@ -576,6 +709,7 @@ export function mount(
 
   function destroy(): void {
     stopWatch();
+    exitPick();
     doc.removeEventListener("click", onDocPointer, true);
     doc.removeEventListener("keydown", onDocKey);
     if (state.toastTimer !== undefined) {

@@ -19,6 +19,7 @@ test("defaults: bottom-right, auto theme, all built-in items", () => {
   expect(DEFAULTS.header).toBe(true);
   expect(DEFAULTS.items).toEqual([
     "copy",
+    "pick",
     "view",
     "chatgpt",
     "claude",

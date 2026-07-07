@@ -2,6 +2,8 @@
 
 A **"Copy to LLM" button any website can embed** — the Mintlify/GitBook "Copy page as Markdown" affordance, generalized so any site can add it. On click it converts the current page to clean Markdown and offers to copy it, view it raw, or open it directly in ChatGPT, Claude, Perplexity, Grok — or your own custom endpoint.
 
+**Copy just this:** if the visitor has text selected, every action uses the selection instead of the whole page. The "Copy a section" action goes further — hover highlights a block (paragraph, table, code, section), click copies just it. Either way the `> Source:` header deep-links back with a `#anchor`.
+
 Free in beta · fully client-side · no accounts, no backend.
 
 ## Install — pick one
@@ -48,7 +50,7 @@ export default () => <CopyToLLM position="bottom-right" theme="auto" />;
 
 ## Customization
 
-`position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `content` (CSS selector for the extraction root) · `header` (frontmatter on/off) · `items` (which actions show: copy, view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`, where `href` carries the page Markdown via a `{q}` placeholder). Identical across the script tag (`data-*`), the React props, and the Framer panel.
+`position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `content` (CSS selector for the extraction root) · `header` (frontmatter on/off) · `items` (which actions show: copy, pick — "Copy a section", view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`, where `href` carries the page Markdown via a `{q}` placeholder). Identical across the script tag (`data-*`), the React props, and the Framer panel.
 
 `theme: auto` matches the **site** (its `color-scheme` / background luminance), falling back to the OS.
 

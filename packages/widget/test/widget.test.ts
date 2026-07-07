@@ -150,6 +150,59 @@ test("reveals the button even without requestAnimationFrame (no permanent invisi
   expect(q(doc, ".root").classList.contains("c2l-in")).toBe(true);
 });
 
+test("honors the active text selection: copies just it, with an anchored source", async () => {
+  const { doc, win, writes } = page(
+    '<main><h2 id="alpha">Alpha</h2><p>First part.</p>' +
+      '<h2 id="beta">Beta</h2><p>Second part.</p></main>'
+  );
+  mount({}, doc.body);
+  const target = doc.querySelectorAll("p")[1] as HTMLElement;
+  const range = doc.createRange();
+  range.selectNodeContents(target);
+  const sel = win.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  (q(doc, ".primary") as HTMLButtonElement).click();
+  await tick();
+  expect(writes[0]).toContain("Second part.");
+  expect(writes[0]).not.toContain("First part.");
+  expect(writes[0]).toContain("> Source: https://example.com/p#beta");
+});
+
+test("pick mode: clicking a block copies just that block, then exits", async () => {
+  const { doc, writes } = page(
+    '<main><h2 id="one">One</h2><p>Alpha block.</p><p>Beta block.</p></main>'
+  );
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="pick"]') as HTMLButtonElement).click();
+  // Pick mode is live: crosshair style + highlight box are in the page.
+  expect(doc.head.querySelectorAll("style").length).toBe(1);
+  (doc.querySelectorAll("p")[1] as HTMLElement).click();
+  await tick();
+  expect(writes.length).toBe(1);
+  expect(writes[0]).toContain("Beta block.");
+  expect(writes[0]).not.toContain("Alpha block.");
+  expect(writes[0]).toContain("> Source: https://example.com/p#one");
+  // Pick mode tore itself down: another click copies nothing.
+  expect(doc.head.querySelectorAll("style").length).toBe(0);
+  (doc.querySelectorAll("p")[0] as HTMLElement).click();
+  await tick();
+  expect(writes.length).toBe(1);
+});
+
+test("pick mode: Escape cancels without copying", async () => {
+  const { doc, win, writes } = page("<main><p>Some block.</p></main>");
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="pick"]') as HTMLButtonElement).click();
+  doc.dispatchEvent(new win.KeyboardEvent("keydown", { key: "Escape" }));
+  expect(doc.head.querySelectorAll("style").length).toBe(0);
+  (doc.querySelector("p") as HTMLElement).click();
+  await tick();
+  expect(writes.length).toBe(0);
+});
+
 test("destroy removes the host", () => {
   const { doc } = page("<main><p>hi</p></main>");
   const handle = mount({}, doc.body);

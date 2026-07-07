@@ -1,6 +1,11 @@
 import { absolutizeUrls, promoteLazyImages } from "./absolutize";
 import { prependHeader } from "./header";
-import { selectContent } from "./select-content";
+import {
+  anchorIdFor,
+  type Region,
+  selectContent,
+  selectRegion,
+} from "./select-content";
 import { normalizeTables, toMarkdown } from "./to-markdown";
 
 export interface ExtractOptions {
@@ -8,6 +13,10 @@ export interface ExtractOptions {
   content?: string;
   /** Prepend a title + source header. Default: true. */
   header?: boolean;
+  /** Extract only this region — a picked element or the user's selection
+   * Range — instead of the detected page root. The source URL gains a
+   * #anchor deep link back to the section when one can be found. */
+  region?: Region;
 }
 
 export interface ExtractResult {
@@ -21,10 +30,19 @@ export function extract(
   document: Document,
   options: ExtractOptions = {}
 ): ExtractResult {
-  const { content, header = true } = options;
-  const url = document.baseURI || document.URL || "";
+  const { content, header = true, region } = options;
+  let url = document.baseURI || document.URL || "";
 
-  const { root, title } = selectContent(document, content);
+  const { root, title } = region
+    ? selectRegion(document, region)
+    : selectContent(document, content);
+  if (region && url) {
+    const id = anchorIdFor(region);
+    if (id) {
+      // Deep-link the Source header to the section the region came from.
+      url = `${url.split("#")[0]}#${id}`;
+    }
+  }
   promoteLazyImages(root);
   normalizeTables(root);
   absolutizeUrls(root, url);

@@ -1,5 +1,6 @@
 export type Action =
   | "copy"
+  | "pick"
   | "view"
   | "chatgpt"
   | "claude"
@@ -49,6 +50,7 @@ export interface WidgetOptions {
 
 export const ALL_ACTIONS: readonly Action[] = Object.freeze([
   "copy",
+  "pick",
   "view",
   "chatgpt",
   "claude",

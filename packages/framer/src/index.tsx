@@ -65,8 +65,24 @@ addPropertyControls(CopyToLLM, {
       "Which actions to show, in order. Leave empty for all built-ins.",
     control: {
       type: ControlType.Enum,
-      options: ["copy", "view", "chatgpt", "claude", "perplexity", "grok"],
-      optionTitles: ["Copy", "View", "ChatGPT", "Claude", "Perplexity", "Grok"],
+      options: [
+        "copy",
+        "pick",
+        "view",
+        "chatgpt",
+        "claude",
+        "perplexity",
+        "grok",
+      ],
+      optionTitles: [
+        "Copy",
+        "Copy Section",
+        "View",
+        "ChatGPT",
+        "Claude",
+        "Perplexity",
+        "Grok",
+      ],
     },
   },
   endpoints: {
