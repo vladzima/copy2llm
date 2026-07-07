@@ -1,7 +1,7 @@
 {
   "name": "copy2llm-framer-plugin",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "description": "Framer plugin that installs the Copy to LLM button on your published site.",
   "scripts": {
