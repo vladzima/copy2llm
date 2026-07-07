@@ -3529,7 +3529,7 @@ uniform vec2 iResolution;
 // Tuning knobs — colors pulled from the dawn-wash palette above.
 const vec3 COLOR1 = vec3(0.769, 0.584, 0.467); /* earth #C49577 */
 const vec3 COLOR2 = vec3(0.420, 0.384, 0.949); /* indigo #6B62F2 */
-const float SPEED = 1.0;
+const float SPEED = 2.5;
 const float INTENSITY = 2.2;
 const float SPREAD = 2.0;
 const float SATURATION = 1.2;
@@ -3557,7 +3557,7 @@ void main() {
   vec2 dir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
 
   vec4 rays1 = vec4(COLOR1, 1.0) * rayStrength(rayPos, dir1, coord, 36.2214, 21.11349, SPEED);
-  vec4 rays2 = vec4(COLOR2, 1.0) * rayStrength(rayPos, dir2, coord, 22.3991, 18.0234, SPEED * 0.2);
+  vec4 rays2 = vec4(COLOR2, 1.0) * rayStrength(rayPos, dir2, coord, 22.3991, 18.0234, SPEED * 0.45);
   vec4 color = rays1 * (1.0 - BLEND) * 0.9 + rays2 * BLEND * 0.9;
 
   float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, iResolution.y - rayPos.y)) / iResolution.y;
