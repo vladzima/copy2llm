@@ -50,9 +50,22 @@ export default () => <CopyToLLM position="bottom-right" theme="auto" />;
 
 ## Customization
 
-`position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `content` (CSS selector for the extraction root) · `header` (frontmatter on/off) · `items` (which actions show: copy, pick — "Copy a section", view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`, where `href` carries the page Markdown via a `{q}` placeholder) · `prompt` (lead-in text sent to the LLM before the page's Markdown on the Open in… actions; script tag + React only). Identical across the script tag (`data-*`), the React props, and the Framer panel.
+| Option | What it does | Default |
+|---|---|---|
+| `position` | `bottom-right` · `bottom-left` · `top-right` · `top-left` · `inline` | `bottom-right` |
+| `theme` | `auto` · `light` · `dark` — `auto` matches the **site** (its `color-scheme` / background luminance), falling back to the OS | `auto` |
+| `bg` | button background, any CSS color | from theme |
+| `text` | button text color, any CSS color | auto-contrast from `bg` |
+| `font` | `sans` · `serif` · `mono` | `sans` |
+| `radius` | `sharp` · `rounded` · `pill`, or any CSS length | `rounded` |
+| `label` | primary button text | `Copy as Markdown` |
+| `content` | CSS selector for the extraction root | auto (Readability) |
+| `header` | prepend a title + source header to the Markdown | `true` |
+| `items` | which actions show, in order: `copy` · `pick` ("Copy a section") · `view` · `chatgpt` · `claude` · `perplexity` · `grok` | all |
+| `endpoints` | your own LLM targets — `{ label, href }`, where `href` carries the page Markdown via a `{q}` placeholder | none |
+| `prompt` | lead-in text sent to the LLM before the page's Markdown on the Open in… actions (script tag + React only) | a generic "help me work with it" line |
 
-`theme: auto` matches the **site** (its `color-scheme` / background luminance), falling back to the OS.
+Identical across the script tag (`data-*`), the React props, and the Framer panel.
 
 ## Develop
 
