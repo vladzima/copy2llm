@@ -18,7 +18,7 @@ Mounts the Shadow-DOM widget on mount and tears it down on unmount. `position="i
 
 ## Props
 
-All [`copy2llm-widget`](https://www.npmjs.com/package/copy2llm-widget) options: `content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` (copy, view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`) · `label`.
+All [`copy2llm-widget`](https://www.npmjs.com/package/copy2llm-widget) options: `content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` (copy, view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`) · `label` · `prompt` (lead-in text sent to the LLM before the page's Markdown on the Open in… actions).
 
 ```tsx
 <CopyToLLM endpoints={[{ label: "Open in Acme AI", href: "https://acme.ai/?q={q}" }]} />

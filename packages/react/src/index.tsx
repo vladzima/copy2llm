@@ -11,8 +11,18 @@ export type CopyToLLMProps = WidgetOptions;
 export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
   const ref = useRef<HTMLSpanElement | null>(null);
 
-  const { position, theme, font, radius, label, header, content, bg, text } =
-    props;
+  const {
+    position,
+    theme,
+    font,
+    radius,
+    label,
+    prompt,
+    header,
+    content,
+    bg,
+    text,
+  } = props;
   const { items, endpoints } = props;
   // items/endpoints are fresh array references on every render; key the memo on
   // their content so the options object is stable until a value truly changes.
@@ -29,6 +39,7 @@ export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
       font,
       radius,
       label,
+      prompt,
       header,
       content,
       bg,
@@ -42,6 +53,7 @@ export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
       font,
       radius,
       label,
+      prompt,
       header,
       content,
       bg,

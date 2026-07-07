@@ -40,6 +40,9 @@ export interface WidgetOptions {
   label?: string;
   /** Corner placement, or `inline` to sit in normal flow. Default: bottom-right. */
   position?: Position;
+  /** Lead-in text sent to the LLM before the page's Markdown on the Open in…
+   * actions. Default: a generic "help me work with it" line. */
+  prompt?: string;
   /** `sharp`/`rounded`/`pill`, or any CSS length. Default: rounded. */
   radius?: string;
   /** Button text color. Default: auto-contrast from `bg`. */
@@ -100,6 +103,7 @@ export function parseDataset(data: DOMStringMap): WidgetOptions {
     radius,
     content,
     label,
+    prompt,
     header,
     items,
     endpoints,
@@ -128,6 +132,9 @@ export function parseDataset(data: DOMStringMap): WidgetOptions {
   }
   if (label) {
     opts.label = label;
+  }
+  if (prompt) {
+    opts.prompt = prompt;
   }
   if (header !== undefined) {
     opts.header = !FALSY.test(header);

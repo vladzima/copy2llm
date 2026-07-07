@@ -477,7 +477,7 @@ export function mount(
 
     // chatgpt | claude | perplexity | grok: hand the LLM the page's Markdown
     // itself via the chat's ?q= prefill — that IS the product.
-    openLlm(llmUrl(action as LlmTarget, markdown), markdown);
+    openLlm(llmUrl(action as LlmTarget, markdown, options.prompt), markdown);
   }
 
   // --- region-pick mode ("copy just this") ------------------------------------
@@ -585,7 +585,7 @@ export function mount(
       openOverlay(markdown);
       return;
     }
-    openLlm(customLink(href, markdown), markdown);
+    openLlm(customLink(href, markdown, options.prompt), markdown);
   }
 
   // Open a target's deep link. Fire SYNCHRONOUSLY within the click gesture

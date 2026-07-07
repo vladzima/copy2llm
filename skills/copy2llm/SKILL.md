@@ -70,6 +70,7 @@ Identical across script `data-*` attributes, React props, and `mount()` options:
 | `font` | `data-font` | `sans` `serif` `mono` | `sans` |
 | `radius` | `data-radius` | `sharp` `rounded` `pill` or any CSS length | `rounded` |
 | `label` | `data-label` | primary button text | `Copy as Markdown` |
+| `prompt` | `data-prompt` | lead-in text sent to the LLM before the page's Markdown on the Open in… actions (e.g. "Summarize this API reference"); not available in the Framer plugin | `Here's a web page as Markdown — help me work with it:` |
 | `items` | `data-items` | comma-separated from `copy` `view` `chatgpt` `claude` `perplexity` `grok`; first is the primary button | all |
 | `header` | `data-header` | `true`/`false` — prepend a title + source header to the Markdown | `true` |
 | `content` | `data-content` | CSS selector for the extraction root | auto (Readability) |

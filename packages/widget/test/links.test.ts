@@ -37,6 +37,30 @@ test("customLink: substitutes a {q} placeholder mid-URL", () => {
   expect(decodeURIComponent(link.href)).toContain("hi");
 });
 
+test("llmUrl: a configured prompt replaces the default lead-in", () => {
+  const link = llmUrl(
+    "chatgpt",
+    "# T\n\nbody",
+    "Summarize this API reference:"
+  );
+  const q = decodeURIComponent(link.href);
+  expect(q).toContain("Summarize this API reference:");
+  expect(q).not.toContain("help me work with it");
+  expect(q).toContain("body");
+});
+
+test("llmUrl: a blank prompt falls back to the default lead-in", () => {
+  const q = decodeURIComponent(llmUrl("chatgpt", "body", "   ").href);
+  expect(q).toContain("help me work with it");
+});
+
+test("customLink: passes the configured prompt through", () => {
+  const q = decodeURIComponent(
+    customLink("https://acme.ai/?q=", "body", "Answer using this article:").href
+  );
+  expect(q).toContain("Answer using this article:");
+});
+
 test("customLink: too-long page falls back to a clipboard paste", () => {
   const link = customLink("https://acme.ai/?q=", "x".repeat(20_000));
   expect(link.needsPaste).toBe(true);

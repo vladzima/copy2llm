@@ -50,7 +50,7 @@ export default () => <CopyToLLM position="bottom-right" theme="auto" />;
 
 ## Customization
 
-`position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `content` (CSS selector for the extraction root) · `header` (frontmatter on/off) · `items` (which actions show: copy, pick — "Copy a section", view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`, where `href` carries the page Markdown via a `{q}` placeholder). Identical across the script tag (`data-*`), the React props, and the Framer panel.
+`position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `content` (CSS selector for the extraction root) · `header` (frontmatter on/off) · `items` (which actions show: copy, pick — "Copy a section", view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`, where `href` carries the page Markdown via a `{q}` placeholder) · `prompt` (lead-in text sent to the LLM before the page's Markdown on the Open in… actions; script tag + React only). Identical across the script tag (`data-*`), the React props, and the Framer panel.
 
 `theme: auto` matches the **site** (its `color-scheme` / background luminance), falling back to the OS.
 

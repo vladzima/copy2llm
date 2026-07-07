@@ -8,7 +8,8 @@ const BASE: Record<LlmTarget, string> = {
 };
 
 // Short lead-in so the auto-submitted first message reads sensibly; the page's
-// Markdown (with its own `# Title` / `> Source:` header) follows inline.
+// Markdown (with its own `# Title` / `> Source:` header) follows inline. Site
+// owners can replace it via the `prompt` option.
 const LEAD = "Here's a web page as Markdown — help me work with it:";
 // Used only when the page is too long to fit in the URL: the Markdown is on the
 // clipboard instead, ready to paste.
@@ -30,15 +31,17 @@ export interface LlmLink {
 
 // Fill a target's deep-link template with the page's Markdown. `template` either
 // carries a `{q}` placeholder (custom endpoints can put the query mid-URL) or
-// ends where the encoded query is appended (the built-in `?q=` bases).
-function linkFor(template: string, markdown: string): LlmLink {
+// ends where the encoded query is appended (the built-in `?q=` bases). A
+// site-owner `prompt` replaces the default lead-in; blank means unset.
+function linkFor(template: string, markdown: string, prompt?: string): LlmLink {
   const put = (s: string): string => {
     const q = encodeURIComponent(s);
     return template.includes("{q}")
       ? template.replaceAll("{q}", q)
       : template + q;
   };
-  const inline = put(`${LEAD}\n\n${markdown}`);
+  const lead = prompt?.trim() ? prompt : LEAD;
+  const inline = put(`${lead}\n\n${markdown}`);
   if (inline.length <= MAX_URL) {
     return { href: inline, needsPaste: false };
   }
@@ -47,12 +50,20 @@ function linkFor(template: string, markdown: string): LlmLink {
 
 /** Build a built-in target's deep link (ChatGPT/Claude/Perplexity/Grok) that
  * carries the page's Markdown itself. */
-export function llmUrl(target: LlmTarget, markdown: string): LlmLink {
-  return linkFor(BASE[target], markdown);
+export function llmUrl(
+  target: LlmTarget,
+  markdown: string,
+  prompt?: string
+): LlmLink {
+  return linkFor(BASE[target], markdown, prompt);
 }
 
 /** Build a deep link for a site-owner's custom endpoint. `template` is their
  * `hrefTemplate` — a `{q}` placeholder, or a base the encoded query appends to. */
-export function customLink(template: string, markdown: string): LlmLink {
-  return linkFor(template, markdown);
+export function customLink(
+  template: string,
+  markdown: string,
+  prompt?: string
+): LlmLink {
+  return linkFor(template, markdown, prompt);
 }

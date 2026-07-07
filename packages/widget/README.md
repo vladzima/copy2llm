@@ -26,7 +26,7 @@ Split button: **Copy as Markdown** (primary) · **View as Markdown** (overlay) �
 
 ## Options
 
-`content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` · `endpoints` · `label`. `theme: auto` matches the host site, falling back to the OS, and stays live as the site/OS theme changes.
+`content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` · `endpoints` · `label` · `prompt` (lead-in text sent to the LLM before the page's Markdown on the Open in… actions). `theme: auto` matches the host site, falling back to the OS, and stays live as the site/OS theme changes.
 
 Add your own LLM target (enterprise/internal chat, self-hosted, anything that takes a prompt in the URL):
 

@@ -38,6 +38,7 @@ test("parseDataset reads known knobs", () => {
       "data-radius": "pill",
       "data-content": "main#docs",
       "data-label": "Copy MD",
+      "data-prompt": "Summarize this article:",
     })
   );
   expect(opts.position).toBe("top-left");
@@ -47,6 +48,7 @@ test("parseDataset reads known knobs", () => {
   expect(opts.radius).toBe("pill");
   expect(opts.content).toBe("main#docs");
   expect(opts.label).toBe("Copy MD");
+  expect(opts.prompt).toBe("Summarize this article:");
 });
 
 test("parseDataset parses header=false and a comma list of items", () => {
