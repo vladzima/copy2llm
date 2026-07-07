@@ -275,6 +275,17 @@
       content: "";
       background: linear-gradient(180deg, rgba(10, 10, 10, 0), var(--void));
     }
+    /* Animated light rays (WebGL) from the top-right, same corner as the dawn
+       bloom. Sits above the ::before gradient (-2) and below the ::after fade,
+       which shares z-index -1 but paints later, settling rays into the void. */
+    .hero-rays {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
     .hero-grid {
       display: grid;
       grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
@@ -1838,6 +1849,7 @@
     <main>
       <!-- ============================================================ HERO -->
       <section class="hero">
+        <canvas class="hero-rays" aria-hidden="true"></canvas>
         <div class="wrap hero-grid">
           <div class="hero-copy" data-reveal>
             <span
@@ -3495,6 +3507,138 @@
         }
         run();
       });
+    })();
+
+    /* ------------------------------------------------- Hero light rays */
+    // Vanilla-WebGL port of React Bits <SideRays /> (origin: top-right,
+    // tilt 0 — those code paths are dropped, constants baked into the shader).
+    (() => {
+      const canvas = document.querySelector(".hero-rays");
+      const gl = canvas?.getContext("webgl", {
+        alpha: true,
+        premultipliedAlpha: false,
+      });
+      if (!gl) {
+        return; // no WebGL — the CSS gradient alone is fine
+      }
+
+      const frag = `precision highp float;
+uniform float iTime;
+uniform vec2 iResolution;
+
+// Tuning knobs — colors pulled from the dawn-wash palette above.
+const vec3 COLOR1 = vec3(0.769, 0.584, 0.467); /* earth #C49577 */
+const vec3 COLOR2 = vec3(0.420, 0.384, 0.949); /* indigo #6B62F2 */
+const float SPEED = 1.0;
+const float INTENSITY = 2.2;
+const float SPREAD = 2.0;
+const float SATURATION = 1.2;
+const float BLEND = 0.7;
+const float FALLOFF = 1.4;
+const float OPACITY = 0.75;
+
+float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA, float seedB, float speed) {
+  vec2 sourceToCoord = coord - raySource;
+  float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
+  return clamp(
+    (0.45 + 0.15 * sin(cosAngle * seedA + iTime * speed)) +
+    (0.3 + 0.2 * cos(-cosAngle * seedB + iTime * speed)),
+    0.0, 1.0) *
+    clamp((iResolution.x - length(sourceToCoord)) / iResolution.x, 0.5, 1.0);
+}
+
+void main() {
+  vec2 fragCoord = gl_FragCoord.xy;
+  vec2 coord = vec2(fragCoord.x, iResolution.y - fragCoord.y);
+  vec2 rayPos = vec2(iResolution.x * 1.1, -0.5 * iResolution.y);
+
+  float halfSpread = SPREAD * 0.275;
+  vec2 dir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
+  vec2 dir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
+
+  vec4 rays1 = vec4(COLOR1, 1.0) * rayStrength(rayPos, dir1, coord, 36.2214, 21.11349, SPEED);
+  vec4 rays2 = vec4(COLOR2, 1.0) * rayStrength(rayPos, dir2, coord, 22.3991, 18.0234, SPEED * 0.2);
+  vec4 color = rays1 * (1.0 - BLEND) * 0.9 + rays2 * BLEND * 0.9;
+
+  float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, iResolution.y - rayPos.y)) / iResolution.y;
+  color.rgb *= INTENSITY * 0.4 / pow(max(distanceToLight, 0.001), FALLOFF);
+
+  float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+  color.rgb = mix(vec3(gray), color.rgb, SATURATION);
+
+  color.a = max(color.r, max(color.g, color.b)) * OPACITY;
+  gl_FragColor = color;
+}`;
+
+      const compile = (type, src) => {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        return s;
+      };
+      const prog = gl.createProgram();
+      gl.attachShader(
+        prog,
+        compile(
+          gl.VERTEX_SHADER,
+          "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}"
+        )
+      );
+      gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, frag));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        return;
+      }
+      gl.useProgram(prog);
+
+      // One fullscreen triangle.
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 3, -1, -1, 3]),
+        gl.STATIC_DRAW
+      );
+      const loc = gl.getAttribLocation(prog, "p");
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+      const uTime = gl.getUniformLocation(prog, "iTime");
+      const uRes = gl.getUniformLocation(prog, "iResolution");
+
+      const resize = () => {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = canvas.clientWidth * dpr;
+        canvas.height = canvas.clientHeight * dpr;
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.uniform2f(uRes, canvas.width, canvas.height);
+      };
+      window.addEventListener("resize", resize);
+      resize();
+
+      const draw = (t) => {
+        gl.uniform1f(uTime, t * 0.001);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      };
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        draw(0); // static rays, no animation
+        return;
+      }
+
+      // Run only while the hero is on screen.
+      let rafId = null;
+      const loop = (t) => {
+        draw(t);
+        rafId = requestAnimationFrame(loop);
+      };
+      new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting && rafId === null) {
+          rafId = requestAnimationFrame(loop);
+        } else if (!entry.isIntersecting && rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      }).observe(canvas);
     })();
     </script>
 
