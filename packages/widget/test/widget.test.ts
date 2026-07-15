@@ -307,6 +307,23 @@ test("Context adds the page, persists it, and copies a reviewed Markdown bundle"
   expect(q(doc, ".context-overlay").hasAttribute("hidden")).toBe(false);
   expect(q(doc, ".context-list").textContent).toContain("T");
   expect(q(doc, ".context-list").textContent).toContain("example.com/p");
+  expect(
+    Array.from(
+      shadowOf(doc).querySelectorAll(".context-footer-label"),
+      (label) => label.textContent
+    )
+  ).toEqual(["Add sources", "Export", "Send to AI"]);
+  expect(
+    Array.from(
+      shadowOf(doc).querySelectorAll(".context-target .c2l-label"),
+      (label) => label.textContent
+    )
+  ).toEqual(["ChatGPT", "Claude", "Perplexity", "Grok"]);
+  expect(
+    Array.from(
+      shadowOf(doc).querySelectorAll(".context-sheet footer button")
+    ).every((button) => button.querySelector(".c2l-ic"))
+  ).toBe(true);
 
   (q(doc, ".context-copy") as HTMLButtonElement).click();
   await tick();

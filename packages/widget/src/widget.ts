@@ -55,6 +55,12 @@ const MENU_LABELS: Record<Action, string> = {
   perplexity: "Open in Perplexity",
   grok: "Open in Grok",
 };
+const CONTEXT_TARGET_LABELS: Record<LlmTarget, string> = {
+  chatgpt: "ChatGPT",
+  claude: "Claude",
+  perplexity: "Perplexity",
+  grok: "Grok",
+};
 
 // Monoline action glyphs (Phosphor) + the ChatGPT/Claude brand marks, drawn in
 // `currentColor` so they inherit the resolved theme. Kept inline to avoid a
@@ -63,7 +69,7 @@ const ICONS: Record<Action, string> = {
   copy: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></svg>',
   pick: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,40H176a8,8,0,0,0,0,16h32V88a8,8,0,0,0,16,0V48A8,8,0,0,0,216,40ZM80,200H48V168a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H80a8,8,0,0,0,0-16Zm136-40a8,8,0,0,0-8,8v32H176a8,8,0,0,0,0,16h40a8,8,0,0,0,8-8V168A8,8,0,0,0,216,160ZM80,40H40a8,8,0,0,0-8,8V88a8,8,0,0,0,16,0V56H80a8,8,0,0,0,0-16Z"/></svg>',
   context:
-    '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,32H80A16,16,0,0,0,64,48V64H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V192h16a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM176,208H48V80H176Zm32-32H192V80a16,16,0,0,0-16-16H80V48H208Z"/></svg>',
+    '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M197.58,129.06l-51.61-19-19-51.65a15.92,15.92,0,0,0-29.88,0l-19,51.61-51.65,19a15.92,15.92,0,0,0,0,29.88l51.61,19,19,51.65a15.92,15.92,0,0,0,29.88,0l19-51.61,51.65-19a15.92,15.92,0,0,0,0-29.88Z"/></svg>',
   view: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M86.75,44.3,33.48,128l53.27,83.7a8,8,0,0,1-2.46,11.05A7.91,7.91,0,0,1,80,224a8,8,0,0,1-6.76-3.71l-56-88a8,8,0,0,1,0-8.59l56-88a8,8,0,1,1,13.5,8.59Zm152,79.41-56-88a8,8,0,1,0-13.5,8.59L222.52,128l-53.27,83.7a8,8,0,0,0,2.46,11.05A7.91,7.91,0,0,0,176,224a8,8,0,0,0,6.76-3.71l56-88A8,8,0,0,0,238.75,123.71Z"/></svg>',
   chatgpt:
     '<svg class="c2l-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>',
@@ -80,6 +86,10 @@ const CARET_ICON =
   '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg>';
 const EXT_ICON =
   '<svg class="c2l-ext" viewBox="0 0 256 256" aria-hidden="true"><path d="M200,64V168a8,8,0,0,1-16,0V83.31L69.66,197.66a8,8,0,0,1-11.32-11.32L172.69,72H88a8,8,0,0,1,0-16H192A8,8,0,0,1,200,64Z"/></svg>';
+const ADD_ICON =
+  '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,128a8,8,0,0,1-8,8H136v72a8,8,0,0,1-16,0V136H48a8,8,0,0,1,0-16h72V48a8,8,0,0,1,16,0v72h72A8,8,0,0,1,216,128Z"/></svg>';
+const DOWNLOAD_ICON =
+  '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0ZM122.34,157.66a8,8,0,0,0,11.32,0l48-48a8,8,0,0,0-11.32-11.32L136,132.69V32a8,8,0,0,0-16,0V132.69L85.66,98.34a8,8,0,0,0-11.32,11.32Z"/></svg>';
 // Shown in the primary button after a successful copy (replaces the side toast).
 const CHECK_ICON =
   '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></svg>';
@@ -895,10 +905,13 @@ export function mount(
       '</header><div class="context-body">' +
       '<div class="context-empty"><strong>No sources yet</strong><span>Add this page, a selection, or a specific section.</span></div>' +
       '<ol class="context-list"></ol></div><footer>' +
-      '<div class="context-add"><button class="btn context-add-current" type="button">Add current page</button>' +
-      '<button class="btn context-add-section" type="button">Add a section</button></div>' +
-      '<div class="context-actions"><button class="btn context-copy" type="button">Copy context</button>' +
-      '<button class="btn context-download" type="button">Download .md</button>' +
+      '<div class="context-footer-row"><span class="context-footer-label">Add sources</span>' +
+      '<div class="context-add"><button class="btn context-add-current" type="button"><span class="c2l-label">Add current page</span></button>' +
+      '<button class="btn context-add-section" type="button"><span class="c2l-label">Add a section</span></button></div></div>' +
+      '<div class="context-footer-row"><span class="context-footer-label">Export</span>' +
+      '<div class="context-export"><button class="btn context-copy" type="button"><span class="c2l-label">Copy context</span></button>' +
+      '<button class="btn context-download" type="button"><span class="c2l-label">Download .md</span></button></div></div>' +
+      '<div class="context-footer-row"><span class="context-footer-label">Send to AI</span>' +
       '<div class="context-targets"></div></div></footer></div>';
 
     const closeBtn = ov.querySelector(".context-close") as HTMLButtonElement;
@@ -913,6 +926,11 @@ export function mount(
       ".context-download"
     ) as HTMLButtonElement;
     const targetsEl = ov.querySelector(".context-targets") as HTMLElement;
+
+    prependIcon(addCurrentBtn, doc, ADD_ICON);
+    prependIcon(addSectionBtn, doc, ICONS.pick);
+    prependIcon(copyBtn, doc, ICONS.copy);
+    prependIcon(downloadBtn, doc, DOWNLOAD_ICON);
 
     closeBtn.addEventListener("click", closeContextOverlay);
     addCurrentBtn.addEventListener("click", addCurrentContext);
@@ -967,7 +985,12 @@ export function mount(
       const button = doc.createElement("button");
       button.className = "btn context-target";
       button.type = "button";
-      button.textContent = labels[action];
+      button.setAttribute("aria-label", labels[action]);
+      appendIcon(button, doc, ICONS[action]);
+      const label = doc.createElement("span");
+      label.className = "c2l-label";
+      label.textContent = CONTEXT_TARGET_LABELS[action as LlmTarget];
+      button.appendChild(label);
       button.addEventListener("click", () => {
         const markdown = contextMarkdown();
         if (state.contextItems.length > 0) {
@@ -985,7 +1008,11 @@ export function mount(
       const button = doc.createElement("button");
       button.className = "btn context-target";
       button.type = "button";
-      button.textContent = endpoint.label;
+      appendIcon(button, doc, CUSTOM_ICON);
+      const label = doc.createElement("span");
+      label.className = "c2l-label";
+      label.textContent = endpoint.label;
+      button.appendChild(label);
       button.addEventListener("click", () => {
         const markdown = contextMarkdown();
         if (state.contextItems.length > 0) {
@@ -1020,7 +1047,10 @@ export function mount(
     const tokens = estimateTokens(contextCharacters(state.contextItems));
 
     summary.textContent = `${count} source${count === 1 ? "" : "s"} · ~${tokens.toLocaleString()} tokens · local to this tab`;
-    addCurrent.textContent = pageSelection()
+    const addCurrentLabel = addCurrent.querySelector(
+      ".c2l-label"
+    ) as HTMLElement;
+    addCurrentLabel.textContent = pageSelection()
       ? "Add current selection"
       : "Add current page";
     empty.hidden = count > 0;

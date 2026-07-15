@@ -344,14 +344,15 @@ export function css(t: StyleTokens): string {
   opacity: 0.62;
 }
 .context-close,
-.context-add .btn,
-.context-actions .btn {
+.context-footer-row .btn {
   min-height: 32px;
   padding: 7px 11px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
+  gap: 7px;
 }
+.context-footer-row .c2l-ic { width: 14px; height: 14px; opacity: 0.82; }
 .context-close { background: transparent; }
 .context-body { min-height: 180px; overflow: auto; }
 .context-empty {
@@ -422,16 +423,36 @@ export function css(t: StyleTokens): string {
 .context-sheet footer {
   display: flex;
   flex-direction: column;
-  gap: 9px;
-  padding: 12px;
+  padding: 0;
   border-top: 1px solid var(--c2l-border);
   background: var(--c2l-surface);
 }
+.context-footer-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 9px 12px;
+}
+.context-footer-row + .context-footer-row {
+  border-top: 1px solid var(--c2l-border);
+}
+.context-footer-label {
+  color: var(--c2l-text);
+  font-size: 10px;
+  font-weight: 550;
+  line-height: 1.2;
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
 .context-add,
-.context-actions,
+.context-export,
 .context-targets { display: flex; flex-wrap: wrap; gap: 7px; }
-.context-actions { align-items: center; }
-.context-targets { display: contents; }
+.context-add,
+.context-export,
+.context-targets { align-items: center; }
 .context-copy {
   color: var(--c2l-bg);
   background: var(--c2l-text);
@@ -446,6 +467,11 @@ export function css(t: StyleTokens): string {
   .context-source { align-items: flex-start; gap: 8px; padding: 11px 12px; }
   .context-source-controls { flex: 0 0 auto; }
   .context-remove { margin-left: 0; }
+  .context-footer-row {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 10px 12px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .root.c2l-in,
