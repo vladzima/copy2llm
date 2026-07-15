@@ -1,0 +1,27 @@
+{
+  "session_id": "2026-07-30-aa088426",
+  "agent_id": "Codex",
+  "phase": "Active",
+  "started_at": 1784138755,
+  "last_activity": 1784138757,
+  "files_touched": [],
+  "checkpoint_count": 1,
+  "base_commit": "0c3912e",
+  "worktree": "/private/tmp/copy2llm-context-layer",
+  "token_usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_creation_tokens": 0,
+    "api_call_count": 0
+  },
+  "summary": null,
+  "model_name": null,
+  "branch": "codex/context-layer-v1",
+  "first_prompt": null,
+  "subagents": [],
+  "pid": 10336,
+  "project": "copy2llm-context-layer",
+  "developer": "v.o.arbatov@gmail.com",
+  "developer_handle": "v.o.arbatov"
+}
