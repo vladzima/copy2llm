@@ -8,10 +8,10 @@
       src="https://getsleek.io/v1.js"
       data-site="TCwcSP8DdrmqOAvP"
     ></script>
-    <title>Copy2LLM: add a Copy to LLM button to any page</title>
+    <title>Copy2LLM — Take the right context to any AI</title>
     <meta
       name="description"
-      content="Drop in one script and readers can turn your page into clean Markdown, or open it in ChatGPT, Claude, Perplexity, Grok, or your own endpoint. Client-side, no backend, no accounts. MIT licensed."
+      content="Add a portable context layer to your site. Readers capture pages, selections, and sections, review every source, then copy, download, or send the bundle to any AI. Local, client-side, and open source."
     >
     <meta name="theme-color" content="#0a0a0a">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -21,11 +21,11 @@
     <meta property="og:url" content="https://copy.computer">
     <meta
       property="og:title"
-      content="Copy2LLM: add a Copy to LLM button to any page"
+      content="Copy2LLM — Take the right context to any AI"
     >
     <meta
       property="og:description"
-      content="One script. Readers turn your page into clean Markdown, or open it in ChatGPT, Claude, Perplexity, Grok, or your own endpoint. Client-side, no backend, no accounts."
+      content="The portable context layer between websites and AI. Capture, review, and send clean multi-source context without an account or backend."
     >
     <meta property="og:image" content="https://copy.computer/og.jpg">
     <meta property="og:image:type" content="image/jpeg">
@@ -33,16 +33,16 @@
     <meta property="og:image:height" content="1045">
     <meta
       property="og:image:alt"
-      content="Copy2LLM — Take any page to an LLM. A Copy to LLM button with a menu: Copy as Markdown, View as Markdown, Open in ChatGPT, Claude, Perplexity, Grok, or a custom endpoint."
+      content="Copy2LLM — Capture pages, selections, and sections, review the source bundle, and take the right context to any AI."
     >
     <meta name="twitter:card" content="summary_large_image">
     <meta
       name="twitter:title"
-      content="Copy2LLM: add a Copy to LLM button to any page"
+      content="Copy2LLM — Take the right context to any AI"
     >
     <meta
       name="twitter:description"
-      content="One script. Readers turn your page into clean Markdown, or open it in ChatGPT, Claude, Perplexity, Grok, or your own endpoint. Client-side, no backend, no accounts."
+      content="The portable context layer between websites and AI. Capture, review, and send clean multi-source context without an account or backend."
     >
     <meta name="twitter:image" content="https://copy.computer/og.jpg">
 
@@ -276,8 +276,8 @@
       background: linear-gradient(180deg, rgba(10, 10, 10, 0), var(--void));
     }
     /* Animated light rays (WebGL) from the top-right, same corner as the dawn
-       bloom. Sits above the ::before gradient (-2) and below the ::after fade,
-       which shares z-index -1 but paints later, settling rays into the void. */
+               bloom. Sits above the ::before gradient (-2) and below the ::after fade,
+               which shares z-index -1 but paints later, settling rays into the void. */
     .hero-rays {
       position: absolute;
       inset: 0;
@@ -369,7 +369,7 @@
 
     /* ---------------------------------------------------------- Glass mockup */
     /* Two stacked layers: the window (.mockup) and the menu broken out of it to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                               the upper-right. `[data-px]` layers drift at different rates on scroll. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                       the upper-right. `[data-px]` layers drift at different rates on scroll. */
     .hero-art {
       position: relative;
     }
@@ -382,7 +382,7 @@
       padding: 14px;
       overflow: hidden;
       /* Frosted frame: low opacity so the dawn gradient reads through the frame,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     while the blur keeps it glassy. The doc inside stays opaque (below). */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             while the blur keeps it glassy. The doc inside stays opaque (below). */
       background: rgba(29, 29, 29, 0.42);
       border: 1px solid var(--line-strong);
       border-radius: 24px;
@@ -656,7 +656,7 @@
       min-width: 0;
     }
     /* The mockup is pressed flush into the card's bottom-right corner
-                                                                                                                                       (clipped by the tile radius + overflow). */
+                                                                                                                                               (clipped by the tile radius + overflow). */
     .tile-copy-shot {
       flex: 0 0 52%;
       align-self: flex-end;
@@ -1082,7 +1082,7 @@
       font-size: 15px;
     }
     /* The dock CTA grows in (width + fade) only once the hero CTA scrolls away,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           so the dock container eases open instead of snapping. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   so the dock container eases open instead of snapping. */
     .dock .btn {
       max-width: 0;
       height: 36px;
@@ -1152,7 +1152,7 @@
         flex-basis: auto;
         align-self: stretch;
         /* Full-bleed across the stacked card: content width + the 24px side
-                                                                                                                           padding, pulled out by the negative margins. */
+                                                                                                                                   padding, pulled out by the negative margins. */
         width: calc(100% + 48px);
         height: auto;
         margin: 16px -24px -24px;
@@ -1229,8 +1229,8 @@
 
     /* ------------------------------------------------- Install (the action band) */
     /* Unlike the flat informational sections, this is where the reader acts — so
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       it reads as a lit glass deck: a full-bleed band (hairlines + faint char
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       tint + an indigo spotlight) with the configurator floating on it as glass. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               it reads as a lit glass deck: a full-bleed band (hairlines + faint char
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               tint + an indigo spotlight) with the configurator floating on it as glass. */
     #install {
       position: relative;
       padding: 96px 0;
@@ -1702,6 +1702,12 @@
       border: 1px solid var(--line-strong);
       border-radius: 24px;
     }
+    .cfg-framer-note {
+      margin: 0;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: var(--fog);
+    }
     .btn-llm {
       display: inline-flex;
       gap: 9px;
@@ -1747,8 +1753,8 @@
         position: static;
       }
       /* Anchor the help tooltip to the badge's right edge so its fixed 240px
-         width grows leftward (into the panel) instead of off the right of a
-         narrow viewport — left:0 here pushed the page ~100px wide on phones. */
+                 width grows leftward (into the panel) instead of off the right of a
+                 narrow viewport — left:0 here pushed the page ~100px wide on phones. */
       .hint-q::after {
         right: 0;
         left: auto;
@@ -1858,16 +1864,22 @@
             >
               Works with
               <span class="chip-icons" aria-hidden="true">
-                <svg class="ic"><use href="#ic-script" /></svg>
-                <svg class="ic"><use href="#ic-react" /></svg>
-                <svg class="ic"><use href="#ic-framer" /></svg>
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-script" />
+                </svg>
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-react" />
+                </svg>
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-framer" />
+                </svg>
               </span>
             </span>
-            <h1>Take any page<br>to an LLM.</h1>
+            <h1>Take the right context<br>to any AI.</h1>
             <p class="lede">
-              Drop in one script and readers can turn your page into clean
-              Markdown, or open it in ChatGPT, Claude, Perplexity, Grok — or
-              your own endpoint.
+              Copy2LLM is the portable context layer between your website and
+              AI. Readers capture what matters, review every source, and carry
+              one clean bundle to the tool they choose.
             </p>
             <div class="cta-row">
               <a class="btn btn-primary" href="#install" data-hero-cta>
@@ -1923,6 +1935,12 @@
               <div class="row active">
                 <svg class="ic" aria-hidden="true"><use href="#ic-copy" /></svg>
                 Copy as Markdown
+              </div>
+              <div class="row">
+                <svg class="ic" aria-hidden="true">
+                  <use href="#ic-spark" />
+                </svg>
+                Add to AI context
               </div>
               <div class="row">
                 <svg class="ic" aria-hidden="true"><use href="#ic-view" /></svg>
@@ -1992,26 +2010,24 @@
       <section id="why" class="why-matters">
         <div class="wrap">
           <div data-reveal>
-            <p class="lead">Your readers already ask AI about your page.</p>
+            <p class="lead">AI is only as useful as the context it receives.</p>
             <p class="body">
-              Today they paste a broken copy, or a link the model can't read.
-              Copy2LLM hands over your real content, clean, in one click.
+              A link may be unreadable. A paste loses structure. Copy2LLM gives
+              readers a deliberate handoff layer between your site and any AI.
             </p>
           </div>
           <div class="points" data-reveal>
             <div class="point">
-              <h3>No messy copy-paste</h3>
-              <p>One click copies the whole page, already clean.</p>
+              <h3>Capture what matters</h3>
+              <p>Add a page, a text selection, or one useful section.</p>
             </div>
             <div class="point">
-              <h3>Content, not chrome</h3>
-              <p>Nav, banners and ads are stripped first.</p>
+              <h3>Review every source</h3>
+              <p>Remove, reorder, and check the approximate token size.</p>
             </div>
             <div class="point">
-              <h3>Straight into chat</h3>
-              <p>
-                Opens ChatGPT, Claude, Perplexity or Grok with the page loaded.
-              </p>
+              <h3>Carry it anywhere</h3>
+              <p>Copy, download, or send the bundle to the AI you choose.</p>
             </div>
           </div>
         </div>
@@ -2021,11 +2037,10 @@
       <section id="actions">
         <div class="wrap">
           <div data-reveal>
-            <h2 class="h-sec">One button. Every way out.</h2>
+            <h2 class="h-sec">Capture. Review. Send.</h2>
             <p class="sub-sec">
-              A reader clicks once and gets a small menu — ChatGPT, Claude,
-              Perplexity, Grok, or any endpoint you add. Every option runs in
-              their browser, with no sign-in and no detour.
+              Keep the one-click path for a single page, or collect several
+              sources into a local Context Cart before handing them to an AI.
             </p>
           </div>
 
@@ -2037,10 +2052,10 @@
                     <use href="#ic-copy" />
                   </svg>
                 </div>
-                <h3>Copy as Markdown</h3>
+                <h3>Capture clean context</h3>
                 <p>
-                  The readable part of the page, stripped of nav and clutter,
-                  lands on the clipboard as clean Markdown.
+                  Add the whole page, a selection, or one section. Navigation,
+                  banners, and configured exclusions stay behind.
                 </p>
               </div>
               <img
@@ -2057,8 +2072,10 @@
               <div class="ic-well">
                 <svg class="ic" aria-hidden="true"><use href="#ic-view" /></svg>
               </div>
-              <h3>View as Markdown</h3>
-              <p>Read the Markdown in an overlay first.</p>
+              <h3>Review before sending</h3>
+              <p>
+                See every source, reorder it, remove it, and estimate tokens.
+              </p>
             </article>
 
             <article class="tile tile-llms" data-reveal>
@@ -2084,10 +2101,10 @@
                   </svg></span
                 >
               </div>
-              <h3>Open in any LLM</h3>
+              <h3>Send to any AI</h3>
               <p>
-                One click hands your page to ChatGPT, Claude, Perplexity or Grok
-                — already in context. No paste, no sign-in, no detour.
+                Hand one page or the reviewed bundle to ChatGPT, Claude,
+                Perplexity, Grok, or the endpoint you configure.
               </p>
             </article>
 
@@ -2110,10 +2127,10 @@
                   <use href="#ic-sliders" />
                 </svg>
               </div>
-              <h3>Styled to match</h3>
+              <h3>Control what leaves</h3>
               <p>
-                Position, theme, colors, shape, font and label — tune the button
-                to fit your site, no CSS required.
+                Choose a content root, exclude selectors, or mark any element
+                with <code>data-copy2llm-ignore</code>.
               </p>
             </article>
           </div>
@@ -2153,10 +2170,10 @@
             <span class="chip">
               <span class="chip-dot" aria-hidden="true"></span>Live preview
             </span>
-            <h2 class="h-sec">Build your button, copy the code.</h2>
+            <h2 class="h-sec">Build your context layer.</h2>
             <p class="sub-sec">
-              Tweak it below and the snippet updates as you go — the live button
-              in the corner of this page changes with it.
+              Choose the capture and handoff actions below. The snippet updates
+              as you go, and the live button in the corner changes with it.
             </p>
             <p class="install-note">
               Fastest: install the
@@ -2244,6 +2261,18 @@
                       <use href="#ic-copy" />
                     </svg>Copy
                   </label>
+                  <label class="chk" data-on="true" data-action="pick">
+                    <input type="checkbox" checked>
+                    <svg class="ic" aria-hidden="true">
+                      <use href="#ic-view" />
+                    </svg>Section
+                  </label>
+                  <label class="chk" data-on="true" data-action="context">
+                    <input type="checkbox" checked>
+                    <svg class="ic" aria-hidden="true">
+                      <use href="#ic-spark" />
+                    </svg>Context
+                  </label>
                   <label class="chk" data-on="true" data-action="view">
                     <input type="checkbox" checked>
                     <svg class="ic" aria-hidden="true">
@@ -2317,6 +2346,28 @@
                   value="Copy as Markdown"
                   maxlength="40"
                   aria-label="Button label"
+                >
+              </div>
+
+              <div class="field">
+                <span class="label"
+                  >Exclude selectors <span class="opt">(optional)</span
+                  ><button
+                    type="button"
+                    class="hint-q"
+                    data-tip="Comma-separated CSS selectors removed before extraction. You can also add data-copy2llm-ignore to any element."
+                    aria-label="What are exclude selectors?"
+                  >
+                    ?
+                  </button></span
+                >
+                <input
+                  class="cfg-text"
+                  data-exclude-input
+                  type="text"
+                  placeholder="nav, .paywall, [data-private]"
+                  maxlength="200"
+                  aria-label="CSS selectors excluded from AI context"
                 >
               </div>
 
@@ -2532,6 +2583,11 @@
                   </svg>
                   <span>Get official plugin</span>
                 </a>
+                <p class="cfg-framer-note">
+                  The Marketplace release stays on the classic single-page copy
+                  and handoff flow. Context Cart and exclusion controls are
+                  currently available in Script and React only.
+                </p>
               </div>
               <div class="cfg-actions">
                 <button class="btn-llm" type="button" data-ask-llm>
@@ -2556,10 +2612,10 @@
       <section id="features">
         <div class="wrap">
           <div data-reveal>
-            <h2 class="h-sec">Made to disappear into your page.</h2>
+            <h2 class="h-sec">A context layer, not another destination.</h2>
             <p class="sub-sec">
-              No backend to run, no styles to fight, nothing for a reader to
-              sign up for.
+              It stays small, local, and portable. Readers keep choosing their
+              AI; site owners control the context boundary.
             </p>
           </div>
 
@@ -2567,38 +2623,41 @@
             <div class="why-row">
               <span class="num">01</span>
               <span class="lab"
-                ><b>Runs in the browser.</b>
-                No server, no API key, no account. The page never leaves the
-                reader's machine.</span
+                ><b>Local Context Cart.</b>
+                Sources persist only in the current browser tab. No server,
+                account, or API key.</span
               >
             </div>
             <div class="why-row">
               <span class="num">02</span>
               <span class="lab"
-                ><b>Isolated in a Shadow DOM.</b>
-                It can't touch your styles and your styles can't touch it.</span
+                ><b>Reviewable source bundle.</b>
+                Readers can inspect, reorder, remove, copy, or download before
+                sending anything.</span
               >
             </div>
             <div class="why-row">
               <span class="num">03</span>
               <span class="lab"
-                ><b>Loads after your content.</b>
-                A small deferred script, around 20&nbsp;KB gzipped.</span
+                ><b>Reliable handoff.</b>
+                Long pages use a verified clipboard fallback; failed handoffs
+                open a Markdown preview instead of an empty chat.</span
               >
             </div>
             <div class="why-row">
               <span class="num">04</span>
               <span class="lab"
-                ><b>Matches light or dark.</b>
-                Reads the page and themes itself, or take control with a few
-                data attributes.</span
+                ><b>Explicit extraction boundary.</b>
+                Set a content root, exclude selectors, or mark private elements
+                so they never enter the bundle.</span
               >
             </div>
             <div class="why-row">
               <span class="num">05</span>
               <span class="lab"
-                ><b>Open source, MIT.</b>
-                Read it, fork it, ship it.</span
+                ><b>Privacy-safe product events.</b>
+                Measure actions and approximate size without page content or
+                source URLs in the event payload.</span
               >
             </div>
           </div>
@@ -2716,14 +2775,24 @@
 
     // Configurator: drives the live preview button and writes the install code.
     (() => {
-      const ORDER = ["copy", "view", "chatgpt", "claude", "perplexity", "grok"];
+      const ORDER = [
+        "copy",
+        "pick",
+        "context",
+        "view",
+        "chatgpt",
+        "claude",
+        "perplexity",
+        "grok",
+      ];
       const DEFAULT_LABEL = "Copy as Markdown";
       const state = {
         position: "top-right",
         theme: "auto",
-        items: ["copy", "view", "chatgpt", "claude", "perplexity", "grok"],
+        items: ORDER.slice(),
         label: DEFAULT_LABEL,
         prompt: "",
+        exclude: "",
         radius: "pill",
         font: "sans",
         bg: "",
@@ -2748,6 +2817,8 @@
           ? [{ label: label.trim(), href: href.trim() }]
           : [];
       };
+      const escapeHtmlAttr = (value) =>
+        value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
 
       const buildOptions = () => {
         const o = {
@@ -2758,6 +2829,9 @@
         };
         if (state.prompt.trim()) {
           o.prompt = state.prompt;
+        }
+        if (state.exclude.trim()) {
+          o.exclude = state.exclude.trim();
         }
         if (state.radius !== "rounded") {
           o.radius = state.radius;
@@ -2786,10 +2860,13 @@
           a.push(` data-items="${state.items.join(",")}"`);
         }
         if (state.label && state.label !== DEFAULT_LABEL) {
-          a.push(` data-label="${state.label}"`);
+          a.push(` data-label="${escapeHtmlAttr(state.label)}"`);
         }
         if (state.prompt.trim()) {
-          a.push(` data-prompt="${state.prompt}"`);
+          a.push(` data-prompt="${escapeHtmlAttr(state.prompt)}"`);
+        }
+        if (state.exclude.trim()) {
+          a.push(` data-exclude="${escapeHtmlAttr(state.exclude.trim())}"`);
         }
         if (state.radius !== "rounded") {
           a.push(` data-radius="${state.radius}"`);
@@ -2802,8 +2879,7 @@
         }
         const eps = endpoints();
         if (eps.length) {
-          // JSON carries double quotes, so the attribute is single-quoted.
-          a.push(` data-endpoints='${JSON.stringify(eps)}'`);
+          a.push(` data-endpoints="${escapeHtmlAttr(JSON.stringify(eps))}"`);
         }
         // Build the closing tag from a variable so the literal close sequence
         // never appears verbatim here (it would end this inline block at parse time).
@@ -2817,10 +2893,13 @@
           p.push(`items={[${state.items.map((x) => `"${x}"`).join(", ")}]}`);
         }
         if (state.label && state.label !== DEFAULT_LABEL) {
-          p.push(`label="${state.label}"`);
+          p.push(`label={${JSON.stringify(state.label)}}`);
         }
         if (state.prompt.trim()) {
-          p.push(`prompt="${state.prompt}"`);
+          p.push(`prompt={${JSON.stringify(state.prompt)}}`);
+        }
+        if (state.exclude.trim()) {
+          p.push(`exclude={${JSON.stringify(state.exclude.trim())}}`);
         }
         if (state.radius !== "rounded") {
           p.push(`radius="${state.radius}"`);
@@ -2931,6 +3010,13 @@
       const promptInput = root.querySelector("[data-prompt-input]");
       promptInput.addEventListener("input", () => {
         state.prompt = promptInput.value;
+        update();
+      });
+
+      // Content that must never enter extraction or the local Context Cart.
+      const excludeInput = root.querySelector("[data-exclude-input]");
+      excludeInput.addEventListener("input", () => {
+        state.exclude = excludeInput.value;
         update();
       });
 
@@ -3103,10 +3189,11 @@
       // current snippet with integration instructions for any stack.
       const genLLMPrompt = () =>
         [
-          'Add the "Copy2LLM" button to my website. It lets readers copy my page',
-          "as clean Markdown or open it in ChatGPT, Claude, Perplexity, Grok, or a",
-          "custom endpoint. It is a single client-side script — no backend, no API",
-          "key, no account.",
+          'Add "Copy2LLM" to my website. It is a portable context layer that lets',
+          "readers capture a page, selection, or section; review a local multi-source",
+          "Context Cart; then copy, download, or send it to ChatGPT, Claude,",
+          "Perplexity, Grok, or a custom endpoint. It is a client-side script — no",
+          "backend, API key, or account.",
           "",
           "Add this snippet to my site (just before the closing body tag) and adapt",
           "it to my stack — plain HTML, Next.js, Astro, etc. — the idiomatic way:",
@@ -3523,52 +3610,52 @@
       }
 
       const frag = `precision highp float;
-uniform float iTime;
-uniform vec2 iResolution;
+        uniform float iTime;
+        uniform vec2 iResolution;
 
-// Tuning knobs — colors pulled from the dawn-wash palette above.
-const vec3 COLOR1 = vec3(0.769, 0.584, 0.467); /* earth #C49577 */
-const vec3 COLOR2 = vec3(0.420, 0.384, 0.949); /* indigo #6B62F2 */
-const float SPEED = 2.5;
-const float INTENSITY = 2.2;
-const float SPREAD = 2.0;
-const float SATURATION = 1.2;
-const float BLEND = 0.7;
-const float FALLOFF = 1.4;
-const float OPACITY = 0.75;
+        // Tuning knobs — colors pulled from the dawn-wash palette above.
+        const vec3 COLOR1 = vec3(0.769, 0.584, 0.467); /* earth #C49577 */
+        const vec3 COLOR2 = vec3(0.420, 0.384, 0.949); /* indigo #6B62F2 */
+        const float SPEED = 2.5;
+        const float INTENSITY = 2.2;
+        const float SPREAD = 2.0;
+        const float SATURATION = 1.2;
+        const float BLEND = 0.7;
+        const float FALLOFF = 1.4;
+        const float OPACITY = 0.75;
 
-float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA, float seedB, float speed) {
-  vec2 sourceToCoord = coord - raySource;
-  float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
-  return clamp(
-    (0.45 + 0.15 * sin(cosAngle * seedA + iTime * speed)) +
-    (0.3 + 0.2 * cos(-cosAngle * seedB + iTime * speed)),
-    0.0, 1.0) *
-    clamp((iResolution.x - length(sourceToCoord)) / iResolution.x, 0.5, 1.0);
-}
+        float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA, float seedB, float speed) {
+          vec2 sourceToCoord = coord - raySource;
+          float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
+          return clamp(
+            (0.45 + 0.15 * sin(cosAngle * seedA + iTime * speed)) +
+            (0.3 + 0.2 * cos(-cosAngle * seedB + iTime * speed)),
+            0.0, 1.0) *
+            clamp((iResolution.x - length(sourceToCoord)) / iResolution.x, 0.5, 1.0);
+        }
 
-void main() {
-  vec2 fragCoord = gl_FragCoord.xy;
-  vec2 coord = vec2(fragCoord.x, iResolution.y - fragCoord.y);
-  vec2 rayPos = vec2(iResolution.x * 1.1, -0.5 * iResolution.y);
+        void main() {
+          vec2 fragCoord = gl_FragCoord.xy;
+          vec2 coord = vec2(fragCoord.x, iResolution.y - fragCoord.y);
+          vec2 rayPos = vec2(iResolution.x * 1.1, -0.5 * iResolution.y);
 
-  float halfSpread = SPREAD * 0.275;
-  vec2 dir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
-  vec2 dir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
+          float halfSpread = SPREAD * 0.275;
+          vec2 dir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
+          vec2 dir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
 
-  vec4 rays1 = vec4(COLOR1, 1.0) * rayStrength(rayPos, dir1, coord, 36.2214, 21.11349, SPEED);
-  vec4 rays2 = vec4(COLOR2, 1.0) * rayStrength(rayPos, dir2, coord, 22.3991, 18.0234, SPEED * 0.45);
-  vec4 color = rays1 * (1.0 - BLEND) * 0.9 + rays2 * BLEND * 0.9;
+          vec4 rays1 = vec4(COLOR1, 1.0) * rayStrength(rayPos, dir1, coord, 36.2214, 21.11349, SPEED);
+          vec4 rays2 = vec4(COLOR2, 1.0) * rayStrength(rayPos, dir2, coord, 22.3991, 18.0234, SPEED * 0.45);
+          vec4 color = rays1 * (1.0 - BLEND) * 0.9 + rays2 * BLEND * 0.9;
 
-  float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, iResolution.y - rayPos.y)) / iResolution.y;
-  color.rgb *= INTENSITY * 0.4 / pow(max(distanceToLight, 0.001), FALLOFF);
+          float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, iResolution.y - rayPos.y)) / iResolution.y;
+          color.rgb *= INTENSITY * 0.4 / pow(max(distanceToLight, 0.001), FALLOFF);
 
-  float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-  color.rgb = mix(vec3(gray), color.rgb, SATURATION);
+          float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+          color.rgb = mix(vec3(gray), color.rgb, SATURATION);
 
-  color.a = max(color.r, max(color.g, color.b)) * OPACITY;
-  gl_FragColor = color;
-}`;
+          color.a = max(color.r, max(color.g, color.b)) * OPACITY;
+          gl_FragColor = color;
+        }`;
 
       const compile = (type, src) => {
         const s = gl.createShader(type);

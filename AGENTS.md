@@ -21,3 +21,7 @@ Inter-package imports resolve to **built dists** — run `bun run build` after c
 ## Parity rule
 
 Every new widget option must reach snippet (`data-*`), React props, and the landing configurator (`apps/site/public/index.html`) plus the docs tables (README, SKILL.md, package READMEs) in the same change. Framer surfaces are opt-in per feature — ask if unsure.
+
+## Framer freeze
+
+The Framer Marketplace plugin and `copy2llm-framer` package are intentionally frozen because even small Marketplace updates trigger a costly review. Do not edit, rebuild, repack, or publish either Framer surface unless the user explicitly lifts this freeze for the task. New non-Framer features must be documented as unavailable in the current Framer release.

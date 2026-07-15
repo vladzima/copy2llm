@@ -1,6 +1,6 @@
 # copy2llm-react
 
-`<CopyToLLM />` — the [copy2llm](https://copy.computer) "Copy to LLM" button for React.
+`<CopyToLLM />` — the [copy2llm](https://copy.computer) portable context layer for React.
 
 ```bash
 npm i copy2llm-react
@@ -18,11 +18,13 @@ Mounts the Shadow-DOM widget on mount and tears it down on unmount. `position="i
 
 ## Props
 
-All [`copy2llm-widget`](https://www.npmjs.com/package/copy2llm-widget) options: `content` · `header` · `position` · `theme` (auto/light/dark) · `bg` · `text` · `font` (sans/serif/mono) · `radius` · `items` (copy, view, ChatGPT, Claude, Perplexity, Grok) · `endpoints` (your own LLM targets — `{ label, href }`) · `label` · `prompt` (lead-in text sent to the LLM before the page's Markdown on the Open in… actions).
+All [`copy2llm-widget`](https://www.npmjs.com/package/copy2llm-widget) options: `content` · `exclude` · `header` · `position` · `theme` · `bg` · `text` · `font` · `radius` · `items` (`copy`, `pick`, `context`, `view`, and AI targets) · `endpoints` · `label` · `prompt` · `onEvent`.
 
 ```tsx
 <CopyToLLM endpoints={[{ label: "Open in Acme AI", href: "https://acme.ai/?q={q}" }]} />
 ```
+
+`onEvent` receives privacy-safe metadata only. Context Cart sources remain in same-origin `sessionStorage` for the current tab.
 
 `react >= 17` is a peer dependency.
 
