@@ -1,6 +1,7 @@
 export type Action =
   | "copy"
   | "pick"
+  | "context"
   | "view"
   | "chatgpt"
   | "claude"
@@ -22,6 +23,27 @@ export type Position =
   | "inline";
 export type Theme = "auto" | "light" | "dark";
 export type Font = "sans" | "serif" | "mono";
+export type ContextKind = "page" | "selection" | "section";
+
+export type Copy2LLMEventAction =
+  | Action
+  | "endpoint"
+  | "context-copy"
+  | "context-download"
+  | "context-remove"
+  | "context-reorder";
+
+/** Privacy-safe action metadata. Content and source URLs are never included. */
+export interface Copy2LLMEventDetail {
+  action: Copy2LLMEventAction;
+  approximateTokens: number;
+  characters: number;
+  context?: ContextKind;
+  fallback?: "clipboard-paste" | "markdown-preview";
+  items?: number;
+  success: boolean;
+  target?: string;
+}
 
 export interface WidgetOptions {
   /** Button background (any CSS color). Default: from theme. */
@@ -30,6 +52,8 @@ export interface WidgetOptions {
   content?: string;
   /** Extra LLM targets appended to the menu (custom/enterprise/self-hosted). */
   endpoints?: CustomEndpoint[];
+  /** CSS selectors removed from extraction, in addition to `[data-copy2llm-ignore]`. */
+  exclude?: string;
   /** System font stack. Default: sans. */
   font?: Font;
   /** Prepend a title + source header (→ core ExtractOptions.header). Default: true. */
@@ -38,6 +62,8 @@ export interface WidgetOptions {
   items?: Action[];
   /** Primary button text. Default: "Copy as Markdown". */
   label?: string;
+  /** Called after user actions with privacy-safe metadata only. */
+  onEvent?: (detail: Copy2LLMEventDetail) => void;
   /** Corner placement, or `inline` to sit in normal flow. Default: bottom-right. */
   position?: Position;
   /** Lead-in text sent to the LLM before the page's Markdown on the Open in…
@@ -54,6 +80,7 @@ export interface WidgetOptions {
 export const ALL_ACTIONS: readonly Action[] = Object.freeze([
   "copy",
   "pick",
+  "context",
   "view",
   "chatgpt",
   "claude",
@@ -102,6 +129,7 @@ export function parseDataset(data: DOMStringMap): WidgetOptions {
     text,
     radius,
     content,
+    exclude,
     label,
     prompt,
     header,
@@ -129,6 +157,9 @@ export function parseDataset(data: DOMStringMap): WidgetOptions {
   }
   if (content) {
     opts.content = content;
+  }
+  if (exclude) {
+    opts.exclude = exclude;
   }
   if (label) {
     opts.label = label;

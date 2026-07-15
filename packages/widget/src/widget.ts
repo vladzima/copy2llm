@@ -1,9 +1,22 @@
 import { type ExtractResult, extract } from "copy2llm-core";
 import { copyText, copyTextSync } from "./clipboard";
+import {
+  addContextItem,
+  buildContextMarkdown,
+  type ContextItem,
+  contextCharacters,
+  createContextItem,
+  estimateTokens,
+  loadContext,
+  moveContextItem,
+  saveContext,
+} from "./context";
 import { customLink, type LlmLink, type LlmTarget, llmUrl } from "./links";
 import {
   type Action,
   ALL_ACTIONS,
+  type ContextKind,
+  type Copy2LLMEventDetail,
   DEFAULTS,
   type WidgetOptions,
 } from "./options";
@@ -25,13 +38,17 @@ const TOAST_MS = 2000;
 const MSG = {
   copied: "Copied ✓",
   failed: "Couldn’t extract this page",
+  handoffFailed: "Couldn’t open the chat — use the Markdown preview",
+  pasteFailed: "Couldn’t copy automatically — copy from the preview",
   paste: "Copied — paste into the chat",
   pick: "Click a section to copy it — Esc cancels",
+  pickContext: "Click a section to add it — Esc cancels",
 };
 
 const MENU_LABELS: Record<Action, string> = {
   copy: DEFAULTS.label,
   pick: "Copy a section",
+  context: "Add to AI context",
   view: "View as Markdown",
   chatgpt: "Open in ChatGPT",
   claude: "Open in Claude",
@@ -45,6 +62,8 @@ const MENU_LABELS: Record<Action, string> = {
 const ICONS: Record<Action, string> = {
   copy: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></svg>',
   pick: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M216,40H176a8,8,0,0,0,0,16h32V88a8,8,0,0,0,16,0V48A8,8,0,0,0,216,40ZM80,200H48V168a8,8,0,0,0-16,0v40a8,8,0,0,0,8,8H80a8,8,0,0,0,0-16Zm136-40a8,8,0,0,0-8,8v32H176a8,8,0,0,0,0,16h40a8,8,0,0,0,8-8V168A8,8,0,0,0,216,160ZM80,40H40a8,8,0,0,0-8,8V88a8,8,0,0,0,16,0V56H80a8,8,0,0,0,0-16Z"/></svg>',
+  context:
+    '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M208,32H80A16,16,0,0,0,64,48V64H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V192h16a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM176,208H48V80H176Zm32-32H192V80a16,16,0,0,0-16-16H80V48H208Z"/></svg>',
   view: '<svg class="c2l-ic" viewBox="0 0 256 256" aria-hidden="true"><path d="M86.75,44.3,33.48,128l53.27,83.7a8,8,0,0,1-2.46,11.05A7.91,7.91,0,0,1,80,224a8,8,0,0,1-6.76-3.71l-56-88a8,8,0,0,1,0-8.59l56-88a8,8,0,1,1,13.5,8.59Zm152,79.41-56-88a8,8,0,1,0-13.5,8.59L222.52,128l-53.27,83.7a8,8,0,0,0,2.46,11.05A7.91,7.91,0,0,0,176,224a8,8,0,0,0,6.76-3.71l56-88A8,8,0,0,0,238.75,123.71Z"/></svg>',
   chatgpt:
     '<svg class="c2l-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>',
@@ -68,6 +87,7 @@ const COPIED_LABEL = "Copied";
 // Primary Copy label while the page has an active text selection (every action
 // then uses the selection instead of the whole page).
 const SELECTED_LABEL = "Copy selected";
+const SELECTED_CONTEXT_LABEL = "Add selection to context";
 const COPIED_MS = 1400;
 // `auto` reveal: poll for a confident theme signal for up to this many frames
 // (~0.5s) before falling back to prefers-color-scheme, so a late-painting host
@@ -134,6 +154,8 @@ function buildMenuItem(
 type WithHandle = HTMLElement & { [HANDLE_KEY]?: WidgetHandle };
 
 interface State {
+  contextItems: ContextItem[];
+  contextOverlayEl: HTMLElement | null;
   copiedTimer?: number;
   currentMarkdown: string;
   overlayEl: HTMLElement | null;
@@ -154,7 +176,13 @@ export function mount(
 ): WidgetHandle {
   const mountTarget = target ?? document.body;
   const doc = mountTarget.ownerDocument;
-  const win = doc.defaultView ?? (globalThis as unknown as Window);
+  const win = (doc.defaultView ?? globalThis) as Window & typeof globalThis;
+  let storage: Storage | null = null;
+  try {
+    storage = win.sessionStorage;
+  } catch {
+    // Storage can be unavailable in privacy modes; the cart still works in memory.
+  }
 
   // Idempotency: one widget per target.
   const existing = mountTarget.querySelector(
@@ -183,6 +211,8 @@ export function mount(
   // Mutable state in one object so the hoisted helpers below mutate fields
   // rather than reassign `let`s (avoids TDZ and keeps the linter happy).
   const state: State = {
+    contextItems: loadContext(storage),
+    contextOverlayEl: null,
     overlayEl: null,
     pickCleanup: null,
     prevFocus: null,
@@ -201,14 +231,20 @@ export function mount(
     '<div class="box"><div class="split">' +
     '<button class="btn primary" type="button"></button>' +
     "</div>" +
+    '<button class="btn context-status" type="button" hidden></button>' +
     '<div class="toast" role="status" aria-live="polite" hidden></div>' +
     "</div>";
   shadow.append(styleEl, rootEl);
 
   const box = rootEl.querySelector(".box") as HTMLElement;
   const split = rootEl.querySelector(".split") as HTMLElement;
+  const contextStatus = rootEl.querySelector(
+    ".context-status"
+  ) as HTMLButtonElement;
   const toastEl = rootEl.querySelector(".toast") as HTMLElement;
   const primary = rootEl.querySelector(".primary") as HTMLButtonElement;
+  contextStatus.addEventListener("click", openContextOverlay);
+  renderContextStatus();
 
   // Preserve the page's text selection: a mousedown on any widget button would
   // collapse it before the click handler could read it (see pageSelection).
@@ -291,7 +327,7 @@ export function mount(
         },
         () => {
           closeMenu();
-          runEndpoint(ep.href);
+          runEndpoint(ep.href, ep.label);
         }
       );
       menuEl.appendChild(item);
@@ -359,6 +395,8 @@ export function mount(
     if (menuEl && !menuEl.hidden) {
       closeMenu();
       caret?.focus();
+    } else if (state.contextOverlayEl && !state.contextOverlayEl.hidden) {
+      closeContextOverlay();
     } else if (state.overlayEl && !state.overlayEl.hidden) {
       closeOverlay();
     }
@@ -367,10 +405,13 @@ export function mount(
   // active, so the button says what a click will actually copy. Plain text
   // assignment (no swap keyframe): selectionchange fires on every drag tick.
   const onSelectionChange = () => {
-    if (primaryAction !== "copy" || state.copiedTimer !== undefined) {
-      return; // not a Copy button / mid "Copied ✓" confirmation
+    if (
+      (primaryAction !== "copy" && primaryAction !== "context") ||
+      state.copiedTimer !== undefined
+    ) {
+      return;
     }
-    primaryLabel.textContent = pageSelection() ? SELECTED_LABEL : labels.copy;
+    primaryLabel.textContent = idlePrimaryLabel();
   };
   doc.addEventListener("click", onDocPointer, true);
   doc.addEventListener("keydown", onDocKey);
@@ -440,11 +481,15 @@ export function mount(
   }
 
   /** Extract the page — or just `region` / the live text selection when present. */
-  function safeExtract(region?: Range | Element): ExtractResult | null {
+  function safeExtract(
+    region?: Range | Element,
+    header = options.header
+  ): ExtractResult | null {
     try {
       return extract(win.document, {
         content: options.content,
-        header: options.header,
+        exclude: options.exclude,
+        header,
         region: region ?? pageSelection(),
       });
     } catch {
@@ -457,7 +502,12 @@ export function mount(
 
   async function runAction(action: Action): Promise<void> {
     if (action === "pick") {
-      startPick();
+      startPick("copy");
+      return;
+    }
+
+    if (action === "context") {
+      addCurrentContext();
       return;
     }
 
@@ -466,6 +516,7 @@ export function mount(
 
     if (action === "view") {
       openOverlay(markdown);
+      emit({ action, success: !isEmpty(markdown) }, markdown);
       if (isEmpty(markdown)) {
         toast(MSG.failed);
       }
@@ -473,24 +524,42 @@ export function mount(
     }
 
     if (isEmpty(markdown)) {
+      emit({ action, success: false }, markdown);
       toast(MSG.failed);
       openOverlay(markdown);
       return;
     }
 
     if (action === "copy") {
-      const ok = await copyText(markdown, win);
-      if (ok) {
-        flashCopied();
-      } else {
-        openOverlay(markdown);
-      }
+      await copyMarkdown(markdown);
       return;
     }
 
     // chatgpt | claude | perplexity | grok: hand the LLM the page's Markdown
     // itself via the chat's ?q= prefill — that IS the product.
-    openLlm(llmUrl(action as LlmTarget, markdown, options.prompt), markdown);
+    openLlm(
+      llmUrl(action as LlmTarget, markdown, options.prompt),
+      markdown,
+      action,
+      action
+    );
+  }
+
+  async function copyMarkdown(markdown: string): Promise<void> {
+    const ok = await copyText(markdown, win);
+    emit(
+      {
+        action: "copy",
+        fallback: ok ? undefined : "markdown-preview",
+        success: ok,
+      },
+      markdown
+    );
+    if (ok) {
+      flashCopied();
+    } else {
+      openOverlay(markdown);
+    }
   }
 
   // --- region-pick mode ("copy just this") ------------------------------------
@@ -506,7 +575,7 @@ export function mount(
     return el.closest(PICK_SELECTOR);
   }
 
-  function startPick(): void {
+  function startPick(mode: "context" | "copy"): void {
     if (state.pickCleanup) {
       return;
     }
@@ -547,7 +616,11 @@ export function mount(
       const el = pickTarget(e.target);
       exitPick();
       if (el) {
-        copyRegion(el).catch(() => undefined);
+        if (mode === "context") {
+          addRegionContext(el);
+        } else {
+          copyRegion(el).catch(() => undefined);
+        }
       }
     };
     const onPickKey = (e: KeyboardEvent) => {
@@ -568,7 +641,7 @@ export function mount(
       cursorEl.remove();
       state.pickCleanup = null;
     };
-    toast(MSG.pick);
+    toast(mode === "context" ? MSG.pickContext : MSG.pick);
   }
 
   function exitPick(): void {
@@ -579,10 +652,21 @@ export function mount(
   async function copyRegion(el: Element): Promise<void> {
     const markdown = safeExtract(el)?.markdown ?? "";
     if (isEmpty(markdown)) {
+      emit({ action: "pick", context: "section", success: false }, markdown);
       toast(MSG.failed);
       return;
     }
-    if (await copyText(markdown, win)) {
+    const ok = await copyText(markdown, win);
+    emit(
+      {
+        action: "pick",
+        context: "section",
+        fallback: ok ? undefined : "markdown-preview",
+        success: ok,
+      },
+      markdown
+    );
+    if (ok) {
       flashCopied();
     } else {
       openOverlay(markdown);
@@ -591,14 +675,20 @@ export function mount(
 
   // A site-owner custom endpoint: same flow as a built-in target, but the deep
   // link comes from their `hrefTemplate` rather than a built-in base.
-  function runEndpoint(href: string): void {
+  function runEndpoint(href: string, label: string): void {
     const markdown = safeExtract()?.markdown ?? "";
     if (isEmpty(markdown)) {
+      emit({ action: "endpoint", success: false, target: label }, markdown);
       toast(MSG.failed);
       openOverlay(markdown);
       return;
     }
-    openLlm(customLink(href, markdown, options.prompt), markdown);
+    openLlm(
+      customLink(href, markdown, options.prompt),
+      markdown,
+      "endpoint",
+      label
+    );
   }
 
   // Open a target's deep link. Fire SYNCHRONOUSLY within the click gesture
@@ -606,14 +696,487 @@ export function mount(
   // lost). When the page is too long to inline, copy BEFORE the tab opens — a
   // synchronous copy keeps the page focused (no permission prompt) and preserves
   // the popup gesture; the Markdown is then on the clipboard, ready to paste.
-  function openLlm(link: LlmLink, markdown: string): void {
+  function openLlm(
+    link: LlmLink,
+    markdown: string,
+    action: Action | "endpoint" | "context-copy",
+    target: string,
+    context?: ContextKind
+  ): void {
+    const eventItems =
+      action === "context-copy" ? state.contextItems.length : undefined;
     if (link.needsPaste) {
-      copyTextSync(markdown, win);
+      const copied = copyTextSync(markdown, win);
+      if (!copied) {
+        openOverlay(markdown);
+        toast(MSG.pasteFailed);
+        emit(
+          {
+            action,
+            context,
+            fallback: "markdown-preview",
+            items: eventItems,
+            success: false,
+            target,
+          },
+          markdown
+        );
+        return;
+      }
     }
-    win.open(link.href, "_blank", "noopener,noreferrer");
+    try {
+      win.open(link.href, "_blank", "noopener,noreferrer");
+    } catch {
+      openOverlay(markdown);
+      toast(MSG.handoffFailed);
+      emit(
+        {
+          action,
+          context,
+          fallback: "markdown-preview",
+          items: eventItems,
+          success: false,
+          target,
+        },
+        markdown
+      );
+      return;
+    }
     if (link.needsPaste) {
       toast(MSG.paste);
     }
+    emit(
+      {
+        action,
+        context,
+        fallback: link.needsPaste ? "clipboard-paste" : undefined,
+        items: eventItems,
+        success: true,
+        target,
+      },
+      markdown
+    );
+  }
+
+  function emit(
+    detail: Omit<Copy2LLMEventDetail, "approximateTokens" | "characters">,
+    markdown: string
+  ): void {
+    const payload: Copy2LLMEventDetail = {
+      approximateTokens: estimateTokens(markdown.length),
+      characters: markdown.length,
+      ...detail,
+    };
+    try {
+      options.onEvent?.(payload);
+    } catch {
+      // A site-owner callback must never break the user action.
+    }
+    hostEl.dispatchEvent(
+      new win.CustomEvent<Copy2LLMEventDetail>("copy2llm:action", {
+        bubbles: true,
+        composed: true,
+        detail: payload,
+      })
+    );
+  }
+
+  function commitContext(items: ContextItem[]): void {
+    state.contextItems = items;
+    saveContext(storage, items);
+    renderContextStatus();
+    if (state.contextOverlayEl && !state.contextOverlayEl.hidden) {
+      renderContextOverlay();
+    }
+  }
+
+  function renderContextStatus(): void {
+    const count = state.contextItems.length;
+    contextStatus.hidden = count === 0;
+    contextStatus.textContent = `Context ${count}`;
+    contextStatus.title = `${count} source${count === 1 ? "" : "s"}, approximately ${estimateTokens(contextCharacters(state.contextItems)).toLocaleString()} tokens`;
+  }
+
+  function addExtractedContext(
+    result: ExtractResult | null,
+    kind: ContextKind
+  ): boolean {
+    const markdown = result?.markdown ?? "";
+    if (isEmpty(markdown)) {
+      toast(MSG.failed);
+      emit({ action: "context", context: kind, success: false }, markdown);
+      return false;
+    }
+    const mutation = addContextItem(
+      state.contextItems,
+      createContextItem({
+        kind,
+        markdown,
+        title: result?.title ?? doc.title,
+        url: result?.url ?? doc.URL,
+      })
+    );
+    if (mutation.status === "full") {
+      toast("Context is full — remove a source first");
+      emit(
+        {
+          action: "context",
+          context: kind,
+          items: state.contextItems.length,
+          success: false,
+        },
+        markdown
+      );
+      return false;
+    }
+    if (mutation.status === "duplicate") {
+      toast("Already in context");
+    } else {
+      commitContext(mutation.items);
+      toast(
+        mutation.status === "updated" ? "Context updated" : "Added to context"
+      );
+    }
+    emit(
+      {
+        action: "context",
+        context: kind,
+        items: mutation.items.length,
+        success: true,
+      },
+      markdown
+    );
+    return true;
+  }
+
+  function addCurrentContext(): void {
+    const selection = pageSelection();
+    const result = safeExtract(selection, false);
+    if (addExtractedContext(result, selection ? "selection" : "page")) {
+      openContextOverlay();
+    }
+  }
+
+  function addRegionContext(el: Element): void {
+    const result = safeExtract(el, false);
+    if (addExtractedContext(result, "section")) {
+      openContextOverlay();
+    }
+  }
+
+  function sourceLabel(url: string): string {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.hostname}${parsed.pathname === "/" ? "" : parsed.pathname}`;
+    } catch {
+      return url || "Source unavailable";
+    }
+  }
+
+  function contextMarkdown(): string {
+    return buildContextMarkdown(state.contextItems);
+  }
+
+  function ensureContextOverlay(): HTMLElement {
+    if (state.contextOverlayEl) {
+      return state.contextOverlayEl;
+    }
+    const ov = doc.createElement("div");
+    ov.className = "overlay context-overlay";
+    ov.hidden = true;
+    ov.setAttribute("role", "dialog");
+    ov.setAttribute("aria-modal", "true");
+    ov.setAttribute("aria-label", "Review AI context");
+    ov.innerHTML =
+      '<div class="sheet context-sheet"><header>' +
+      '<div class="context-heading"><h2>AI context</h2><p class="context-summary"></p></div>' +
+      '<button class="btn context-close" type="button" aria-label="Close">Close</button>' +
+      '</header><div class="context-body">' +
+      '<div class="context-empty"><strong>No sources yet</strong><span>Add this page, a selection, or a specific section.</span></div>' +
+      '<ol class="context-list"></ol></div><footer>' +
+      '<div class="context-add"><button class="btn context-add-current" type="button">Add current page</button>' +
+      '<button class="btn context-add-section" type="button">Add a section</button></div>' +
+      '<div class="context-actions"><button class="btn context-copy" type="button">Copy context</button>' +
+      '<button class="btn context-download" type="button">Download .md</button>' +
+      '<div class="context-targets"></div></div></footer></div>';
+
+    const closeBtn = ov.querySelector(".context-close") as HTMLButtonElement;
+    const addCurrentBtn = ov.querySelector(
+      ".context-add-current"
+    ) as HTMLButtonElement;
+    const addSectionBtn = ov.querySelector(
+      ".context-add-section"
+    ) as HTMLButtonElement;
+    const copyBtn = ov.querySelector(".context-copy") as HTMLButtonElement;
+    const downloadBtn = ov.querySelector(
+      ".context-download"
+    ) as HTMLButtonElement;
+    const targetsEl = ov.querySelector(".context-targets") as HTMLElement;
+
+    closeBtn.addEventListener("click", closeContextOverlay);
+    addCurrentBtn.addEventListener("click", addCurrentContext);
+    addSectionBtn.addEventListener("click", () => {
+      closeContextOverlay();
+      startPick("context");
+    });
+    copyBtn.addEventListener("click", async () => {
+      const markdown = contextMarkdown();
+      const ok =
+        state.contextItems.length > 0 && (await copyText(markdown, win));
+      emit(
+        {
+          action: "context-copy",
+          fallback: ok ? undefined : "markdown-preview",
+          items: state.contextItems.length,
+          success: ok,
+        },
+        markdown
+      );
+      if (ok) {
+        toast(MSG.copied);
+      } else if (state.contextItems.length > 0) {
+        closeContextOverlay();
+        openOverlay(markdown);
+      }
+    });
+    downloadBtn.addEventListener("click", () => {
+      const markdown = contextMarkdown();
+      const ok = state.contextItems.length > 0 && downloadMarkdown(markdown);
+      emit(
+        {
+          action: "context-download",
+          items: state.contextItems.length,
+          success: ok,
+        },
+        markdown
+      );
+      if (!ok && state.contextItems.length > 0) {
+        closeContextOverlay();
+        openOverlay(markdown);
+      }
+    });
+    ov.addEventListener("click", (event) => {
+      if (event.target === ov) {
+        closeContextOverlay();
+      }
+    });
+    ov.addEventListener("keydown", (event) => trapFocus(ov, event));
+
+    for (const action of items.filter((item) => EXTERNAL.has(item))) {
+      const button = doc.createElement("button");
+      button.className = "btn context-target";
+      button.type = "button";
+      button.textContent = labels[action];
+      button.addEventListener("click", () => {
+        const markdown = contextMarkdown();
+        if (state.contextItems.length > 0) {
+          openLlm(
+            llmUrl(action as LlmTarget, markdown, options.prompt),
+            markdown,
+            "context-copy",
+            action
+          );
+        }
+      });
+      targetsEl.appendChild(button);
+    }
+    for (const endpoint of endpoints) {
+      const button = doc.createElement("button");
+      button.className = "btn context-target";
+      button.type = "button";
+      button.textContent = endpoint.label;
+      button.addEventListener("click", () => {
+        const markdown = contextMarkdown();
+        if (state.contextItems.length > 0) {
+          openLlm(
+            customLink(endpoint.href, markdown, options.prompt),
+            markdown,
+            "context-copy",
+            endpoint.label
+          );
+        }
+      });
+      targetsEl.appendChild(button);
+    }
+
+    rootEl.appendChild(ov);
+    state.contextOverlayEl = ov;
+    return ov;
+  }
+
+  function renderContextOverlay(): void {
+    const ov = ensureContextOverlay();
+    const list = ov.querySelector(".context-list") as HTMLOListElement;
+    const empty = ov.querySelector(".context-empty") as HTMLElement;
+    const summary = ov.querySelector(".context-summary") as HTMLElement;
+    const addCurrent = ov.querySelector(
+      ".context-add-current"
+    ) as HTMLButtonElement;
+    const actionButtons = ov.querySelectorAll(
+      ".context-copy, .context-download, .context-target"
+    ) as NodeListOf<HTMLButtonElement>;
+    const count = state.contextItems.length;
+    const tokens = estimateTokens(contextCharacters(state.contextItems));
+
+    summary.textContent = `${count} source${count === 1 ? "" : "s"} · ~${tokens.toLocaleString()} tokens · local to this tab`;
+    addCurrent.textContent = pageSelection()
+      ? "Add current selection"
+      : "Add current page";
+    empty.hidden = count > 0;
+    list.hidden = count === 0;
+    for (const button of actionButtons) {
+      button.disabled = count === 0;
+    }
+    list.replaceChildren();
+
+    state.contextItems.forEach((item, index) => {
+      const row = doc.createElement("li");
+      row.className = "context-source";
+
+      const info = doc.createElement("div");
+      info.className = "context-source-info";
+      const title = doc.createElement("strong");
+      title.textContent = item.title || "Untitled source";
+      const meta = doc.createElement("span");
+      meta.textContent = `${sourceLabel(item.url)} · ${item.kind} · ~${estimateTokens(item.markdown.length).toLocaleString()} tokens`;
+      info.append(title, meta);
+
+      const controls = doc.createElement("div");
+      controls.className = "context-source-controls";
+      const up = contextControl(
+        "↑",
+        `Move ${item.title} up`,
+        index === 0,
+        () => {
+          commitContext(moveContextItem(state.contextItems, item.id, -1));
+          emit(
+            {
+              action: "context-reorder",
+              context: item.kind,
+              items: state.contextItems.length,
+              success: true,
+            },
+            item.markdown
+          );
+        }
+      );
+      const down = contextControl(
+        "↓",
+        `Move ${item.title} down`,
+        index === state.contextItems.length - 1,
+        () => {
+          commitContext(moveContextItem(state.contextItems, item.id, 1));
+          emit(
+            {
+              action: "context-reorder",
+              context: item.kind,
+              items: state.contextItems.length,
+              success: true,
+            },
+            item.markdown
+          );
+        }
+      );
+      const remove = contextControl(
+        "Remove",
+        `Remove ${item.title}`,
+        false,
+        () => {
+          commitContext(
+            state.contextItems.filter((existing) => existing.id !== item.id)
+          );
+          emit(
+            {
+              action: "context-remove",
+              context: item.kind,
+              items: state.contextItems.length,
+              success: true,
+            },
+            item.markdown
+          );
+        }
+      );
+      remove.classList.add("context-remove");
+      controls.append(up, down, remove);
+      row.append(info, controls);
+      list.appendChild(row);
+    });
+  }
+
+  function contextControl(
+    text: string,
+    label: string,
+    disabled: boolean,
+    onClick: () => void
+  ): HTMLButtonElement {
+    const button = doc.createElement("button");
+    button.className = "context-source-action";
+    button.type = "button";
+    button.textContent = text;
+    button.disabled = disabled;
+    button.setAttribute("aria-label", label);
+    button.addEventListener("click", onClick);
+    return button;
+  }
+
+  function openContextOverlay(): void {
+    const ov = ensureContextOverlay();
+    renderContextOverlay();
+    if (state.overlayEl) {
+      state.overlayEl.hidden = true;
+    }
+    state.prevFocus = shadow.activeElement;
+    ov.hidden = false;
+    (ov.querySelector(".context-close") as HTMLButtonElement).focus();
+  }
+
+  function closeContextOverlay(): void {
+    if (state.contextOverlayEl) {
+      state.contextOverlayEl.hidden = true;
+    }
+    const restore = (state.prevFocus as HTMLElement | null) ?? contextStatus;
+    restore?.focus?.();
+  }
+
+  function downloadMarkdown(markdown: string): boolean {
+    try {
+      if (typeof win.URL.createObjectURL !== "function") {
+        return false;
+      }
+      const href = win.URL.createObjectURL(
+        new win.Blob([markdown], { type: "text/markdown;charset=utf-8" })
+      );
+      const link = doc.createElement("a");
+      link.href = href;
+      link.download = "ai-context.md";
+      doc.body.appendChild(link);
+      link.click();
+      link.remove();
+      win.URL.revokeObjectURL(href);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function trapFocus(overlay: HTMLElement, event: KeyboardEvent): void {
+    if (event.key !== "Tab") {
+      return;
+    }
+    const focusables = Array.from(
+      overlay.querySelectorAll(
+        'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+      )
+    ) as HTMLElement[];
+    if (focusables.length === 0) {
+      return;
+    }
+    event.preventDefault();
+    const index = focusables.indexOf(shadow.activeElement as HTMLElement);
+    const direction = event.shiftKey ? -1 : 1;
+    focusables[
+      (index + direction + focusables.length) % focusables.length
+    ]?.focus();
   }
 
   // Swap the primary button's icon + label, restarting the swap-in keyframe so
@@ -628,6 +1191,19 @@ export function mount(
     primary.classList.add("c2l-swap");
   }
 
+  function idlePrimaryLabel(): string {
+    if (!pageSelection()) {
+      return labels[primaryAction];
+    }
+    if (primaryAction === "context") {
+      return SELECTED_CONTEXT_LABEL;
+    }
+    if (primaryAction === "copy") {
+      return SELECTED_LABEL;
+    }
+    return labels[primaryAction];
+  }
+
   // Copy confirmation on the button itself: morph to "Copied ✓", then revert.
   function flashCopied(): void {
     if (state.copiedTimer !== undefined) {
@@ -636,11 +1212,7 @@ export function mount(
     setPrimary(COPIED_LABEL, CHECK_ICON);
     state.copiedTimer = win.setTimeout(() => {
       // Revert selection-aware: the selection usually survives the copy.
-      const idle =
-        primaryAction === "copy" && pageSelection()
-          ? SELECTED_LABEL
-          : labels[primaryAction];
-      setPrimary(idle, ICONS[primaryAction]);
+      setPrimary(idlePrimaryLabel(), ICONS[primaryAction]);
       state.copiedTimer = undefined;
     }, COPIED_MS) as unknown as number;
   }
@@ -711,6 +1283,9 @@ export function mount(
     state.currentMarkdown = markdown;
     const ov = ensureOverlay();
     (ov.querySelector("pre") as HTMLElement).textContent = markdown;
+    if (state.contextOverlayEl) {
+      state.contextOverlayEl.hidden = true;
+    }
     state.prevFocus = shadow.activeElement;
     ov.hidden = false;
     (ov.querySelector(".ov-close") as HTMLButtonElement).focus();

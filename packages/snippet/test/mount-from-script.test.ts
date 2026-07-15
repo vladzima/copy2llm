@@ -27,6 +27,24 @@ test("mounts a widget configured from the script's data-* attributes", () => {
   expect(host.shadowRoot?.querySelector(".caret")).toBeNull();
 });
 
+test("passes data-exclude through to extraction", async () => {
+  const doc = dom(
+    '<main><p>Public.</p><p class="private">Private.</p></main>' +
+      '<script id="s" data-items="copy" data-content="main" data-exclude=".private"></script>'
+  );
+  const writes: string[] = [];
+  Object.defineProperty(doc.defaultView?.navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: (text: string) => writes.push(text) },
+  });
+  mountFromScript(doc, doc.getElementById("s") as HTMLScriptElement);
+  const host = doc.body.querySelector("[data-copy2llm]") as HTMLElement;
+  (host.shadowRoot?.querySelector(".primary") as HTMLButtonElement).click();
+  await Promise.resolve();
+  expect(writes[0]).toContain("Public.");
+  expect(writes[0]).not.toContain("Private.");
+});
+
 test("falls back to defaults when there is no script element", () => {
   const doc = dom("");
   mountFromScript(doc, null);

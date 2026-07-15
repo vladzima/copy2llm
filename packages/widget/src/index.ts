@@ -1,5 +1,8 @@
 export type {
   Action,
+  ContextKind,
+  Copy2LLMEventAction,
+  Copy2LLMEventDetail,
   CustomEndpoint,
   Font,
   Position,

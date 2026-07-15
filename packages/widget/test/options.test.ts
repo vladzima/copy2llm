@@ -20,6 +20,7 @@ test("defaults: bottom-right, auto theme, all built-in items", () => {
   expect(DEFAULTS.items).toEqual([
     "copy",
     "pick",
+    "context",
     "view",
     "chatgpt",
     "claude",
@@ -37,6 +38,7 @@ test("parseDataset reads known knobs", () => {
       "data-font": "mono",
       "data-radius": "pill",
       "data-content": "main#docs",
+      "data-exclude": ".private, nav",
       "data-label": "Copy MD",
       "data-prompt": "Summarize this article:",
     })
@@ -47,6 +49,7 @@ test("parseDataset reads known knobs", () => {
   expect(opts.font).toBe("mono");
   expect(opts.radius).toBe("pill");
   expect(opts.content).toBe("main#docs");
+  expect(opts.exclude).toBe(".private, nav");
   expect(opts.label).toBe("Copy MD");
   expect(opts.prompt).toBe("Summarize this article:");
 });

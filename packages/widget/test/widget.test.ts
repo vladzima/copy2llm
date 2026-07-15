@@ -10,6 +10,7 @@ function page(html: string, url = "https://example.com/p") {
     { url }
   );
   const win = jd.window as Any;
+  win.document.execCommand = () => true;
   const opened: string[] = [];
   win.open = (u: string) => {
     opened.push(u);
@@ -133,6 +134,18 @@ test("a page too long to inline falls back to clipboard + paste toast", async ()
   // The huge body is on the clipboard, not in the URL.
   expect(decodeURIComponent(opened[0] ?? "")).not.toContain("word word word");
   expect(q(doc, ".toast").textContent?.toLowerCase()).toContain("paste");
+});
+
+test("a failed long-page clipboard fallback opens the Markdown preview instead of an empty chat", () => {
+  const long = `<main><p>${"word ".repeat(4000)}</p></main>`;
+  const { doc, opened } = page(long);
+  (doc as Any).execCommand = () => false;
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="claude"]') as HTMLButtonElement).click();
+  expect(opened).toHaveLength(0);
+  expect(q(doc, ".overlay").hasAttribute("hidden")).toBe(false);
+  expect(q(doc, ".toast").textContent).toContain("copy automatically");
 });
 
 test("empty extraction toasts a failure and opens the overlay", async () => {
@@ -279,4 +292,93 @@ test("the overlay markdown body is keyboard-focusable (scrollable)", async () =>
   expect(
     q(doc, ".overlay").querySelector("pre")?.getAttribute("tabindex")
   ).toBe("0");
+});
+
+test("Context adds the page, persists it, and copies a reviewed Markdown bundle", async () => {
+  const { doc, writes } = page(
+    "<main><h1>Guide</h1><p>Context body.</p></main>"
+  );
+  const first = mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="context"]') as HTMLButtonElement).click();
+
+  expect(q(doc, ".context-status").textContent).toBe("Context 1");
+  expect(q(doc, ".context-status").hasAttribute("hidden")).toBe(false);
+  expect(q(doc, ".context-overlay").hasAttribute("hidden")).toBe(false);
+  expect(q(doc, ".context-list").textContent).toContain("T");
+  expect(q(doc, ".context-list").textContent).toContain("example.com/p");
+
+  (q(doc, ".context-copy") as HTMLButtonElement).click();
+  await tick();
+  expect(writes.at(-1)).toContain("# AI context");
+  expect(writes.at(-1)).toContain("> Source: https://example.com/p");
+  expect(writes.at(-1)).toContain("Context body.");
+
+  first.destroy();
+  mount({}, doc.body);
+  expect(q(doc, ".context-status").textContent).toBe("Context 1");
+});
+
+test("Context can add a picked section and remove it from review", () => {
+  const { doc } = page(
+    '<main><h2 id="one">One</h2><p>First.</p><p>Second.</p></main>'
+  );
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="context"]') as HTMLButtonElement).click();
+  (q(doc, ".context-add-section") as HTMLButtonElement).click();
+  (doc.querySelectorAll("p")[1] as HTMLElement).click();
+
+  expect(q(doc, ".context-status").textContent).toBe("Context 2");
+  const rows = shadowOf(doc).querySelectorAll(".context-source");
+  expect(rows[1]?.textContent).toContain("section");
+  (rows[1]?.querySelector(".context-remove") as HTMLButtonElement).click();
+  expect(q(doc, ".context-status").textContent).toBe("Context 1");
+});
+
+test("exclude is applied by the widget extraction path", async () => {
+  const { doc, writes } = page(
+    '<main><p>Public.</p><p class="private">Private.</p></main>'
+  );
+  mount({ exclude: ".private", items: ["copy"] }, doc.body);
+  (q(doc, ".primary") as HTMLButtonElement).click();
+  await tick();
+  expect(writes[0]).toContain("Public.");
+  expect(writes[0]).not.toContain("Private.");
+});
+
+test("dispatches privacy-safe action events and calls onEvent", async () => {
+  const { doc } = page("<main><p>Private event payload test.</p></main>");
+  const domEvents: Any[] = [];
+  const callbacks: Any[] = [];
+  doc.body.addEventListener("copy2llm:action", (event) => {
+    domEvents.push((event as CustomEvent).detail);
+  });
+  mount(
+    { items: ["copy"], onEvent: (detail) => callbacks.push(detail) },
+    doc.body
+  );
+  (q(doc, ".primary") as HTMLButtonElement).click();
+  await tick();
+
+  expect(domEvents).toHaveLength(1);
+  expect(callbacks).toEqual(domEvents);
+  expect(domEvents[0]).toMatchObject({ action: "copy", success: true });
+  expect(domEvents[0].characters).toBeGreaterThan(0);
+  expect(JSON.stringify(domEvents[0])).not.toContain(
+    "Private event payload test"
+  );
+  expect(JSON.stringify(domEvents[0])).not.toContain("https://example.com");
+});
+
+test("a thrown window.open falls back to the Markdown preview", () => {
+  const { doc, win } = page("<main><p>Handoff body.</p></main>");
+  win.open = () => {
+    throw new Error("blocked");
+  };
+  mount({}, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="chatgpt"]') as HTMLButtonElement).click();
+  expect(q(doc, ".overlay").hasAttribute("hidden")).toBe(false);
+  expect(q(doc, ".toast").textContent).toContain("open the chat");
 });

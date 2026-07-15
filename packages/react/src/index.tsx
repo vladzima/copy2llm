@@ -20,8 +20,10 @@ export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
     prompt,
     header,
     content,
+    exclude,
     bg,
     text,
+    onEvent,
   } = props;
   const { items, endpoints } = props;
   // items/endpoints are fresh array references on every render; key the memo on
@@ -42,8 +44,10 @@ export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
       prompt,
       header,
       content,
+      exclude,
       bg,
       text,
+      onEvent,
       items,
       endpoints,
     }),
@@ -56,8 +60,10 @@ export function CopyToLLM(props: CopyToLLMProps): ReactElement | null {
       prompt,
       header,
       content,
+      exclude,
       bg,
       text,
+      onEvent,
       itemsKey,
       endpointsKey,
     ]

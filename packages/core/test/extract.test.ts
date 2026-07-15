@@ -94,3 +94,48 @@ test("pads ragged table rows into valid GFM", () => {
     "| a | b | cc |\n| --- | --- | --- |\n| 1 |  |  |"
   );
 });
+
+test("exclude removes matching content without mutating the live document", () => {
+  const d = doc(
+    '<html><head><title>T</title></head><body><main><p>Keep me.</p><aside class="private">Remove me.</aside></main></body></html>'
+  );
+  const { markdown } = extract(d, {
+    content: "main",
+    exclude: ".private",
+    header: false,
+  });
+  expect(markdown).toContain("Keep me.");
+  expect(markdown).not.toContain("Remove me.");
+  expect(d.querySelector(".private")?.textContent).toBe("Remove me.");
+});
+
+test("exclude runs before Readability during automatic content detection", () => {
+  const paragraphs = Array.from(
+    { length: 8 },
+    (_, index) =>
+      `<p>Public paragraph ${index} with enough article text to parse.</p>`
+  ).join("");
+  const d = doc(
+    `<html><head><title>T</title></head><body><article>${paragraphs}<p class="private">Private article detail.</p></article></body></html>`
+  );
+  const markdown = extract(d, { exclude: ".private", header: false }).markdown;
+  expect(markdown).toContain("Public paragraph 0");
+  expect(markdown).not.toContain("Private article detail.");
+});
+
+test("data-copy2llm-ignore is always removed", () => {
+  const d = doc(
+    "<html><head><title>T</title></head><body><main><p>Keep me.</p><p data-copy2llm-ignore>Private.</p></main></body></html>"
+  );
+  const markdown = extract(d, { content: "main", header: false }).markdown;
+  expect(markdown).toBe("Keep me.");
+});
+
+test("an invalid exclude selector is ignored", () => {
+  const d = doc(
+    "<html><head><title>T</title></head><body><main><p>Keep me.</p></main></body></html>"
+  );
+  expect(
+    extract(d, { content: "main", exclude: "[", header: false }).markdown
+  ).toBe("Keep me.");
+});
