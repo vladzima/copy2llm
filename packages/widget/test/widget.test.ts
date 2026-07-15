@@ -336,6 +336,28 @@ test("Context can add a picked section and remove it from review", () => {
   expect(q(doc, ".context-status").textContent).toBe("Context 1");
 });
 
+test("Context review restores focus and reports AI handoff as context-send", () => {
+  const { doc, opened } = page("<main><p>Context handoff.</p></main>");
+  const events: Any[] = [];
+  mount({ onEvent: (detail) => events.push(detail) }, doc.body);
+  (q(doc, ".caret") as HTMLButtonElement).click();
+  (q(doc, '[data-action="context"]') as HTMLButtonElement).click();
+
+  (q(doc, ".context-close") as HTMLButtonElement).click();
+  const status = q(doc, ".context-status") as HTMLButtonElement;
+  expect(shadowOf(doc).activeElement).toBe(status);
+
+  status.click();
+  (q(doc, ".context-target") as HTMLButtonElement).click();
+  expect(opened[0]?.startsWith("https://chatgpt.com/?q=")).toBe(true);
+  expect(events.at(-1)).toMatchObject({
+    action: "context-send",
+    items: 1,
+    success: true,
+    target: "chatgpt",
+  });
+});
+
 test("exclude is applied by the widget extraction path", async () => {
   const { doc, writes } = page(
     '<main><p>Public.</p><p class="private">Private.</p></main>'

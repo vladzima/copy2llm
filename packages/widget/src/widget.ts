@@ -699,12 +699,13 @@ export function mount(
   function openLlm(
     link: LlmLink,
     markdown: string,
-    action: Action | "endpoint" | "context-copy",
+    action: Action | "endpoint" | "context-copy" | "context-send",
     target: string,
     context?: ContextKind
   ): void {
-    const eventItems =
-      action === "context-copy" ? state.contextItems.length : undefined;
+    const eventItems = action.startsWith("context-")
+      ? state.contextItems.length
+      : undefined;
     if (link.needsPaste) {
       const copied = copyTextSync(markdown, win);
       if (!copied) {
@@ -973,7 +974,7 @@ export function mount(
           openLlm(
             llmUrl(action as LlmTarget, markdown, options.prompt),
             markdown,
-            "context-copy",
+            "context-send",
             action
           );
         }
@@ -991,7 +992,7 @@ export function mount(
           openLlm(
             customLink(endpoint.href, markdown, options.prompt),
             markdown,
-            "context-copy",
+            "context-send",
             endpoint.label
           );
         }
@@ -1134,8 +1135,8 @@ export function mount(
     if (state.contextOverlayEl) {
       state.contextOverlayEl.hidden = true;
     }
-    const restore = (state.prevFocus as HTMLElement | null) ?? contextStatus;
-    restore?.focus?.();
+    const restore = contextStatus.hidden ? (caret ?? primary) : contextStatus;
+    restore.focus();
   }
 
   function downloadMarkdown(markdown: string): boolean {

@@ -31,7 +31,8 @@ export type Copy2LLMEventAction =
   | "context-copy"
   | "context-download"
   | "context-remove"
-  | "context-reorder";
+  | "context-reorder"
+  | "context-send";
 
 /** Privacy-safe action metadata. Content and source URLs are never included. */
 export interface Copy2LLMEventDetail {
