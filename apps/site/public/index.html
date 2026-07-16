@@ -124,7 +124,7 @@
       --char: #1d1d1d;
       --iron: #3d3d3d;
       --ink: #282828;
-      --fog: #686868;
+      --fog: #8a8a8a;
       --mist: #c2c2c2;
       --ash: #b2b2b2;
       --bone: #e5e5e5;
@@ -145,9 +145,21 @@
       --font-mono:
         "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
+      --text-micro: 0.75rem;
+      --text-caption: 0.8125rem;
+      --text-ui-sm: 0.875rem;
+      --text-ui: 0.9375rem;
+      --text-body: 1rem;
+      --text-body-lg: 1.0625rem;
+      --text-lede: 1.125rem;
+      --text-card-title: 1.25rem;
+
       --maxw: 1200px;
       --gap: 80px;
       --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --hit-target: 40px;
+      --shadow-border: 0 0 0 1px oklch(1 0 0 / 0.08);
+      --shadow-border-hover: 0 0 0 1px oklch(1 0 0 / 0.13);
     }
 
     /* ----------------------------------------------------------------- Base */
@@ -158,6 +170,10 @@
     }
     html {
       scroll-behavior: smooth;
+      font-optical-sizing: auto;
+      font-synthesis: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
     @media (prefers-reduced-motion: reduce) {
       html {
@@ -169,11 +185,10 @@
       /* `clip` not `hidden`: avoids a scroll container that would break the configurator's `position: sticky` code panel. */
       overflow-x: clip;
       font-family: var(--font-display);
-      font-size: 16px;
+      font-size: var(--text-body);
       font-feature-settings:
         "ss01" on,
         "cv11" on;
-      -webkit-font-smoothing: antialiased;
       line-height: 1.5;
       color: var(--bone);
       background: var(--void);
@@ -182,6 +197,28 @@
     a {
       color: inherit;
       text-decoration: none;
+      text-decoration-thickness: from-font;
+      text-underline-position: from-font;
+    }
+    p {
+      text-wrap: pretty;
+    }
+    :where(h1, h2, h3) {
+      text-wrap: balance;
+    }
+    :where(a, button, input):focus-visible {
+      outline: 2px solid var(--paper);
+      outline-offset: 3px;
+    }
+    input {
+      caret-color: var(--paper);
+    }
+    input::placeholder {
+      color: var(--fog);
+      opacity: 1;
+    }
+    :where(button, .btn, .btn-llm, .chk) {
+      user-select: none;
     }
     ::selection {
       color: #fff;
@@ -217,18 +254,31 @@
       opacity: 0;
       transform: translateY(22px);
       transition:
-        opacity 0.7s var(--ease),
-        transform 0.7s var(--ease);
-      will-change: opacity, transform;
+        opacity 0.55s var(--ease) var(--reveal-delay, 0ms),
+        transform 0.55s var(--ease) var(--reveal-delay, 0ms);
     }
     [data-reveal].in {
       opacity: 1;
       transform: none;
     }
+    .hero [data-reveal] {
+      filter: blur(4px);
+      transition:
+        opacity 0.55s var(--ease) var(--reveal-delay, 0ms),
+        transform 0.55s var(--ease) var(--reveal-delay, 0ms),
+        filter 0.55s var(--ease) var(--reveal-delay, 0ms);
+    }
+    .hero [data-reveal].in {
+      filter: blur(0);
+    }
     @media (prefers-reduced-motion: reduce) {
       [data-reveal] {
         opacity: 1;
         transform: none;
+        transition: none;
+      }
+      .hero [data-reveal] {
+        filter: none;
         transition: none;
       }
     }
@@ -276,8 +326,8 @@
       background: linear-gradient(180deg, rgba(10, 10, 10, 0), var(--void));
     }
     /* Animated light rays (WebGL) from the top-right, same corner as the dawn
-               bloom. Sits above the ::before gradient (-2) and below the ::after fade,
-               which shares z-index -1 but paints later, settling rays into the void. */
+                           bloom. Sits above the ::before gradient (-2) and below the ::after fade,
+                           which shares z-index -1 but paints later, settling rays into the void. */
     .hero-rays {
       position: absolute;
       inset: 0;
@@ -296,6 +346,16 @@
     .hero-copy {
       max-width: 540px;
     }
+    .hero-copy > [data-reveal]:nth-child(2) {
+      --reveal-delay: 80ms;
+    }
+    .hero-copy > [data-reveal]:nth-child(3),
+    .hero-art[data-reveal] {
+      --reveal-delay: 160ms;
+    }
+    .hero-copy > [data-reveal]:nth-child(4) {
+      --reveal-delay: 240ms;
+    }
     .hero h1 {
       margin: 0;
       font-size: clamp(2.7rem, 6.4vw, 4.5rem);
@@ -307,7 +367,7 @@
     .hero .lede {
       max-width: 460px;
       margin: 26px 0 0;
-      font-size: 1.125rem;
+      font-size: var(--text-lede);
       line-height: 1.5;
       color: var(--mist);
     }
@@ -324,43 +384,53 @@
       gap: 8px;
       align-items: center;
       height: 44px;
-      padding: 0 20px;
+      padding-block: 0;
+      padding-inline: 20px 18px;
       font-family: var(--font-display);
-      font-size: 15px;
+      font-size: var(--text-ui);
       font-weight: 500;
       line-height: 1;
       white-space: nowrap;
       cursor: pointer;
-      border: 1px solid transparent;
+      border: 0;
       border-radius: 9999px;
       transition:
         transform 0.18s var(--ease),
         background 0.18s var(--ease),
-        border-color 0.18s var(--ease),
+        box-shadow 0.18s var(--ease),
         color 0.18s var(--ease);
     }
     .btn:active {
-      transform: translateY(1px);
+      transform: scale(0.96);
     }
     .btn-primary {
       color: #0a0a0a;
       background: var(--paper);
+      box-shadow:
+        0 0 0 1px oklch(0 0 0 / 0.1),
+        0 1px 2px oklch(0 0 0 / 0.16);
     }
     .btn-primary:hover {
       background: #ececec;
+      box-shadow:
+        0 0 0 1px oklch(0 0 0 / 0.12),
+        0 2px 5px oklch(0 0 0 / 0.2);
       transform: translateY(-1px);
     }
     .btn-primary .ic {
       color: #0a0a0a;
     }
+    .btn > .ic:last-child {
+      transform: translate(1px, -1px);
+    }
     .btn-ghost {
       color: var(--bone);
       background: transparent;
-      border-color: var(--line-strong);
+      box-shadow: var(--shadow-border);
     }
     .btn-ghost:hover {
       background: rgba(229, 229, 229, 0.06);
-      border-color: rgba(229, 229, 229, 0.22);
+      box-shadow: var(--shadow-border-hover);
       transform: translateY(-1px);
     }
     .btn-ghost .ic {
@@ -369,7 +439,7 @@
 
     /* ---------------------------------------------------------- Glass mockup */
     /* Two stacked layers: the window (.mockup) and the menu broken out of it to
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                       the upper-right. `[data-px]` layers drift at different rates on scroll. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   the upper-right. `[data-px]` layers drift at different rates on scroll. */
     .hero-art {
       position: relative;
     }
@@ -382,11 +452,12 @@
       padding: 14px;
       overflow: hidden;
       /* Frosted frame: low opacity so the dawn gradient reads through the frame,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             while the blur keeps it glassy. The doc inside stays opaque (below). */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         while the blur keeps it glassy. The doc inside stays opaque (below). */
       background: rgba(29, 29, 29, 0.42);
-      border: 1px solid var(--line-strong);
-      border-radius: 24px;
+      border: 0;
+      border-radius: 30px;
       box-shadow:
+        0 0 0 1px oklch(1 0 0 / 0.1),
         0 24px 48px rgba(0, 0, 0, 0.35),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
       -webkit-backdrop-filter: blur(24px) saturate(160%);
@@ -405,9 +476,9 @@
       border-radius: 9999px;
     }
     .mockup-url {
-      margin-left: 6px;
+      margin-inline-start: 6px;
       font-family: var(--font-mono);
-      font-size: 12px;
+      font-size: var(--text-micro);
       color: var(--fog);
       letter-spacing: 0.01em;
       transition: opacity 0.3s ease;
@@ -416,11 +487,12 @@
       min-height: 214px;
       padding: 22px 22px 24px;
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: var(--text-caption);
       line-height: 1.62;
       background: rgba(10, 10, 10, 0.75);
-      border: 1px solid var(--line-soft);
+      border: 0;
       border-radius: 16px;
+      box-shadow: var(--shadow-border);
     }
     /* JS takes over the doc and types raw markdown into one pre-wrap flow. */
     .mockup-doc.is-typing {
@@ -446,13 +518,13 @@
       color: var(--mist);
     }
     .mockup-doc .li .tok {
-      margin-right: 6px;
+      margin-inline-end: 6px;
     }
     .mockup-doc .caret {
       display: inline-block;
       width: 7px;
       height: 1.05em;
-      margin-left: 1px;
+      margin-inline-start: 1px;
       vertical-align: -0.18em;
       background: var(--bone);
       border-radius: 1px;
@@ -478,9 +550,10 @@
       width: 224px;
       padding: 6px;
       background: rgba(29, 29, 29, 0.86);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 16px;
       box-shadow:
+        0 0 0 1px oklch(1 0 0 / 0.1),
         0 30px 60px rgba(0, 0, 0, 0.55),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
       -webkit-backdrop-filter: blur(18px) saturate(140%);
@@ -492,7 +565,7 @@
       align-items: center;
       padding: 9px 12px;
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       color: var(--bone);
       border-radius: 10px;
     }
@@ -504,8 +577,8 @@
       background: rgba(229, 229, 229, 0.07);
     }
     .mockup-menu .row .ext {
-      margin-left: auto;
-      font-size: 13px;
+      margin-inline-start: auto;
+      font-size: var(--text-caption);
       color: var(--fog);
     }
 
@@ -519,7 +592,7 @@
       gap: 7px;
       align-items: center;
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       font-weight: 500;
       color: var(--mist);
       white-space: nowrap;
@@ -570,7 +643,7 @@
     .eyebrow {
       margin: 0 0 18px;
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: var(--text-caption);
       font-weight: 500;
       color: var(--fog);
       text-transform: uppercase;
@@ -588,7 +661,8 @@
     .sub-sec {
       max-width: 52ch;
       margin: 18px 0 0;
-      font-size: 1.0625rem;
+      font-size: var(--text-body-lg);
+      line-height: 1.55;
       color: var(--mist);
     }
 
@@ -607,14 +681,15 @@
       padding: 24px;
       overflow: hidden;
       background: var(--char);
-      border: 1px solid var(--line);
+      border: 0;
       border-radius: 24px;
+      box-shadow: var(--shadow-border);
       transition:
-        border-color 0.25s var(--ease),
+        box-shadow 0.25s var(--ease),
         transform 0.25s var(--ease);
     }
     .tile:hover {
-      border-color: var(--line-strong);
+      box-shadow: var(--shadow-border-hover);
       transform: translateY(-2px);
     }
     .tile .ic-well {
@@ -630,15 +705,16 @@
     .tile h3 {
       margin: 18px 0 0;
       font-family: var(--font-ui);
-      font-size: 1.25rem;
+      font-size: var(--text-card-title);
       font-weight: 500;
+      line-height: 1.2;
       color: var(--bone);
       letter-spacing: -0.01em;
     }
     .tile p {
       max-width: 34ch;
       margin: 8px 0 0;
-      font-size: 0.95rem;
+      font-size: var(--text-ui);
       color: var(--mist);
     }
     .tile-copy {
@@ -656,13 +732,17 @@
       min-width: 0;
     }
     /* The mockup is pressed flush into the card's bottom-right corner
-                                                                                                                                               (clipped by the tile radius + overflow). */
+                                                                                                                                                           (clipped by the tile radius + overflow). */
     .tile-copy-shot {
       flex: 0 0 52%;
       align-self: flex-end;
       width: 52%;
       height: auto;
       margin: 0 -24px -24px 0;
+    }
+    img {
+      outline: 1px solid oklch(1 0 0 / 0.1);
+      outline-offset: -1px;
     }
     /* Row-2 trio: glows converge toward the row's bottom-center, as if one light shines up from below the middle card. Side cards glow on their inner edge; the middle holds a low, centred glow. */
     .tile-llms::after,
@@ -771,10 +851,10 @@
       display: inline-flex;
       gap: 7px;
       align-items: center;
-      height: 34px;
+      height: var(--hit-target);
       padding: 0 15px;
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       font-weight: 500;
       color: var(--ash);
       appearance: none;
@@ -784,7 +864,8 @@
       border-radius: 9999px;
       transition:
         color 0.2s var(--ease),
-        background 0.2s var(--ease);
+        background 0.2s var(--ease),
+        transform 0.15s var(--ease);
     }
     .tab .ic {
       font-size: 15px;
@@ -801,9 +882,11 @@
       position: relative;
       overflow: hidden;
       background: rgba(29, 29, 29, 0.66);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 24px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      box-shadow:
+        var(--shadow-border),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
       -webkit-backdrop-filter: blur(20px) saturate(140%);
       backdrop-filter: blur(20px) saturate(140%);
     }
@@ -812,8 +895,9 @@
       margin: 0;
       overflow-x: auto;
       font-family: var(--font-mono);
-      font-size: 13.5px;
+      font-size: var(--text-ui-sm);
       -webkit-font-smoothing: auto;
+      -moz-osx-font-smoothing: auto;
       line-height: 1.7;
       color: var(--mist);
     }
@@ -839,35 +923,37 @@
       display: inline-flex;
       gap: 7px;
       align-items: center;
-      height: 32px;
+      height: var(--hit-target);
       padding: 0 12px;
       font-family: var(--font-display);
-      font-size: 12.5px;
+      font-size: var(--text-caption);
       font-weight: 500;
       color: var(--ash);
       cursor: pointer;
       background: rgba(10, 10, 10, 0.5);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 9999px;
+      box-shadow: var(--shadow-border);
       transition:
         color 0.18s var(--ease),
-        border-color 0.18s var(--ease);
+        box-shadow 0.18s var(--ease),
+        transform 0.15s var(--ease);
     }
     .copy-code:hover {
       color: var(--bone);
-      border-color: rgba(229, 229, 229, 0.22);
+      box-shadow: var(--shadow-border-hover);
     }
     .copy-code .ic {
       font-size: 14px;
     }
     .install-note {
       margin: 18px 0 0;
-      font-size: 0.9rem;
+      font-size: var(--text-ui-sm);
       color: var(--fog);
     }
     .install-note code {
       font-family: var(--font-mono);
-      font-size: 0.85rem;
+      font-size: var(--text-caption);
       color: var(--mist);
     }
     .install-note a {
@@ -879,15 +965,19 @@
       display: inline-flex;
       gap: 8px;
       align-items: center;
-      padding: 5px 12px;
+      min-height: var(--hit-target);
+      padding: 5px 10px 5px 12px;
       cursor: pointer;
       background: rgba(10, 10, 10, 0.5);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 9999px;
-      transition: border-color 0.18s var(--ease);
+      box-shadow: var(--shadow-border);
+      transition:
+        box-shadow 0.18s var(--ease),
+        transform 0.15s var(--ease);
     }
     .skill-cmd:hover {
-      border-color: rgba(229, 229, 229, 0.22);
+      box-shadow: var(--shadow-border-hover);
     }
     .skill-cmd .ic {
       font-size: 14px;
@@ -912,7 +1002,7 @@
     }
     .why-row .num {
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       font-weight: 500;
       color: var(--fog);
       letter-spacing: 0.04em;
@@ -920,8 +1010,9 @@
     .why-row .lab {
       max-width: 56ch;
       font-family: var(--font-ui);
-      font-size: 1.0625rem;
+      font-size: var(--text-body-lg);
       color: var(--mist);
+      text-wrap: pretty;
     }
     .why-row .lab b {
       font-weight: 500;
@@ -942,7 +1033,7 @@
     }
     .foot-mark {
       font-family: var(--font-display);
-      font-size: 1.05rem;
+      font-size: var(--text-body-lg);
       font-weight: 500;
       color: var(--paper);
       letter-spacing: -0.01em;
@@ -950,13 +1041,14 @@
     .foot-links {
       display: flex;
       gap: 24px;
-      font-size: 0.95rem;
+      font-size: var(--text-ui);
       color: var(--mist);
     }
     .foot-links a {
       display: inline-flex;
       gap: 6px;
       align-items: center;
+      min-height: var(--hit-target);
       transition: color 0.18s var(--ease);
     }
     .foot-links a:hover {
@@ -964,7 +1056,7 @@
     }
     .foot-note {
       flex-basis: 100%;
-      font-size: 0.85rem;
+      font-size: var(--text-ui-sm);
       color: var(--fog);
     }
     .foot-note a {
@@ -991,9 +1083,11 @@
       height: 52px;
       padding: 0 8px 0 18px;
       background: rgba(29, 29, 29, 0.78);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 9999px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      box-shadow:
+        var(--shadow-border),
+        0 8px 32px rgba(0, 0, 0, 0.4);
       opacity: 0;
       -webkit-backdrop-filter: blur(20px) saturate(150%);
       backdrop-filter: blur(20px) saturate(150%);
@@ -1015,9 +1109,12 @@
       }
     }
     .dock-mark {
-      margin-right: 8px;
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--hit-target);
+      margin-inline-end: 8px;
       font-family: var(--font-display);
-      font-size: 15px;
+      font-size: var(--text-ui);
       font-weight: 500;
       color: var(--paper);
       letter-spacing: -0.01em;
@@ -1048,12 +1145,17 @@
     .dock-links a {
       position: relative;
       z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      min-height: var(--hit-target);
       padding: 8px 12px;
-      font-size: 15px;
+      font-size: var(--text-ui);
       font-weight: 500;
       color: var(--mist);
       border-radius: 9999px;
-      transition: color 0.18s var(--ease);
+      transition:
+        color 0.18s var(--ease),
+        transform 0.15s var(--ease);
     }
     .dock-links a:hover {
       color: var(--bone);
@@ -1066,13 +1168,14 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 34px;
-      height: 34px;
+      width: var(--hit-target);
+      height: var(--hit-target);
       color: var(--ash);
       border-radius: 9999px;
       transition:
         color 0.18s var(--ease),
-        background 0.18s var(--ease);
+        background 0.18s var(--ease),
+        transform 0.15s var(--ease);
     }
     .dock-x:hover {
       color: var(--bone);
@@ -1082,27 +1185,28 @@
       font-size: 15px;
     }
     /* The dock CTA grows in (width + fade) only once the hero CTA scrolls away,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   so the dock container eases open instead of snapping. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               so the dock container eases open instead of snapping. */
     .dock .btn {
       max-width: 0;
-      height: 36px;
+      height: var(--hit-target);
       padding: 0;
-      margin-left: 0;
+      margin-inline-start: 0;
       overflow: hidden;
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       white-space: nowrap;
       pointer-events: none;
       opacity: 0;
       transition:
         max-width 0.34s var(--ease),
         padding 0.34s var(--ease),
-        margin 0.34s var(--ease),
+        margin-inline-start 0.34s var(--ease),
         opacity 0.26s var(--ease);
     }
     .dock.show-cta .btn {
       max-width: 220px;
-      padding: 0 16px;
-      margin-left: 4px;
+      padding-block: 0;
+      padding-inline: 16px 14px;
+      margin-inline-start: 4px;
       pointer-events: auto;
       opacity: 1;
     }
@@ -1138,6 +1242,7 @@
     @media (max-width: 720px) {
       :root {
         --gap: 64px;
+        --hit-target: 44px;
       }
       .bento {
         grid-template-columns: 1fr;
@@ -1152,7 +1257,7 @@
         flex-basis: auto;
         align-self: stretch;
         /* Full-bleed across the stacked card: content width + the 24px side
-                                                                                                                                   padding, pulled out by the negative margins. */
+                                                                                                                                               padding, pulled out by the negative margins. */
         width: calc(100% + 48px);
         height: auto;
         margin: 16px -24px -24px;
@@ -1196,7 +1301,7 @@
     .why-matters .body {
       max-width: 54ch;
       margin: 24px 0 0;
-      font-size: 1.125rem;
+      font-size: var(--text-lede);
       color: var(--mist);
     }
     .points {
@@ -1208,29 +1313,30 @@
     }
     .point {
       padding: 28px 28px 8px;
-      border-left: 1px solid var(--line-soft);
+      border-inline-start: 1px solid var(--line-soft);
     }
     .point:first-child {
-      padding-left: 4px;
-      border-left: 0;
+      padding-inline-start: 4px;
+      border-inline-start: 0;
     }
     .point h3 {
       margin: 0;
       font-family: var(--font-ui);
-      font-size: 1.0625rem;
+      font-size: var(--text-body-lg);
       font-weight: 500;
+      line-height: 1.2;
       color: var(--bone);
     }
     .point p {
       margin: 9px 0 0;
-      font-size: 0.95rem;
+      font-size: var(--text-ui);
       color: var(--mist);
     }
 
     /* ------------------------------------------------- Install (the action band) */
     /* Unlike the flat informational sections, this is where the reader acts — so
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               it reads as a lit glass deck: a full-bleed band (hairlines + faint char
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               tint + an indigo spotlight) with the configurator floating on it as glass. */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           it reads as a lit glass deck: a full-bleed band (hairlines + faint char
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           tint + an indigo spotlight) with the configurator floating on it as glass. */
     #install {
       position: relative;
       padding: 96px 0;
@@ -1265,7 +1371,7 @@
       padding: 0 14px;
       margin-bottom: 18px;
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: var(--text-caption);
       font-weight: 500;
       color: var(--mist);
       background: rgba(29, 29, 29, 0.7);
@@ -1297,9 +1403,11 @@
     .cfg-panel {
       padding: 4px 24px 22px;
       background: rgba(29, 29, 29, 0.66);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 24px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      box-shadow:
+        var(--shadow-border),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
       -webkit-backdrop-filter: blur(20px) saturate(140%);
       backdrop-filter: blur(20px) saturate(140%);
     }
@@ -1315,7 +1423,7 @@
     }
     .field > .label {
       font-family: var(--font-display);
-      font-size: 12px;
+      font-size: var(--text-micro);
       font-weight: 500;
       color: var(--fog);
       text-transform: uppercase;
@@ -1334,7 +1442,7 @@
       width: 16px;
       height: 16px;
       padding: 0;
-      margin-left: 6px;
+      margin-inline-start: 6px;
       font-size: 10px;
       vertical-align: middle;
       color: var(--mist);
@@ -1353,7 +1461,7 @@
       width: max-content;
       max-width: 240px;
       padding: 9px 11px;
-      font-size: 12px;
+      font-size: var(--text-micro);
       font-weight: 400;
       line-height: 1.45;
       color: var(--bone);
@@ -1365,6 +1473,15 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
       opacity: 0;
       transition: opacity 0.15s var(--ease);
+    }
+    .hint-q::before {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: var(--hit-target);
+      height: var(--hit-target);
+      content: "";
+      transform: translate(-50%, -50%);
     }
     .hint-q:hover::after,
     .hint-q:focus-visible::after {
@@ -1381,10 +1498,10 @@
       border-radius: 14px;
     }
     .seg button {
-      height: 30px;
+      min-height: var(--hit-target);
       padding: 0 13px;
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: var(--text-caption);
       font-weight: 500;
       color: var(--ash);
       appearance: none;
@@ -1394,7 +1511,8 @@
       border-radius: 10px;
       transition:
         color 0.18s var(--ease),
-        background 0.18s var(--ease);
+        background 0.18s var(--ease),
+        transform 0.15s var(--ease);
     }
     .seg button[aria-pressed="true"] {
       color: var(--paper);
@@ -1413,9 +1531,9 @@
       display: inline-flex;
       gap: 8px;
       align-items: center;
-      height: 34px;
+      height: var(--hit-target);
       padding: 0 14px;
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       color: var(--mist);
       cursor: pointer;
       user-select: none;
@@ -1424,7 +1542,8 @@
       border-radius: 9999px;
       transition:
         color 0.18s var(--ease),
-        border-color 0.18s var(--ease);
+        border-color 0.18s var(--ease),
+        transform 0.15s var(--ease);
     }
     .chk svg.ic {
       font-size: 15px;
@@ -1449,14 +1568,15 @@
       height: 40px;
       padding: 0 14px;
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       color: var(--bone);
       background: var(--void);
       border: 1px solid var(--line);
       border-radius: 10px;
     }
-    .cfg-text:focus {
-      outline: none;
+    .cfg-text:focus-visible {
+      outline: 2px solid var(--paper);
+      outline-offset: 2px;
       border-color: rgba(229, 229, 229, 0.3);
     }
     .endpoint-row {
@@ -1475,8 +1595,8 @@
       align-items: center;
     }
     .swatch {
-      width: 30px;
-      height: 30px;
+      width: var(--hit-target);
+      height: var(--hit-target);
       padding: 0;
       cursor: pointer;
       border: 1px solid var(--line-strong);
@@ -1492,10 +1612,10 @@
     }
     .swatch.is-default {
       width: auto;
-      height: 30px;
+      height: var(--hit-target);
       padding: 0 14px;
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: var(--text-caption);
       font-weight: 500;
       color: var(--ash);
       background: var(--void);
@@ -1505,6 +1625,10 @@
       outline: none;
       border-color: rgba(229, 229, 229, 0.3);
     }
+    .swatch.is-default:focus-visible {
+      outline: 2px solid var(--paper);
+      outline-offset: 2px;
+    }
     .swatch-pick {
       position: relative;
       display: inline-flex;
@@ -1512,8 +1636,8 @@
     .swatch-custom {
       display: grid;
       place-items: center;
-      width: 30px;
-      height: 30px;
+      width: var(--hit-target);
+      height: var(--hit-target);
       padding: 0;
       cursor: pointer;
       background: conic-gradient(
@@ -1539,7 +1663,7 @@
       width: 16px;
       height: 16px;
       font-family: var(--font-display);
-      font-size: 13px;
+      font-size: var(--text-caption);
       font-weight: 500;
       line-height: 1;
       color: #0a0a0a;
@@ -1565,9 +1689,10 @@
       width: 220px;
       padding: 14px;
       background: rgba(20, 20, 20, 0.92);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 16px;
       box-shadow:
+        0 0 0 1px oklch(1 0 0 / 0.1),
         0 16px 40px rgba(0, 0, 0, 0.45),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
       -webkit-backdrop-filter: blur(18px) saturate(160%);
@@ -1594,10 +1719,10 @@
       flex: 1 1 auto;
       gap: 4px;
       align-items: center;
-      height: 34px;
+      height: var(--hit-target);
       padding: 0 10px;
       font-family: var(--font-mono);
-      font-size: 13px;
+      font-size: var(--text-caption);
       color: var(--fog);
       background: var(--void);
       border: 1px solid var(--line);
@@ -1605,9 +1730,11 @@
     }
     .pick-hex:focus-within {
       border-color: rgba(229, 229, 229, 0.3);
+      box-shadow: 0 0 0 2px var(--paper);
     }
     .pick-hex input {
       width: 100%;
+      height: 100%;
       padding: 0;
       font: inherit;
       color: var(--bone);
@@ -1618,7 +1745,7 @@
     }
     .pick-hue {
       width: 100%;
-      height: 14px;
+      height: var(--hit-target);
       margin: 0;
       -webkit-appearance: none;
       appearance: none;
@@ -1633,6 +1760,9 @@
         hsl(300 70% 55%),
         hsl(360 70% 55%)
       );
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 14px;
       border-radius: 9999px;
     }
     .pick-hue::-webkit-slider-thumb {
@@ -1656,12 +1786,12 @@
     }
     .cfg-hint {
       margin: 18px 0 0;
-      font-size: 0.85rem;
+      font-size: var(--text-ui-sm);
       color: var(--fog);
     }
     .cfg-hint code {
       font-family: var(--font-mono);
-      font-size: 0.82rem;
+      font-size: var(--text-caption);
       color: var(--mist);
     }
     /* Panel is taller than the code; pin the code on screen as the reader scrolls the controls. */
@@ -1699,12 +1829,12 @@
       width: 100%;
       height: auto;
       background: rgba(29, 29, 29, 0.66);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 24px;
     }
     .cfg-framer-note {
       margin: 0;
-      font-size: 0.82rem;
+      font-size: var(--text-caption);
       line-height: 1.5;
       color: var(--fog);
     }
@@ -1715,32 +1845,47 @@
       justify-content: center;
       width: 100%;
       height: 44px;
-      padding: 0 18px;
+      padding-block: 0;
+      padding-inline: 16px 18px;
       font-family: var(--font-display);
-      font-size: 14px;
+      font-size: var(--text-ui-sm);
       font-weight: 500;
       color: var(--bone);
       cursor: pointer;
       background: rgba(229, 229, 229, 0.04);
-      border: 1px solid var(--line-strong);
+      border: 0;
       border-radius: 9999px;
+      box-shadow: var(--shadow-border);
       transition:
         color 0.18s var(--ease),
         background 0.18s var(--ease),
-        border-color 0.18s var(--ease),
+        box-shadow 0.18s var(--ease),
         transform 0.18s var(--ease);
     }
     .btn-llm:hover {
       background: rgba(229, 229, 229, 0.08);
-      border-color: rgba(229, 229, 229, 0.22);
+      box-shadow: var(--shadow-border-hover);
       transform: translateY(-1px);
     }
     .btn-llm:active {
-      transform: translateY(0);
+      transform: scale(0.96);
     }
     .btn-llm .ic {
       font-size: 16px;
       color: var(--ash);
+    }
+    .skill-cmd:active,
+    .btn:active,
+    .tab:active,
+    .seg button:active,
+    .chk:active,
+    .swatch:active,
+    .swatch-custom:active,
+    .copy-code:active,
+    .dock-mark:active,
+    .dock-links a:active,
+    .dock-x:active {
+      transform: scale(0.96);
     }
 
     @media (max-width: 860px) {
@@ -1753,21 +1898,29 @@
         position: static;
       }
       /* Anchor the help tooltip to the badge's right edge so its fixed 240px
-                 width grows leftward (into the panel) instead of off the right of a
-                 narrow viewport — left:0 here pushed the page ~100px wide on phones. */
+                             width grows leftward (into the panel) instead of off the right of a
+                             narrow viewport — left:0 here pushed the page ~100px wide on phones. */
       .hint-q::after {
         right: 0;
         left: auto;
       }
     }
     @media (max-width: 680px) {
+      .cfg-text {
+        height: var(--hit-target);
+        font-size: var(--text-body);
+      }
+      .pick-hex {
+        min-height: var(--hit-target);
+        font-size: var(--text-body);
+      }
       .points {
         grid-template-columns: 1fr;
       }
       .point {
         padding: 22px 4px 6px;
+        border-inline-start: 0;
         border-top: 1px solid var(--line-soft);
-        border-left: 0;
       }
       .point:first-child {
         border-top: 0;
@@ -1862,9 +2015,10 @@
       <section class="hero">
         <canvas class="hero-rays" aria-hidden="true"></canvas>
         <div class="wrap hero-grid">
-          <div class="hero-copy" data-reveal>
+          <div class="hero-copy">
             <span
               class="chip"
+              data-reveal
               aria-label="Works with JavaScript, React, and Framer"
             >
               Works with
@@ -1880,13 +2034,13 @@
                 </svg>
               </span>
             </span>
-            <h1>Take the right context<br>to any AI.</h1>
-            <p class="lede">
+            <h1 data-reveal>Take the right context<br>to any AI.</h1>
+            <p class="lede" data-reveal>
               Copy2LLM is the portable context layer between your website and
               AI. Readers capture what matters, review every source, and carry
               one clean bundle to the tool they choose.
             </p>
-            <div class="cta-row">
+            <div class="cta-row" data-reveal>
               <a class="btn btn-primary" href="#install" data-hero-cta>
                 Add to your site
                 <svg class="ic" aria-hidden="true">
@@ -2019,7 +2173,9 @@
       <section id="why" class="why-matters">
         <div class="wrap">
           <div data-reveal>
-            <p class="lead">AI is only as useful as the context it receives.</p>
+            <h2 class="lead">
+              AI is only as useful as the context it receives.
+            </h2>
             <p class="body">
               A link may be unreadable. A paste loses structure. Copy2LLM gives
               readers a deliberate handoff layer between your site and any AI.
@@ -3627,52 +3783,52 @@
       }
 
       const frag = `precision highp float;
-        uniform float iTime;
-        uniform vec2 iResolution;
+                    uniform float iTime;
+                    uniform vec2 iResolution;
 
-        // Tuning knobs — colors pulled from the dawn-wash palette above.
-        const vec3 COLOR1 = vec3(0.769, 0.584, 0.467); /* earth #C49577 */
-        const vec3 COLOR2 = vec3(0.420, 0.384, 0.949); /* indigo #6B62F2 */
-        const float SPEED = 2.5;
-        const float INTENSITY = 2.2;
-        const float SPREAD = 2.0;
-        const float SATURATION = 1.2;
-        const float BLEND = 0.7;
-        const float FALLOFF = 1.4;
-        const float OPACITY = 0.75;
+                    // Tuning knobs — colors pulled from the dawn-wash palette above.
+                    const vec3 COLOR1 = vec3(0.769, 0.584, 0.467); /* earth #C49577 */
+                    const vec3 COLOR2 = vec3(0.420, 0.384, 0.949); /* indigo #6B62F2 */
+                    const float SPEED = 2.5;
+                    const float INTENSITY = 2.2;
+                    const float SPREAD = 2.0;
+                    const float SATURATION = 1.2;
+                    const float BLEND = 0.7;
+                    const float FALLOFF = 1.4;
+                    const float OPACITY = 0.75;
 
-        float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA, float seedB, float speed) {
-          vec2 sourceToCoord = coord - raySource;
-          float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
-          return clamp(
-            (0.45 + 0.15 * sin(cosAngle * seedA + iTime * speed)) +
-            (0.3 + 0.2 * cos(-cosAngle * seedB + iTime * speed)),
-            0.0, 1.0) *
-            clamp((iResolution.x - length(sourceToCoord)) / iResolution.x, 0.5, 1.0);
-        }
+                    float rayStrength(vec2 raySource, vec2 rayRefDirection, vec2 coord, float seedA, float seedB, float speed) {
+                      vec2 sourceToCoord = coord - raySource;
+                      float cosAngle = dot(normalize(sourceToCoord), rayRefDirection);
+                      return clamp(
+                        (0.45 + 0.15 * sin(cosAngle * seedA + iTime * speed)) +
+                        (0.3 + 0.2 * cos(-cosAngle * seedB + iTime * speed)),
+                        0.0, 1.0) *
+                        clamp((iResolution.x - length(sourceToCoord)) / iResolution.x, 0.5, 1.0);
+                    }
 
-        void main() {
-          vec2 fragCoord = gl_FragCoord.xy;
-          vec2 coord = vec2(fragCoord.x, iResolution.y - fragCoord.y);
-          vec2 rayPos = vec2(iResolution.x * 1.1, -0.5 * iResolution.y);
+                    void main() {
+                      vec2 fragCoord = gl_FragCoord.xy;
+                      vec2 coord = vec2(fragCoord.x, iResolution.y - fragCoord.y);
+                      vec2 rayPos = vec2(iResolution.x * 1.1, -0.5 * iResolution.y);
 
-          float halfSpread = SPREAD * 0.275;
-          vec2 dir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
-          vec2 dir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
+                      float halfSpread = SPREAD * 0.275;
+                      vec2 dir1 = normalize(vec2(cos(0.785398 + halfSpread), sin(0.785398 + halfSpread)));
+                      vec2 dir2 = normalize(vec2(cos(0.785398 - halfSpread), sin(0.785398 - halfSpread)));
 
-          vec4 rays1 = vec4(COLOR1, 1.0) * rayStrength(rayPos, dir1, coord, 36.2214, 21.11349, SPEED);
-          vec4 rays2 = vec4(COLOR2, 1.0) * rayStrength(rayPos, dir2, coord, 22.3991, 18.0234, SPEED * 0.45);
-          vec4 color = rays1 * (1.0 - BLEND) * 0.9 + rays2 * BLEND * 0.9;
+                      vec4 rays1 = vec4(COLOR1, 1.0) * rayStrength(rayPos, dir1, coord, 36.2214, 21.11349, SPEED);
+                      vec4 rays2 = vec4(COLOR2, 1.0) * rayStrength(rayPos, dir2, coord, 22.3991, 18.0234, SPEED * 0.45);
+                      vec4 color = rays1 * (1.0 - BLEND) * 0.9 + rays2 * BLEND * 0.9;
 
-          float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, iResolution.y - rayPos.y)) / iResolution.y;
-          color.rgb *= INTENSITY * 0.4 / pow(max(distanceToLight, 0.001), FALLOFF);
+                      float distanceToLight = length(fragCoord.xy - vec2(rayPos.x, iResolution.y - rayPos.y)) / iResolution.y;
+                      color.rgb *= INTENSITY * 0.4 / pow(max(distanceToLight, 0.001), FALLOFF);
 
-          float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-          color.rgb = mix(vec3(gray), color.rgb, SATURATION);
+                      float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+                      color.rgb = mix(vec3(gray), color.rgb, SATURATION);
 
-          color.a = max(color.r, max(color.g, color.b)) * OPACITY;
-          gl_FragColor = color;
-        }`;
+                      color.a = max(color.r, max(color.g, color.b)) * OPACITY;
+                      gl_FragColor = color;
+                    }`;
 
       const compile = (type, src) => {
         const s = gl.createShader(type);

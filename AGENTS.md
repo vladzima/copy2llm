@@ -25,3 +25,14 @@ Every new widget option must reach snippet (`data-*`), React props, and the land
 ## Framer freeze
 
 The Framer Marketplace plugin and `copy2llm-framer` package are intentionally frozen because even small Marketplace updates trigger a costly review. Do not edit, rebuild, repack, or publish either Framer surface unless the user explicitly lifts this freeze for the task. New non-Framer features must be documented as unavailable in the current Framer release.
+
+For landing-only changes, do not run the root `bun run build`: it also rebuilds the frozen Framer workspaces. The static site has no build step; run the repository tests, typecheck, and lint instead.
+
+## Landing page UI conventions
+
+`apps/site/public/index.html` is intentionally self-contained. Keep its existing plain HTML/CSS/JS architecture and use the shared CSS tokens instead of introducing another styling system.
+
+- Use the semantic `--text-*` scale, balanced headings, pretty-wrapped descriptions, and a sequential `h1` → `h2` → `h3` outline.
+- Interactive targets are at least `40px` on desktop and `44px` on mobile. Inputs stay `16px` on mobile to prevent iOS focus zoom.
+- Press feedback uses `scale(0.96)`. Transition only named properties; never use `transition: all`.
+- Dark elevated surfaces use the `--shadow-border*` rings. Nested radii stay concentric, and images use an inset pure-white `oklch(1 0 0 / 0.1)` outline.
